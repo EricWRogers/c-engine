@@ -1,0 +1,10 @@
+fullscreen false
+width 800
+heigth 800
+use_frame_limit false
+frame_limit 120
+override_seed false
+seed 0
+volume-can-range-from-0.0-1.5
+volume 1.0
+log true

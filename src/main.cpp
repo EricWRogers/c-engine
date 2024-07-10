@@ -11,13 +11,11 @@
 #include "core/String.hpp"
 
 // Two-dimensional value noise based on Hugo Elias's description:
-//   http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+// http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
 
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
-using namespace std;
-
 
 const int numOctaves = 7;
 const double persistence = 0.5;
@@ -88,7 +86,7 @@ double ValueNoise_2D(double x, double y) {
   return total / frequency;
 }
 
-vector<int> myVector; 
+int* myVector; 
 // Mutex for safe access to the vector 
 SDL_Mutex *mutex;
 
@@ -124,8 +122,8 @@ void SaveImageToFile(const char* filename, std::vector<u8> _image, u32 _width, u
 int GeneratePerlinNoise(void *_data) 
 { 
     RandomData* data = (RandomData*)_data;
-    u32 height = 4096;
-    u32 width = 4096;
+    u32 height = 256;
+    u32 width = 256;
     std::vector<unsigned char> image = {};
     u32 tempSeed = data->seed;
 
@@ -147,18 +145,13 @@ int GeneratePerlinNoise(void *_data)
         }
     }
 
-    /*String filename;
-    filename = "New String Test seed_" + data->seed;
-    filename += ".pgm";
-
-    std::cout << filename.CString() << std::endl;*/
-
-    std::string fileName = "seed_" + std::to_string(data->seed) + ".pgm";
-    SaveImageToFile( fileName.c_str(), image, width, height);
+    String fileName = "seed_" + ToString(data->seed);
+    fileName += ".pgm";
+    SaveImageToFile( fileName.CString(), image, width, height);
     
     SDL_LockMutex(mutex);
-	myVector.push_back(data->seed); // Add element to the vector
-    cout << largestValue << endl;
+	  myVector[data->seed] = data->seed;
+    printf("%lf", largestValue);
     SDL_UnlockMutex(mutex);
     return 0;
 } 
@@ -168,6 +161,9 @@ int main()
     const u32 CPUCOUNT = SDL_GetCPUCount();
     SDL_Thread* threads[CPUCOUNT];
     RandomData randomData[CPUCOUNT];
+    int dumbSharedArray[CPUCOUNT];
+
+    myVector = dumbSharedArray;
 
     mutex = SDL_CreateMutex();
 
@@ -184,13 +180,13 @@ int main()
     }
 
 	// Display the elements of the vector 
-	std::cout << "Vector elements: ";
+	printf("Vector elements: ");
 
-	for (int value : myVector) { 
-		std::cout << value << " "; 
+	for (int i = 0; i < CPUCOUNT; i++) {
+    printf("%d ", myVector[i]);
 	}
-
-	std::cout << std::endl;
+  
+  printf("\n");
 
     SDL_DestroyMutex(mutex);
 

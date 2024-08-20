@@ -7,6 +7,8 @@
 #include <SDL3/SDL_thread.h>
 #include <SDL3/SDL_mutex.h>
 
+#include "core/vec.hpp"
+
 #include "core/Types.hpp"
 #include "core/String.hpp"
 

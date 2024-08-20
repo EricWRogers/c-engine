@@ -1,4 +1,4 @@
-#include "vec.h"
+#include "vec.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +10,7 @@ typedef struct {
 } vec_info;
 
 void vec_init(void* _refVec, unsigned int _capacity, size_t _elementSize) {
-    vec_info* info = malloc(sizeof(vec_info) + (_capacity * _elementSize));
+    vec_info* info = (vec_info*)malloc(sizeof(vec_info) + (_capacity * _elementSize));
 
     if (info == NULL) {
         printf("Failed to init vector!");
@@ -27,7 +27,7 @@ void vec_init(void* _refVec, unsigned int _capacity, size_t _elementSize) {
 void vec_resize(void* _refVec, unsigned int _capacity, size_t _elementSize) {
     vec_info* info = *(vec_info**)_refVec - 1;
     
-    realloc(info, sizeof(vec_info) + (_capacity * _elementSize));
+    info = (vec_info*)realloc(info, sizeof(vec_info) + (_capacity * _elementSize));
     
     *(void**)_refVec = info + 1;
     
@@ -56,7 +56,7 @@ void vec_add(void* _refVec, void* _value) {
     if (info->count >= info->capacity) {
         info->capacity = info->capacity * 2;
 
-        info = realloc( info, sizeof(vec_info) + (info->capacity * info->elementSize));
+        info = (vec_info*)realloc( info, sizeof(vec_info) + (info->capacity * info->elementSize));
 
         if (info == NULL) {
             printf("Failed to resize vector!");

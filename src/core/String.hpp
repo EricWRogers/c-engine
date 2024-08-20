@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "Types.hpp"
-#include "vec.h"
+#include "vec.hpp"
 
 #define MAXSTINGSIZE (2000)
 
@@ -12,13 +12,13 @@ class String
 public:
     String()
     {
-        vec_init(&data, 1, char);
+        vec_init(&data, 1, sizeof(char));
         data[0] = '\0';
     }
 
     String(const char* s)
     {
-        vec_init(&data, strlen(s) + 1, char);
+        vec_init(&data, strlen(s) + 1, sizeof(char));
         strcpy(data, s);
     }
 
@@ -29,7 +29,7 @@ public:
 
     u32 Count()
     {
-        return vec_count(&size) - 1;
+        return vec_count(&data) - 1; // minus one to hide the EOS
     }
 
     const char* CString()
@@ -49,7 +49,7 @@ public:
             if (cString[i] == '\0')
             {
                 if (i + 1 > vec_count(&data))
-                    vec_resize(&data, i + 1, char);
+                    vec_resize(&data, i + 1, sizeof(char));
 
                 memcpy(data, cString, i);
                 break;

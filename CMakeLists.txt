@@ -5,9 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 set(ASSETS_DIR_NAME assets)
 
-add_subdirectory(external/GL)
+#add_subdirectory(external/GL)
 add_subdirectory(external/glm)
-add_subdirectory(external/SDL)
+#add_subdirectory(external/SDL)
 add_subdirectory(external/stb)
 
 # Set where the ImGui files are stored
@@ -29,15 +29,15 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glm
         stb
-        libglew_static
-        SDL3::SDL3
+        #libglew_static
+        #SDL3::SDL3
 )
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         glm
         stb
-        SDL3::SDL3
+        #SDL3::SDL3
 )
 
 # This command will copy your assets folder to your running directory, in order to have access to your shaders, textures, etc

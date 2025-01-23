@@ -27,7 +27,7 @@ void vec_init(void* _refVec, unsigned int _capacity, size_t _elementSize) {
 void vec_resize(void* _refVec, unsigned int _capacity, size_t _elementSize) {
     vec_info* info = *(vec_info**)_refVec - 1;
     
-    realloc(info, sizeof(vec_info) + (_capacity * _elementSize));
+    info = realloc(info, sizeof(vec_info) + (_capacity * _elementSize));
     
     *(void**)_refVec = info + 1;
     

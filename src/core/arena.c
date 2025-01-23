@@ -1,4 +1,4 @@
-#include "arena.h"
+/*#include "arena.h"
 #include "vec.h"
 
 #include <stdio.h>
@@ -18,9 +18,11 @@ Arena arena_init(size_t _size) {
     return arena;
 }
 
-Arena arena_free(Arena* _arena) {
+void arena_free(Arena* _arena) {
     free(_arena->data);
     vec_free(&(_arena->_freeList));
+
+    _arena->data = NULL;
 }
 
 void* arena_alloc(Arena* _arena, const size_t _size) {
@@ -40,6 +42,7 @@ void* arena_alloc(Arena* _arena, const size_t _size) {
             }
         }
     }
+    return _arena;
 }
 
 void* arena_realloc(Arena* _arena, void* _target, size_t _size) {
@@ -82,7 +85,7 @@ void* arena_realloc(Arena* _arena, void* _target, size_t _size) {
     for(unsigned int i = 0; i < count; i++) {
         if (_arena->_freeList[i].size >= _size && _arena->_freeList[i].used == false) {
             memcpy(_arena->_freeList[i].data, _arena->_freeList[index].data, _arena->_freeList[index].size);
-            _arena->_freeList[i].used == true;
+            _arena->_freeList[i].used = true;
             _arena_dealloc(_arena, index);
             return _arena->_freeList[i].data;
         }
@@ -135,3 +138,4 @@ void _arena_dealloc(Arena* _arena, unsigned int _index) {
         }
     }
 }
+*/

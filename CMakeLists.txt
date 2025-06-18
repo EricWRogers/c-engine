@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(learnopengl)
+project(c-engine)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)

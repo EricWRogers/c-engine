@@ -6,6 +6,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_N
 set(ASSETS_DIR_NAME assets)
 set(CANIS_ENGINE_LIB CanisEngine)
 
+if(UNIX AND NOT APPLE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN")
+elseif(APPLE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "@loader_path")
+endif()
+
 #add_subdirectory(external/GL)
 #add_subdirectory(external/glm)
 #add_subdirectory(external/SDL)
@@ -141,4 +149,3 @@ add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
     COMMAND mcs -target:library -out:${CMAKE_SOURCE_DIR}/assets/GameScripts.dll ${CS_SCRIPTS}
     COMMENT "Recompiling all C# scripts every build"
 )
-

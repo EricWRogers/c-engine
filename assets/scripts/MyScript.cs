@@ -1,18 +1,14 @@
-using System;
-using System.Runtime.InteropServices;
+using Canis;
 
 public class MyScript
 {
-    [DllImport("CanisEngine")]
-    public static extern void Log(string msg);
-
     public static void Start()
     {
-        Log("This is mine now Unity!");
+        Debug.Log("This is mine now Unity!");
     }
 
     public static void Update()
     {
-        Log("Update CanisEngine!");
+        Debug.Log("Update CanisEngine!");
     }
 }

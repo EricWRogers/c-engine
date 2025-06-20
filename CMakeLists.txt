@@ -10,7 +10,7 @@ set(ASSETS_DIR_NAME assets)
 #add_subdirectory(external/SDL)
 #add_subdirectory(external/stb)
 
-add_library(lua 
+add_library(lua STATIC
     external/lua/lapi.c
     external/lua/lauxlib.c
     external/lua/lbaselib.c
@@ -52,7 +52,8 @@ if (WIN32)
   target_compile_definitions(lua PRIVATE LUA_USE_WINDOWS)
 endif()
 
-target_include_directories(lua PUBLIC lua)
+target_include_directories(lua PUBLIC ${CMAKE_SOURCE_DIR}/external/lua)
+
 if (UNIX)
   target_compile_definitions(lua PRIVATE LUA_USE_LINUX)
   target_link_libraries(lua PRIVATE dl)

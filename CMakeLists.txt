@@ -4,11 +4,23 @@ project(c-engine)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 set(ASSETS_DIR_NAME assets)
+set(CANIS_ENGINE_LIB CanisEngine)
 
 #add_subdirectory(external/GL)
 #add_subdirectory(external/glm)
 #add_subdirectory(external/SDL)
 #add_subdirectory(external/stb)
+
+find_program(CCACHE_PROGRAM ccache)
+if (CCACHE_PROGRAM)
+    message(STATUS "Found ccache at ${CCACHE_PROGRAM}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+else()
+    message(STATUS "ccache not found")
+endif()
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MONO REQUIRED mono-2)
 
 add_library(lua STATIC
     external/lua/lapi.c
@@ -75,10 +87,18 @@ add_subdirectory(external/sol2)
 #target_include_directories("imgui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends/ ${IMGUI_PATH}/misc/cpp/)
 #target_link_libraries("imgui" PRIVATE SDL2main SDL2-static)
 
-file(GLOB_RECURSE SRC_SOURCES src/*.c*)
-file(GLOB_RECURSE SRC_HEADERS src/*.h*)
+file(GLOB_RECURSE CANIS_SOURCES src/*.c*)
+file(GLOB_RECURSE CANIS_HEADERS src/*.h*)
 
-add_executable(${PROJECT_NAME} ${SRC_SOURCES} ${SRC_HEADERS})
+add_library(${CANIS_ENGINE_LIB} SHARED ${CANIS_HEADERS} ${CANIS_SOURCES})
+set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)
+
+target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE_DIRS})
+target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES})
+
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
@@ -88,6 +108,8 @@ target_link_libraries(${PROJECT_NAME}
         #SDL3::SDL3
         lua::lua
         sol2::sol2
+        ${MONO_LIBRARIES}
+        ${CANIS_ENGINE_LIB}
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -97,6 +119,7 @@ target_include_directories(${PROJECT_NAME}
         #SDL3::SDL3
         lua::lua
         sol2::sol2
+        ${MONO_INCLUDE_DIRS}
 )
 
 # This command will copy your assets folder to your running directory, in order to have access to your shaders, textures, etc
@@ -111,3 +134,11 @@ else()
             ${CMAKE_SOURCE_DIR}/${ASSETS_DIR_NAME}/
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
 endif()
+
+file(GLOB_RECURSE CS_SCRIPTS ${CMAKE_SOURCE_DIR}/assets/scripts/*.cs)
+
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND mcs -target:library -out:${CMAKE_SOURCE_DIR}/assets/GameScripts.dll ${CS_SCRIPTS}
+    COMMENT "Recompiling all C# scripts every build"
+)
+

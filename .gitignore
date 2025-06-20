@@ -15,4 +15,7 @@ build/
 zips/
 .vscode/
 *.blend1
-.zip
+*.zip
+*.dll
+*.so
+

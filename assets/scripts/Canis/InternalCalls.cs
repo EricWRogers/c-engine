@@ -14,5 +14,11 @@ namespace Canis
         [DllImport("CanisEngine", EntryPoint = "CSharpLayer_Log", CallingConvention = CallingConvention.Cdecl)]
         public static extern void Log(string _message);
     }
+
+	public static class Window
+    {
+		[DllImport("CanisEngine", EntryPoint = "CSharpLayer_SetTitle", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetTitle(string _message);
+    }
 }
 

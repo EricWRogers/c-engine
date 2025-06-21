@@ -12,6 +12,12 @@ namespace Canis
         return projectConfig;
     }
 
+    CanisData& GetCanisData()
+    {
+        static CanisData data = {};
+        return data;
+    }
+
     bool SaveProjectConfig()
     {
         ProjectConfig projectConfig = GetProjectConfig();
@@ -53,9 +59,9 @@ namespace Canis
 
     int Init()
     {
-        //SDL_Init(SDL_INIT_EVERYTHING);
+        SDL_Init(SDL_INIT_VIDEO);
 
-        //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
         // load project.canis
         std::ifstream file;

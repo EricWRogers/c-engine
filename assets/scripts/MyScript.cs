@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class MyScript
 {
     private int m_counter = 0;
-
     private List<int> m_numbers = new List<int>();
 
     public void Start()
@@ -21,6 +20,7 @@ public class MyScript
 
     public void Update()
     {
+        Window.SetTitle("Set From C#");
         Debug.FatalError("Update CanisEngine!" + m_counter++);
     }
 }

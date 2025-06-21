@@ -6,9 +6,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_N
 set(ASSETS_DIR_NAME assets)
 set(CANIS_ENGINE_LIB CanisEngine)
 
-#add_subdirectory(external/GL)
-#add_subdirectory(external/glm)
-#add_subdirectory(external/SDL)
+set(glew-cmake_BUILD_SHARED         FALSE)
+set(glew-cmake_BUILD_STATIC         TRUE)
+
+
+
+add_subdirectory(external/GL)
+
+set_target_properties(libglew_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+
+add_subdirectory(external/glm)
+add_subdirectory(external/SDL)
 #add_subdirectory(external/stb)
 
 find_program(CCACHE_PROGRAM ccache)
@@ -21,61 +30,6 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MONO REQUIRED mono-2)
-
-add_library(lua STATIC
-    external/lua/lapi.c
-    external/lua/lauxlib.c
-    external/lua/lbaselib.c
-    external/lua/lcode.c
-    external/lua/lcorolib.c
-    external/lua/lctype.c
-    external/lua/ldblib.c
-    external/lua/ldebug.c
-    external/lua/ldo.c
-    external/lua/ldump.c
-    external/lua/lfunc.c
-    external/lua/lgc.c
-    external/lua/linit.c
-    external/lua/liolib.c
-    external/lua/llex.c
-    external/lua/lmathlib.c
-    external/lua/lmem.c
-    external/lua/loadlib.c
-    external/lua/lobject.c
-    external/lua/lopcodes.c
-    external/lua/loslib.c
-    external/lua/lparser.c
-    external/lua/lstate.c
-    external/lua/lstring.c
-    external/lua/lstrlib.c
-    external/lua/ltable.c
-    external/lua/ltablib.c
-    external/lua/ltests.c
-    external/lua/ltm.c
-    external/lua/lua.c
-    external/lua/lundump.c
-    external/lua/lutf8lib.c
-    external/lua/lvm.c
-    external/lua/lzio.c
-)
-add_library(lua::lua ALIAS lua)
-
-if (WIN32)
-  target_compile_definitions(lua PRIVATE LUA_USE_WINDOWS)
-endif()
-
-target_include_directories(lua PUBLIC ${CMAKE_SOURCE_DIR}/external/lua)
-
-if (UNIX)
-  target_compile_definitions(lua PRIVATE LUA_USE_LINUX)
-  target_link_libraries(lua PRIVATE dl)
-endif()
-
-### sol2
-set(SOL2_LUA_VERSION "5.4.4" CACHE STRING "The version of Lua used")
-# we build Lua manually
-set(SOL2_BUILD_LUA FALSE CACHE BOOL "Always build Lua, do not search for it in the system")
-add_subdirectory(external/sol2)
 
 # Set where the ImGui files are stored
 #set(IMGUI_PATH  "external/imgui")
@@ -95,30 +49,27 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
-target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE_DIRS})
-target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES})
+target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE_DIRS} glm libglew_static SDL3::SDL3)
+target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES} glm libglew_static SDL3::SDL3)
+
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        #glm
+        glm
         #stb
-        #libglew_static
-        #SDL3::SDL3
-        lua::lua
-        sol2::sol2
+        libglew_static
+        SDL3::SDL3
         ${MONO_LIBRARIES}
         ${CANIS_ENGINE_LIB}
 )
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        #glm
+        glm
         #stb
-        #SDL3::SDL3
-        lua::lua
-        sol2::sol2
+        SDL3::SDL3
         ${MONO_INCLUDE_DIRS}
 )
 

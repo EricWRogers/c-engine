@@ -1,6 +1,9 @@
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
 
+#include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+
 namespace Canis
 {
     struct ProjectConfig
@@ -24,7 +27,19 @@ namespace Canis
         bool vsync = false;
     };
 
+    struct CanisData {
+        void *sdlWindow = nullptr;
+        void *glContext = nullptr;
+        bool resized = false;
+        int screenWidth, screenHeight;
+        bool fullscreen = false;
+        bool mouseLock = false;
+        glm::vec4 clearColor;
+        float fps = 0.0f;
+    };
+
     ProjectConfig& GetProjectConfig();
+    CanisData& GetCanisData();
     bool SaveProjectConfig();
 
     int Init();

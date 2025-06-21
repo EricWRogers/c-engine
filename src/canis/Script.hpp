@@ -1,14 +1,19 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
+#include <iostream>
+#include <string>
 
 struct Script {
     MonoDomain* domain = nullptr;
     MonoAssembly* assembly = nullptr;
     MonoImage* image = nullptr;
 
+    MonoClass* klass = nullptr;
+    MonoObject* instance = nullptr;
+
     void Init(const char* dllPath) {
-        mono_set_dirs("/usr/lib", "/etc/mono"); // adjust if needed
+        mono_set_dirs("/usr/lib", "/etc/mono");
 
         domain = mono_jit_init("ScriptDomain");
         if (!domain) {
@@ -25,33 +30,51 @@ struct Script {
         image = mono_assembly_get_image(assembly);
         if (!image) {
             std::cerr << "Failed to get image from assembly.\n";
+            return;
         }
+
+        // Find the class MyScript in the global namespace
+        klass = mono_class_from_name(image, "", "MyScript"); // "" = no namespace
+        if (!klass) {
+            std::cerr << "Failed to find class MyScript.\n";
+            return;
+        }
+
+        // Allocate and initialize the object
+        instance = mono_object_new(domain, klass);
+        if (!instance) {
+            std::cerr << "Failed to create instance of MyScript.\n";
+            return;
+        }
+
+        mono_runtime_object_init(instance); // calls constructor if available
     }
 
-    void CallMethod(const char* methodName) {
-        std::string fullName = "MyScript:" + std::string(methodName);  // e.g., "MyScript:Start"
-        MonoMethodDesc* desc = mono_method_desc_new(fullName.c_str(), /*include_namespace=*/false);
-        MonoMethod* method = mono_method_desc_search_in_image(desc, image);
-        mono_method_desc_free(desc);
-
-        if (method) {
-            mono_runtime_invoke(method, nullptr, nullptr, nullptr);
-        } else {
+    void CallInstanceMethod(const char* methodName) {
+        MonoMethod* method = mono_class_get_method_from_name(klass, methodName, 0);
+        if (!method) {
             std::cerr << "Method not found: " << methodName << "\n";
+            return;
+        }
+
+        MonoObject* exception = nullptr;
+        mono_runtime_invoke(method, instance, nullptr, &exception);
+
+        if (exception) {
+            MonoString* msg = mono_object_to_string(exception, nullptr);
+            char* cstr = mono_string_to_utf8(msg);
+            std::cerr << "Exception: " << cstr << "\n";
+            mono_free(cstr);
         }
     }
 
-    void Start() {
-        CallMethod("Start");
-    }
-
-    void Update() {
-        CallMethod("Update");
-    }
+    void Start() { CallInstanceMethod("Start"); }
+    void Update() { CallInstanceMethod("Update"); }
 
     void Destroy() {
         if (domain) {
             mono_jit_cleanup(domain);
+            domain = nullptr;
         }
     }
 };

@@ -1,16 +1,26 @@
 using Canis;
+using System;
+using System.Collections.Generic;
 
 public class MyScript
 {
-    public static void Start()
+    private int m_counter = 0;
+
+    private List<int> m_numbers = new List<int>();
+
+    public void Start()
     {
-        Debug.Log("This is mine now Unity!");
-        Debug.Warning("This is mine now Unity!");
-        Debug.Error("This is mine now Unity!");
+        for (int i = 0; i < 1000; i++)
+            m_numbers.Add(i);
+        
+        Debug.Log("This is mine now Unity!" + m_counter++);
+        Debug.Warning("This is mine now Unity!" + m_counter++);
+        Debug.Error("This is mine now Unity!" + m_counter++);
+        Debug.Log("m_numbers.Count: " + m_numbers.Count);
     }
 
-    public static void Update()
+    public void Update()
     {
-        Debug.FatalError("Update CanisEngine!");
+        Debug.FatalError("Update CanisEngine!" + m_counter++);
     }
 }

@@ -242,4 +242,9 @@ namespace CSharpLayer
     {
         Canis::Window::SetWindowName(std::string(_title));
     }
+
+    void CSharpLayer_SetWindowSize(int _width, int _height)
+    {
+        Canis::Window::SetWindowSize(_width, _height);
+    }
 }

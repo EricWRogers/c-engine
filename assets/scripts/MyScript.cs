@@ -21,6 +21,7 @@ public class MyScript
     public void Update()
     {
         Window.SetTitle("Set From C#");
-        Debug.FatalError("Update CanisEngine!" + m_counter++);
+        
+        Debug.Log("Update CanisEngine!" + m_counter++);
     }
 }

@@ -13,7 +13,7 @@ struct Script {
     MonoObject* instance = nullptr;
 
     void Init(const char* dllPath) {
-        mono_set_dirs("/usr/lib", "/etc/mono");
+        mono_set_dirs("mono/lib", "mono/etc");
 
         domain = mono_jit_init("ScriptDomain");
         if (!domain) {

@@ -19,6 +19,8 @@ namespace Canis
     {
 		[DllImport("CanisEngine", EntryPoint = "CSharpLayer_SetTitle", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetTitle(string _message);
+		//[DllImport("CanisEngine", EntryPoint = "CSharpLayer_SetWindowSize", CallingConvention = CallingConvention.Cdecl)]
+        //public static extern void SetSize(int _width, int _height);
     }
 }
 

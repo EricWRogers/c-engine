@@ -59,7 +59,7 @@ namespace Canis
 
     int Init()
     {
-        SDL_Init(SDL_INIT_VIDEO);
+        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 

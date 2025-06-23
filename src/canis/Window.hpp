@@ -60,5 +60,6 @@ namespace CSharpLayer
 {
     extern "C" {
         void CSharpLayer_SetTitle(const char* _title);
+        void CSharpLayer_SetWindowSize(int _width, int _height);
     }
 }

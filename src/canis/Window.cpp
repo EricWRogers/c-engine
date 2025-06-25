@@ -247,4 +247,11 @@ namespace CSharpLayer
     {
         Canis::Window::SetWindowSize(_width, _height);
     }
+
+    
+    void CSharpLayer_SetBackgroundColor(float _red, float _green, float _blue, float _alpha)
+    {
+        Canis::Window::SetClearColor(glm::vec4(_red,_green,_blue,_alpha));
+        Canis::Window::ClearColor();
+    }
 }

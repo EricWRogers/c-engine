@@ -61,5 +61,6 @@ namespace CSharpLayer
     extern "C" {
         void CSharpLayer_SetTitle(const char* _title);
         void CSharpLayer_SetWindowSize(int _width, int _height);
+        void CSharpLayer_SetBackgroundColor(float _red, float _green, float _blue, float _alpha);
     }
 }

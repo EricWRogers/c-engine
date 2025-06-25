@@ -5,27 +5,23 @@
 
 #include "canis/Canis.hpp"
 #include "canis/Debug.hpp"
-#include "canis/Script.hpp"
+#include "canis/ScriptManager.hpp"
 #include "canis/Window.hpp"
+#include "canis/Graphics.hpp"
 
 int main() {
     Canis::Init();
     
     Canis::Window::Create("Test", 300, 300, 0);
     Canis::Window::SetWindowName("Yes");
-    Canis::Window::SetClearColor(glm::vec4(1.0f));
-    Canis::Window::ClearColor();
-    Canis::Window::SwapBuffer();
-    Canis::Window::ClearColor();
-    
 
-    Script testScript;
-    testScript.Init("GameScripts.dll"); // might move this to the assets folder or a new share lib folder in root and dist
+    Canis::ScriptManager::Init("GameScripts.dll");
+    Script testScript = Canis::ScriptManager::LoadScript("MyScript");
     testScript.Start();
 
     for (int i = 0; i < 10000; i++)
     {
-        Canis::Window::ClearColor();
+        Canis::Graphics::ClearBuffer(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
         testScript.Update();
         Canis::Window::SwapBuffer();
     }

@@ -23,5 +23,7 @@ public class MyScript
         Window.SetTitle("Set From C#");
         
         Debug.Log("Update CanisEngine!" + m_counter++);
+
+        Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
     }
 }

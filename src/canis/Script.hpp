@@ -9,17 +9,16 @@ struct Script {
     std::string className = "";
     MonoClass* klass = nullptr;
     MonoObject* instance = nullptr;
+    MonoMethod* startMethod = nullptr;
+    MonoMethod* updateMethod = nullptr;
+    MonoMethod* onDestroyMethod = nullptr;
 
-    void CallInstanceMethod(const char* methodName) {
-        // cashe this later
-        MonoMethod* method = mono_class_get_method_from_name(klass, methodName, 0);
-        if (!method) {
-            std::cerr << "Method not found: " << methodName << "\n";
+    void CallInstanceMethod(MonoMethod* _method) {
+        if (_method == nullptr)
             return;
-        }
 
         MonoObject* exception = nullptr;
-        mono_runtime_invoke(method, instance, nullptr, &exception);
+        mono_runtime_invoke(_method, instance, nullptr, &exception);
 
         if (exception) {
             MonoString* msg = mono_object_to_string(exception, nullptr);
@@ -29,7 +28,15 @@ struct Script {
         }
     }
 
-    void Start() { CallInstanceMethod("Start"); }
-    void Update() { CallInstanceMethod("Update"); }
-    void Destroy() { CallInstanceMethod("Destroy"); }
+    void Start() {
+        CallInstanceMethod(startMethod);
+    }
+
+    void Update() {
+        CallInstanceMethod(updateMethod);
+    }
+
+    void Destroy() {
+        CallInstanceMethod(onDestroyMethod);
+    }
 };

@@ -28,6 +28,6 @@ int main() {
 
     testScript.Destroy();
 
-    
+    Canis::ScriptManager::Destroy();
     return 0;
 }

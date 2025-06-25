@@ -81,6 +81,12 @@ namespace Canis {
             // calls constructor if available
             mono_runtime_object_init(script.instance);
 
+            { // cache methods
+                script.startMethod = mono_class_get_method_from_name(script.klass, "Start", 0);
+                script.updateMethod = mono_class_get_method_from_name(script.klass, "Update", 0);
+                script.onDestroyMethod = mono_class_get_method_from_name(script.klass, "OnDestroy", 0);
+            }
+
             return script;
         }
     }

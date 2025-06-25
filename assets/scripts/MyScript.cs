@@ -26,4 +26,9 @@ public class MyScript
 
         Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
     }
+
+    public void OnDestroy()
+    {
+        Debug.Log("Destroyed");
+    }
 }

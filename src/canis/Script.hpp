@@ -13,12 +13,12 @@ struct Script {
     MonoMethod* updateMethod = nullptr;
     MonoMethod* onDestroyMethod = nullptr;
 
-    void CallInstanceMethod(MonoMethod* _method) {
+    void CallInstanceMethod(MonoMethod* _method, void** _args = nullptr) {
         if (_method == nullptr)
             return;
 
         MonoObject* exception = nullptr;
-        mono_runtime_invoke(_method, instance, nullptr, &exception);
+        mono_runtime_invoke(_method, instance, _args, &exception);
 
         if (exception) {
             MonoString* msg = mono_object_to_string(exception, nullptr);
@@ -32,8 +32,11 @@ struct Script {
         CallInstanceMethod(startMethod);
     }
 
-    void Update() {
-        CallInstanceMethod(updateMethod);
+    void Update(float _deltaTime) {
+        printf("calling update\n");
+        float deltaTime = _deltaTime;
+        void* args[1] = { &deltaTime };
+        CallInstanceMethod(updateMethod, args);
     }
 
     void Destroy() {

@@ -2,6 +2,8 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
+
+#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -18,12 +20,12 @@ namespace Canis {
             std::unordered_map<std::string, MonoClass*> scriptClasses = {};
         };
 
-        Data& GetData() {
+        static Data& GetData() {
             static Data data = {};
             return data;
         }
 
-        void Init(std::string _dllPath)
+        static void Init(std::string _dllPath)
         {
             Data& data = GetData();
             mono_set_dirs("mono/lib", "mono/etc");
@@ -47,7 +49,7 @@ namespace Canis {
             }
         }
 
-        void Destroy() {
+        static void Destroy() {
             Data& data = GetData();
             if (data.domain) {
                 mono_jit_cleanup(data.domain);
@@ -55,22 +57,29 @@ namespace Canis {
             }
         }
 
-        Script LoadScript(std::string _className)
+        static Script LoadScript(std::string _className)
         {
             Data& data = GetData();
+            int count = 0;
 
             if (data.scriptClasses.contains(_className) == false)
             {
-                MonoClass* klass = mono_class_from_name(data.image, "", _className.c_str());
+                const char* className = _className.c_str();
+                printf("f%s%d\n", _className.c_str(), count);
+                MonoClass* klass = mono_class_from_name(data.image, "", className);
                 data.scriptClasses[_className] = klass;
                 if (!klass) {
                     FatalError("Failed to find class MyScript.");
                 }
             }
 
+            printf("s%s%d\n", _className.c_str(), count);
+
             Script script = {};
             script.className = _className;
             script.klass = data.scriptClasses[_className];
+
+            printf("%s%d\n", _className.c_str(), count);
 
             // allocate instance
             script.instance = mono_object_new(data.domain, script.klass);
@@ -78,14 +87,18 @@ namespace Canis {
                 FatalError(("Failed to create instance of " + _className + ".").c_str());
             }
 
+            printf("%s%d\n", _className.c_str(), count);
+
             // calls constructor if available
             mono_runtime_object_init(script.instance);
 
             { // cache methods
                 script.startMethod = mono_class_get_method_from_name(script.klass, "Start", 0);
-                script.updateMethod = mono_class_get_method_from_name(script.klass, "Update", 0);
+                script.updateMethod = mono_class_get_method_from_name(script.klass, "Update", 1);
                 script.onDestroyMethod = mono_class_get_method_from_name(script.klass, "OnDestroy", 0);
             }
+
+            printf("%s%d\n", _className.c_str(), count);
 
             return script;
         }

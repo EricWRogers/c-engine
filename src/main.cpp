@@ -8,6 +8,7 @@
 #include "canis/ScriptManager.hpp"
 #include "canis/Window.hpp"
 #include "canis/Graphics.hpp"
+#include "canis/Scene.hpp"
 
 int main() {
     Canis::Init();
@@ -16,17 +17,22 @@ int main() {
     Canis::Window::SetWindowName("Yes");
 
     Canis::ScriptManager::Init("GameScripts.dll");
-    Script testScript = Canis::ScriptManager::LoadScript("MyScript");
-    testScript.Start();
+
+    Canis::Scene scene;
+
+    Canis::Entity entity = scene.CreateEntity();
+    entity.AddScript("MyScript");
+    //Canis::Entity entity1 = scene.CreateEntity();
+    //entity1.AddScript("Player");
 
     for (int i = 0; i < 10000; i++)
     {
         Canis::Graphics::ClearBuffer(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
-        testScript.Update();
+        scene.Update(0.5f);
         Canis::Window::SwapBuffer();
     }
 
-    testScript.Destroy();
+    scene.Destroy();
 
     Canis::ScriptManager::Destroy();
     return 0;

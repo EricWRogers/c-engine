@@ -2,7 +2,7 @@ using Canis;
 using System;
 using System.Collections.Generic;
 
-public class MyScript
+public class Player
 {
     private int m_counter = 0;
     private List<int> m_numbers = new List<int>();

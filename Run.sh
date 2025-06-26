@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd dist/Linux
-./c-engine
+time ./c-engine
 cd ../..

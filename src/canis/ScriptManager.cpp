@@ -48,7 +48,7 @@ namespace Canis {
             if (data.scriptClasses.contains(_className) == false)
             {
                 const char* className = _className.c_str();
-                printf("f%s%d%p\n", _className.c_str(), count, data.image);
+                printf("f%s%d%p\n", _className.c_str(), count++, data.image);
                 MonoClass* klass = mono_class_from_name(data.image, "", className);
                 data.scriptClasses[_className] = klass;
                 if (!klass) {
@@ -56,13 +56,13 @@ namespace Canis {
                 }
             }
 
-            printf("s%s%d\n", _className.c_str(), count);
+            printf("s%s%d\n", _className.c_str(), count++);
 
             Script script = {};
             script.className = _className;
             script.klass = data.scriptClasses[_className];
 
-            printf("%s%d\n", _className.c_str(), count);
+            printf("%s%d\n", _className.c_str(), count++);
 
             // allocate instance
             script.instance = mono_object_new(data.domain, script.klass);
@@ -70,20 +70,22 @@ namespace Canis {
                 FatalError(("Failed to create instance of " + _className + ".").c_str());
             }
 
-            printf("%s%d\n", _className.c_str(), count);
+            printf("%s%d\n", _className.c_str(), count++);
 
             // calls constructor if available
             mono_runtime_object_init(script.instance);
 
             { // cache methods
                 script.startMethod = mono_class_get_method_from_name(script.klass, "Start", 0);
+                
                 script.updateMethod = mono_class_get_method_from_name(script.klass, "Update", 1);
                 if (!script.updateMethod)
                     std::cerr << "Failed to find Update(float) method.\n";
+                
                 script.onDestroyMethod = mono_class_get_method_from_name(script.klass, "OnDestroy", 0);
             }
 
-            printf("%s%d\n", _className.c_str(), count);
+            printf("%s%d\n", _className.c_str(), count++);
 
             return script;
         }

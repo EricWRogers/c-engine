@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cmake -B build/
-make -j8 -C build/
+cmake -DCMAKE_BUILD_TYPE=Release -B build/
+make -j32 -C build/

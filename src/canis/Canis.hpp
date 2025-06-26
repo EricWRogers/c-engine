@@ -36,6 +36,7 @@ namespace Canis
         bool mouseLock = false;
         glm::vec4 clearColor;
         float fps = 0.0f;
+        void* frameRateManager = nullptr;
     };
 
     ProjectConfig& GetProjectConfig();

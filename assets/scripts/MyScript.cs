@@ -1,11 +1,17 @@
 using Canis;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 public class MyScript
 {
     private int m_counter = 0;
     private List<int> m_numbers = new List<int>();
+
+    MyScript()
+    {
+        Debug.Log("Constructor");
+    }
 
     public void Start()
     {
@@ -22,9 +28,9 @@ public class MyScript
     {
         Window.SetTitle("Set From C#");
         
-        Debug.Log("Update CanisEngine!" + m_counter++ + " " + _deltaTime);
+        Debug.Log("Update CanisEngine! " + m_counter++);// + " " + Time.deltaTime);
 
-        Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
+        //Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
     }
 
     public void OnDestroy()

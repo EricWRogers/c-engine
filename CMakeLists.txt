@@ -9,60 +9,11 @@ set(ASSETS_DIR_NAME assets)
 #add_subdirectory(external/glm)
 #add_subdirectory(external/SDL)
 #add_subdirectory(external/stb)
+add_subdirectory(external/angelscript/sdk/angelscript)
 
-add_library(lua 
-    external/lua/lapi.c
-    external/lua/lauxlib.c
-    external/lua/lbaselib.c
-    external/lua/lcode.c
-    external/lua/lcorolib.c
-    external/lua/lctype.c
-    external/lua/ldblib.c
-    external/lua/ldebug.c
-    external/lua/ldo.c
-    external/lua/ldump.c
-    external/lua/lfunc.c
-    external/lua/lgc.c
-    external/lua/linit.c
-    external/lua/liolib.c
-    external/lua/llex.c
-    external/lua/lmathlib.c
-    external/lua/lmem.c
-    external/lua/loadlib.c
-    external/lua/lobject.c
-    external/lua/lopcodes.c
-    external/lua/loslib.c
-    external/lua/lparser.c
-    external/lua/lstate.c
-    external/lua/lstring.c
-    external/lua/lstrlib.c
-    external/lua/ltable.c
-    external/lua/ltablib.c
-    external/lua/ltests.c
-    external/lua/ltm.c
-    external/lua/lua.c
-    external/lua/lundump.c
-    external/lua/lutf8lib.c
-    external/lua/lvm.c
-    external/lua/lzio.c
+include_directories(
+    external/angelscript/sdk/angelscript/include
 )
-add_library(lua::lua ALIAS lua)
-
-if (WIN32)
-  target_compile_definitions(lua PRIVATE LUA_USE_WINDOWS)
-endif()
-
-target_include_directories(lua PUBLIC lua)
-if (UNIX)
-  target_compile_definitions(lua PRIVATE LUA_USE_LINUX)
-  target_link_libraries(lua PRIVATE dl)
-endif()
-
-### sol2
-set(SOL2_LUA_VERSION "5.4.4" CACHE STRING "The version of Lua used")
-# we build Lua manually
-set(SOL2_BUILD_LUA FALSE CACHE BOOL "Always build Lua, do not search for it in the system")
-add_subdirectory(external/sol2)
 
 # Set where the ImGui files are stored
 #set(IMGUI_PATH  "external/imgui")
@@ -85,8 +36,7 @@ target_link_libraries(${PROJECT_NAME}
         #stb
         #libglew_static
         #SDL3::SDL3
-        lua::lua
-        sol2::sol2
+        angelscript
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -94,8 +44,7 @@ target_include_directories(${PROJECT_NAME}
         #glm
         #stb
         #SDL3::SDL3
-        lua::lua
-        sol2::sol2
+        external/angelscript/sdk/angelscript/include
 )
 
 # This command will copy your assets folder to your running directory, in order to have access to your shaders, textures, etc

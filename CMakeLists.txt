@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 set(ASSETS_DIR_NAME assets)
 
-#add_subdirectory(external/GL)
-#add_subdirectory(external/glm)
-#add_subdirectory(external/SDL)
-#add_subdirectory(external/stb)
+add_subdirectory(external/GL)
+add_subdirectory(external/glm)
+add_subdirectory(external/SDL)
+add_subdirectory(external/stb)
 add_subdirectory(external/angelscript/sdk/angelscript/projects/cmake)
 
 include_directories(
@@ -26,14 +26,14 @@ target_include_directories(angelscript_addons PUBLIC
 )
 
 # Set where the ImGui files are stored
-#set(IMGUI_PATH  "external/imgui")
+set(IMGUI_PATH  "external/imgui")
     
 # Compile as static library 
-#file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp) 
-#file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl2.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h) 
-#add_library("imgui" STATIC ${IMGUI_SOURCES})
-#target_include_directories("imgui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends/ ${IMGUI_PATH}/misc/cpp/)
-#target_link_libraries("imgui" PRIVATE SDL2main SDL2-static)
+file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp) 
+file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl2.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h) 
+add_library("imgui" STATIC ${IMGUI_SOURCES})
+target_include_directories("imgui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends/ ${IMGUI_PATH}/misc/cpp/)
+target_link_libraries("imgui" PRIVATE SDL2main SDL2-static)
 
 file(GLOB_RECURSE SRC_SOURCES src/*.c*)
 file(GLOB_RECURSE SRC_HEADERS src/*.h*)
@@ -42,19 +42,23 @@ add_executable(${PROJECT_NAME} ${SRC_SOURCES} ${SRC_HEADERS})
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        #glm
-        #stb
-        #libglew_static
-        #SDL3::SDL3
+        glm
+        stb
+        libglew_static
+        SDL2main
+        SDL2-static
+        imgui
         angelscript
         angelscript_addons
 )
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        #glm
-        #stb
-        #SDL3::SDL3
+        glm
+        stb
+        SDL2main
+        SDL2-static
+        imgui
         external/angelscript/sdk/angelscript/include
 )
 

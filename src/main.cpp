@@ -21,6 +21,8 @@
 #include "Canis/Editor.hpp"
 #include "Canis/FrameRateManager.hpp"
 
+#include "ScriptInstance.hpp"
+
 using namespace glm;
 
 // git restore .
@@ -40,8 +42,10 @@ void MessageCallback(const asSMessageInfo* msg, void*) {
               << type << " : " << msg->message << std::endl;
 }
 
-int ScriptTest() {
-    asIScriptEngine* engine = asCreateScriptEngine();
+static asIScriptEngine* engine = nullptr;
+
+int InitScriptingEngine() {
+    engine = asCreateScriptEngine();
     if (!engine) {
         std::cerr << "Failed to create AngelScript engine" << std::endl;
         return -1;
@@ -52,46 +56,6 @@ int ScriptTest() {
     RegisterStdString(engine);
 
     engine->RegisterGlobalFunction("void Print(const string &in)", asFUNCTION(Print), asCALL_CDECL);
-
-
-    CScriptBuilder builder;
-    if (builder.StartNewModule(engine, "Main") < 0 ||
-        builder.AddSectionFromFile("assets/scripts/test.as") < 0 ||
-        builder.BuildModule() < 0) {
-        std::cerr << "Failed to compile script." << std::endl;
-        engine->ShutDownAndRelease();
-        return -1;
-    }
-
-    asIScriptModule* mod = engine->GetModule("Main");
-    asITypeInfo* type = mod->GetTypeInfoByDecl("MyScript");
-    if (!type) {
-        std::cerr << "Class 'MyScript' not found in script." << std::endl;
-        engine->ShutDownAndRelease();
-        return -1;
-    }
-
-    asIScriptObject* obj = reinterpret_cast<asIScriptObject*>(engine->CreateScriptObject(type));
-
-    auto CallMethod = [&](const char* decl, float arg = 0.0f) {
-        asIScriptFunction* func = obj->GetObjectType()->GetMethodByDecl(decl);
-        if (!func) return;
-        asIScriptContext* ctx = engine->CreateContext();
-        ctx->Prepare(func);
-        ctx->SetObject(obj);
-        if (std::string(decl).find("float") != std::string::npos)
-            ctx->SetArgFloat(0, arg);
-        ctx->Execute();
-        ctx->Release();
-    };
-
-    CallMethod("void Create()");
-    CallMethod("void Start()");
-    CallMethod("void Update(float)", 0.016f);
-    CallMethod("void Destroy()");
-
-    obj->Release();
-    engine->ShutDownAndRelease();
     return 0;
 }
 
@@ -104,9 +68,40 @@ void LoadMap(std::string _path);
 
 int main(int argc, char *argv[])
 {
-    ScriptTest();
-    
     Canis::Init();
+    InitScriptingEngine();
+
+    Canis::Log("ENGINE");
+
+    if (!engine) Canis::Log("NO ENGINE");
+
+    ScriptInstance script(engine, "TestOne", "assets/scripts/TestOne.as");
+
+    if (script.IsValid()) {
+        script.Call("Create");
+        script.Call("Start");
+
+        float dt = 0.016f;
+        script.CallFloat("Update", dt);
+
+        script.Call("Destroy");
+    }
+
+    
+    ScriptInstance script2(engine, "TestTwo", "assets/scripts/TestTwo.as");
+
+    if (script2.IsValid()) {
+        script2.Call("Create");
+        script2.Call("Start");
+
+        float dt = 0.016f;
+        script2.CallFloat("Update", dt);
+
+        script2.Call("Destroy");
+    }
+
+
+    
     Canis::InputManager inputManager;
     Canis::FrameRateManager frameRateManager;
     frameRateManager.Init(60);

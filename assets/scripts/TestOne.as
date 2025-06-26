@@ -1,4 +1,4 @@
-class MyScript {
+class TestOne {
     void Create() {
         Print("Created!");
     }

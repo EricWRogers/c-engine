@@ -98,10 +98,11 @@ namespace Canis
     }
 } // end of Canis namespace
 
-/*namespace CSharpLayer
+namespace CSharpLayer
 {
     extern "C" double CSharpLayer_GetDeltaTime()
     {
+        MonoThread* thread = mono_thread_attach(mono_domain_get());
         return ((Canis::FrameRateManager*)Canis::GetCanisData().frameRateManager)->GetDeltaTime();
     }
-}*/
+}

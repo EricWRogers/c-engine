@@ -24,17 +24,26 @@ public class MyScript
         Debug.Log("m_numbers.Count: " + m_numbers.Count);
     }
 
+    private float elapsed = 0.0f;
+
     public void Update(float _deltaTime)
     {
-        Window.SetTitle("Set From C#");
-        
-        Debug.Log("Update CanisEngine! " + m_counter++);// + " " + Time.deltaTime);
+        elapsed += _deltaTime;
 
-        //Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
+        if (elapsed > 1.0f) // once every second
+        {
+            Debug.Log("1 second passed!");
+            elapsed = 0.0f;
+        }
+
+        String temp = _deltaTime.ToString();
+
+        float color = elapsed / 10.0f;
+        Window.SetBackgroundColor(color, 0.0f, 0.0f, 1.0f);
     }
 
-    public void OnDestroy()
-    {
-        Debug.Log("Destroyed");
+        public void OnDestroy()
+        {
+            Debug.Log("Destroyed");
+        }
     }
-}

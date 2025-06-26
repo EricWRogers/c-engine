@@ -23,12 +23,17 @@ namespace Canis
         public static extern void SetBackgroundColor(float _red, float _green, float _blue, float _alpha);
     }
 
-    /*public static class Time
+    public static class Time
     {
         [DllImport("CanisEngine", EntryPoint = "CSharpLayer_GetDeltaTime", CallingConvention = CallingConvention.Cdecl)]
         private static extern double Internal_GetDeltaTime();
 
-        public static double deltaTime => Internal_GetDeltaTime();
-    }*/
+        public static double deltaTime {
+            get {
+                double temp = Internal_GetDeltaTime();
+                return temp;
+            }
+        }
+    }
 }
 

@@ -44,10 +44,3 @@ namespace Canis
         float EndFrame();
     };
 } // end of Canis namespace
-
-/*namespace CSharpLayer
-{
-    extern "C" {
-        double CSharpLayer_GetDeltaTime();
-    }
-}*/

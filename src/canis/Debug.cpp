@@ -1,6 +1,11 @@
 #include "Debug.hpp"
 #include "Canis.hpp"
 #include <string>
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/mono-config.h>
+#include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/threads.h>
 
 // https://www.codegrepper.com/code-examples/cpp/c%2B%2B+cout+with+color
 
@@ -97,18 +102,22 @@ namespace CSharpLayer
 {
     void CSharpLayer_FatalError(const char *_message)
     {
+        MonoThread* thread = mono_thread_attach(mono_domain_get());
         Canis::FatalError(_message);
     }
     void CSharpLayer_Error(const char *_message)
     {
+        MonoThread* thread = mono_thread_attach(mono_domain_get());
         Canis::Error(_message);
     }
     void CSharpLayer_Warning(const char *_message)
     {
+        MonoThread* thread = mono_thread_attach(mono_domain_get());
         Canis::Warning(_message);
     }
     void CSharpLayer_Log(const char *_message)
     {
+        MonoThread* thread = mono_thread_attach(mono_domain_get());
         Canis::Log(_message);
     }
 }

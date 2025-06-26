@@ -43,8 +43,12 @@ struct Script
 
     void Update(float _deltaTime)
     {
-        void* args = &_deltaTime;
-        CallInstanceMethod(updateMethod, &args);
+        MonoDomain* domain = mono_domain_get();
+        MonoClass* floatClass = mono_get_single_class(); // for 'float'
+        MonoObject* boxedFloat = mono_value_box(domain, floatClass, &_deltaTime);
+
+        void* args[1] = { boxedFloat };
+        CallInstanceMethod(updateMethod, args);
     }
 
     void Destroy()

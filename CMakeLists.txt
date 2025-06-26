@@ -35,7 +35,7 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
 )
 
 target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE_DIRS} glm libglew_static SDL3::SDL3)
-target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES} glm libglew_static SDL3::SDL3)
+target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES} monosgen-2.0 glm libglew_static SDL3::SDL3)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
@@ -44,6 +44,7 @@ target_link_libraries(${PROJECT_NAME}
         glm
         libglew_static
         SDL3::SDL3
+        monosgen-2.0
         ${MONO_LIBRARIES}
         ${CANIS_ENGINE_LIB}
 )

@@ -1,4 +1,5 @@
 #include "ScriptManager.hpp"
+#include <mono/metadata/threads.h>
 
 namespace Canis {
     namespace ScriptManager {
@@ -12,6 +13,7 @@ namespace Canis {
         {
             Data& data = GetData();
             mono_set_dirs("mono/lib", "mono/etc");
+
 
             data.domain = mono_jit_init("ScriptDomain");
             if (!data.domain) {

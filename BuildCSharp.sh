@@ -8,7 +8,7 @@ CS_FILES=$(find ../../assets/scripts -type f -name "*.cs")
 
 # compile the scripts into a DLL
 echo "Compiling C# scripts..."
-time mcs -target:library -out:GameScripts.dll $CS_FILES
+time mcs -debug- -target:library -out:GameScripts.dll $CS_FILES
 
 # check if it succeeded
 if [ $? -ne 0 ]; then

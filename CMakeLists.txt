@@ -9,10 +9,20 @@ set(ASSETS_DIR_NAME assets)
 #add_subdirectory(external/glm)
 #add_subdirectory(external/SDL)
 #add_subdirectory(external/stb)
-add_subdirectory(external/angelscript/sdk/angelscript)
+add_subdirectory(external/angelscript/sdk/angelscript/projects/cmake)
 
 include_directories(
     external/angelscript/sdk/angelscript/include
+)
+
+add_library(angelscript_addons
+    external/angelscript/sdk/add_on/scriptstdstring/scriptstdstring.cpp
+    external/angelscript/sdk/add_on/scriptbuilder/scriptbuilder.cpp
+)
+
+target_include_directories(angelscript_addons PUBLIC
+    external/angelscript/sdk/add_on/scriptstdstring
+    external/angelscript/sdk/add_on/scriptbuilder
 )
 
 # Set where the ImGui files are stored
@@ -37,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}
         #libglew_static
         #SDL3::SDL3
         angelscript
+        angelscript_addons
 )
 
 target_include_directories(${PROJECT_NAME}

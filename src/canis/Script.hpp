@@ -1,7 +1,9 @@
 #pragma once
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
+#include <mono/metadata/mono-config.h>
 #include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/threads.h>
 #include <iostream>
 #include <string>
 
@@ -16,6 +18,8 @@ struct Script {
     void CallInstanceMethod(MonoMethod* _method, void** _args = nullptr) {
         if (_method == nullptr)
             return;
+
+        MonoThread* monoThread = mono_thread_attach(mono_domain_get());
 
         MonoObject* exception = nullptr;
         mono_runtime_invoke(_method, instance, _args, &exception);

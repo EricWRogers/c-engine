@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 #include "Data/Transform.hpp"
 #include "Data/GLTexture.hpp"
+#include "ScriptInstance.hpp"
 
 namespace Canis
 {
@@ -20,6 +21,6 @@ namespace Canis
         glm::vec3 color = glm::vec3(1.0f);
         GLTexture *albedo;
         GLTexture *specular;
-        void (*Update)(World &_world, Entity &_entity, float _deltaTime) = nullptr;
+        ScriptInstance* script = nullptr;
     };
 }

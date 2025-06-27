@@ -20,14 +20,21 @@
 #include "Canis/World.hpp"
 #include "Canis/Editor.hpp"
 #include "Canis/FrameRateManager.hpp"
-
-#include "ScriptInstance.hpp"
+#include "Canis/ScriptInstance.hpp"
 
 using namespace glm;
 
 // git restore .
 // git fetch
 // git pull
+
+namespace Time {
+    static float deltaTime;
+    static float fps;
+
+    static float GetDeltaTime() { return deltaTime; }
+    static float GetFPS() { return fps; }
+};
 
 void Print(const std::string& msg) {
     std::cout << "[Script] " << msg << std::endl;
@@ -59,6 +66,19 @@ int InitScriptingEngine() {
     return 0;
 }
 
+void RegisterTime(asIScriptEngine* engine) {
+    int r;
+
+    //r = engine->RegisterObjectType("Time", 0, asOBJ_REF | asOBJ_NOHANDLE); assert(r >= 0);
+
+    //r = engine->RegisterGlobalFunction("float Time_deltaTime()", asFUNCTION(Time::GetDeltaTime), asCALL_CDECL); assert(r >= 0);
+    //r = engine->RegisterGlobalFunction("float Time_fps()",       asFUNCTION(Time::GetFPS),       asCALL_CDECL); assert(r >= 0);
+
+    engine->RegisterGlobalFunction("float Time_deltaTime()", asFUNCTION(Time::GetDeltaTime), asCALL_CDECL);
+    engine->RegisterGlobalFunction("float Time_fps()", asFUNCTION(Time::GetFPS), asCALL_CDECL);
+
+}
+
 // 3d array
 std::vector<std::vector<std::vector<unsigned int>>> map = {};
 
@@ -70,12 +90,13 @@ int main(int argc, char *argv[])
 {
     Canis::Init();
     InitScriptingEngine();
+    RegisterTime(engine);
 
     Canis::Log("ENGINE");
 
     if (!engine) Canis::Log("NO ENGINE");
 
-    ScriptInstance script(engine, "TestOne", "assets/scripts/TestOne.as");
+    Canis::ScriptInstance script(engine, "TestOne", "assets/scripts/TestOne.as");
 
     if (script.IsValid()) {
         script.Call("Create");
@@ -88,7 +109,7 @@ int main(int argc, char *argv[])
     }
 
     
-    ScriptInstance script2(engine, "TestTwo", "assets/scripts/TestTwo.as");
+    Canis::ScriptInstance script2(engine, "TestTwo", "assets/scripts/TestTwo.as");
 
     if (script2.IsValid()) {
         script2.Call("Create");
@@ -184,6 +205,12 @@ int main(int argc, char *argv[])
                     entity.model = &cubeModel;
                     entity.shader = &shader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    entity.script = new Canis::ScriptInstance(engine, "TestOne", "assets/scripts/TestOne.as");
+                    if (entity.script->IsValid()) {
+                        entity.script->Call("Create");
+                    } else {
+                        entity.script = nullptr;
+                    }
                     world.Spawn(entity);
                     break;
                 case 2: // places a glass block
@@ -193,6 +220,12 @@ int main(int argc, char *argv[])
                     entity.model = &grassModel;
                     entity.shader = &grassShader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
+                    entity.script = new Canis::ScriptInstance(engine, "TestTwo", "assets/scripts/TestTwo.as");
+                    if (entity.script->IsValid()) {
+                        entity.script->Call("Create");
+                    } else {
+                        entity.script = nullptr;
+                    }
                     world.Spawn(entity);
                     break;
                 default:
@@ -209,6 +242,7 @@ int main(int argc, char *argv[])
     while (inputManager.Update(Canis::GetConfig().width, Canis::GetConfig().heigth))
     {
         deltaTime = frameRateManager.StartFrame();
+        Time::deltaTime = deltaTime;
         Canis::Graphics::ClearBuffer(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
 
         world.Update(deltaTime);
@@ -220,7 +254,7 @@ int main(int argc, char *argv[])
 
         // EndFrame will pause the app when running faster than frame limit
         fps = frameRateManager.EndFrame();
-
+        Time::fps = fps;
         //Canis::Log("FPS: " + std::to_string(fps) + " DeltaTime: " + std::to_string(deltaTime));
     }
 

@@ -44,9 +44,9 @@ namespace Canis
 
         for (int i = 0; i < m_entities.size(); i++)
         {
-            if (m_entities[i].Update != nullptr)
+            if (m_entities[i].script != nullptr)
             {
-                m_entities[i].Update(*this, m_entities[i], 0.1f);
+                m_entities[i].script->CallFloat("Update", _deltaTime);
             }
         }
     }

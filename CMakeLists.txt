@@ -69,7 +69,7 @@ if (WIN32)
             ${CMAKE_SOURCE_DIR}/${ASSETS_DIR_NAME}/
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
 else()
-    add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_SOURCE_DIR}/${ASSETS_DIR_NAME}/
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})

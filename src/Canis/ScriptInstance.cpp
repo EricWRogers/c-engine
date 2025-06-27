@@ -1,7 +1,10 @@
 #include "ScriptInstance.hpp"
 #include <iostream>
 #include <scriptbuilder.h>
+#include "Debug.hpp"
 
+namespace Canis
+{
 ScriptInstance::ScriptInstance(asIScriptEngine* _engine, const std::string& className, const std::string& _filePath)
     : engine(_engine) 
 {
@@ -36,7 +39,9 @@ ScriptInstance::ScriptInstance(asIScriptEngine* _engine, const std::string& clas
     }
 }
 
-ScriptInstance::~ScriptInstance() {
+ScriptInstance::~ScriptInstance() 
+{
+    Canis::Log("~ScriptInstance");
     if (object) object->Release();
 }
 
@@ -71,4 +76,5 @@ void ScriptInstance::CallFloat(const std::string& methodName, float value) {
     ctx->SetArgFloat(0, value);
     ctx->Execute();
     ctx->Release();
+}
 }

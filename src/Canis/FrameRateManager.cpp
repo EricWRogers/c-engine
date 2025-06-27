@@ -11,18 +11,18 @@ namespace Canis
     {
     }
 
-    void FrameRateManager::Init(float _targetFPS)
+    void FrameRateManager::Init(double _targetFPS)
     {
         SetTargetFPS(_targetFPS);
         previousTime = high_resolution_clock::now();
     }
 
-    void FrameRateManager::SetTargetFPS(float _targetFPS)
+    void FrameRateManager::SetTargetFPS(double _targetFPS)
     {
         maxFPS = _targetFPS;
     }
 
-    float FrameRateManager::StartFrame()
+    double FrameRateManager::StartFrame()
     {
         startTicks = SDL_GetTicks();
 
@@ -77,7 +77,7 @@ namespace Canis
         }
     }
 
-    float FrameRateManager::EndFrame()
+    double FrameRateManager::EndFrame()
     {
         CalculateFPS();
         

@@ -35,11 +35,15 @@ namespace Canis
         FrameRateManager();
         ~FrameRateManager();
 
-        void Init(float _targetFPS);
-        void SetTargetFPS(float _targetFPS);
-        float StartFrame();
+        void Init(double _targetFPS);
+        void SetTargetFPS(double _targetFPS);
+        double StartFrame();
         void CalculateFPS();
 
-        float EndFrame();
+        double EndFrame();
+
+        double GetDeltaTime() { return deltaTime; }
+        double GetFPS() { return fps; }
+        double GetMaxFPS() { return maxFPS; }
     };
 } // end of Canis namespace

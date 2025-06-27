@@ -10,8 +10,7 @@ class TestTwo {
     }
 
     void Update(float dt) {
-        //Print("Updating with dt: " + dt + " " + counter++);
-        //Print("Updating with fps: " + Time.fps);
+        Canis::Window.SetName("TestTwo");
     }
 
     void Destroy() {

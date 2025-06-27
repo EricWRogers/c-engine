@@ -9,8 +9,10 @@ class TestOne {
 
     void Update(float dt) {
         Print("Updating with not fps dt: " + dt);
-        Print("DeltaTime: " + g_Time.get_deltaTime());
-        //Print("FPS: " + g_Time.fps);
+        Print("DeltaTime: " + Canis::Frame.GetDeltaTime());
+        Print("FPS: " + Canis::Frame.GetFPS());
+        Print("MaxFPS: " + Canis::Frame.GetMaxFPS());
+        Canis::Frame.SetTargetFPS(120.0);
     }
 
     void Destroy() {

@@ -28,24 +28,30 @@ using namespace glm;
 // git fetch
 // git pull
 
-void Print(const std::string& msg) {
+void Print(const std::string &msg)
+{
     std::cout << "[Script] " << msg << std::endl;
 }
 
-void MessageCallback(const asSMessageInfo* msg, void*) {
-    const char* type = "ERROR";
-    if (msg->type == asMSGTYPE_WARNING) type = "WARNING";
-    else if (msg->type == asMSGTYPE_INFORMATION) type = "INFO";
+void MessageCallback(const asSMessageInfo *msg, void *)
+{
+    const char *type = "ERROR";
+    if (msg->type == asMSGTYPE_WARNING)
+        type = "WARNING";
+    else if (msg->type == asMSGTYPE_INFORMATION)
+        type = "INFO";
 
     std::cerr << msg->section << " (" << msg->row << ", " << msg->col << ") : "
               << type << " : " << msg->message << std::endl;
 }
 
-static asIScriptEngine* engine = nullptr;
+static asIScriptEngine *engine = nullptr;
 
-int InitScriptingEngine() {
+int InitScriptingEngine()
+{
     engine = asCreateScriptEngine();
-    if (!engine) {
+    if (!engine)
+    {
         std::cerr << "Failed to create AngelScript engine" << std::endl;
         return -1;
     }
@@ -58,29 +64,46 @@ int InitScriptingEngine() {
     return 0;
 }
 
-class Time {
-public:
-    float deltaTime = 0.0f;
-    float fps = 0.0f;
+// frame rate manager
 
-    float GetDeltaTime() const { return deltaTime; }
-    float GetFPS() const { return fps; }
-};
+Canis::FrameRateManager frameRateManager;
 
-Time s_time;
+void RegisterFrame(asIScriptEngine *engine)
+{
+    int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
 
-void RegisterTime(asIScriptEngine* engine) {
-    int r = engine->RegisterObjectType("Time", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
+    // Reference type, no handles
+    r = engine->RegisterObjectType("FrameRateManager", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
 
-    r = engine->RegisterObjectMethod("Time", "float get_deltaTime() const",
-        asMETHOD(Time, GetDeltaTime), asCALL_THISCALL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("FrameRateManager", "double GetDeltaTime()", asMETHOD(Canis::FrameRateManager, GetDeltaTime), asCALL_THISCALL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("FrameRateManager", "double GetFPS()", asMETHOD(Canis::FrameRateManager, GetFPS), asCALL_THISCALL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("FrameRateManager", "double GetMaxFPS()", asMETHOD(Canis::FrameRateManager, GetMaxFPS), asCALL_THISCALL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("FrameRateManager", "void SetTargetFPS(double)", asMETHOD(Canis::FrameRateManager, SetTargetFPS), asCALL_THISCALL); assert(r >= 0);
 
-    r = engine->RegisterObjectMethod("Time", "float get_fps() const",
-        asMETHOD(Time, GetFPS), asCALL_THISCALL); assert(r >= 0);
+    // Register the global instance (pointer)
+    r = engine->RegisterGlobalProperty("FrameRateManager Frame", static_cast<Canis::FrameRateManager*>(&frameRateManager)); assert(r >= 0);
 
-    // Rename global to avoid name conflict
-    r = engine->RegisterGlobalProperty("const Time @g_Time", &s_time); assert(r >= 0);
+    // Reset to global namespace
+    r = engine->SetDefaultNamespace(""); assert(r >= 0);
+}
 
+// window
+Canis::Window window;
+
+void RegisterWindow(asIScriptEngine *engine)
+{
+    int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
+
+    // Reference type, no handles
+    r = engine->RegisterObjectType("WindowManager", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
+
+    r = engine->RegisterObjectMethod("WindowManager", "void SetName(string)", asMETHOD(Canis::Window, SetWindowName), asCALL_THISCALL); assert(r >= 0);
+
+    // Register the global instance (pointer)
+    r = engine->RegisterGlobalProperty("WindowManager Window", static_cast<Canis::Window*>(&window)); assert(r >= 0);
+
+    // Reset to global namespace
+    r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
 
 // 3d array
@@ -94,15 +117,18 @@ int main(int argc, char *argv[])
 {
     Canis::Init();
     InitScriptingEngine();
-    RegisterTime(engine);
+    RegisterFrame(engine);
+    RegisterWindow(engine);
 
     Canis::Log("ENGINE");
 
-    if (!engine) Canis::Log("NO ENGINE");
+    if (!engine)
+        Canis::Log("NO ENGINE");
 
     Canis::ScriptInstance script(engine, "TestOne", "assets/scripts/TestOne.as");
 
-    if (script.IsValid()) {
+    if (script.IsValid())
+    {
         script.Call("Create");
         script.Call("Start");
 
@@ -112,10 +138,10 @@ int main(int argc, char *argv[])
         script.Call("Destroy");
     }
 
-    
     Canis::ScriptInstance script2(engine, "TestTwo", "assets/scripts/TestTwo.as");
 
-    if (script2.IsValid()) {
+    if (script2.IsValid())
+    {
         script2.Call("Create");
         script2.Call("Start");
 
@@ -125,14 +151,11 @@ int main(int argc, char *argv[])
         script2.Call("Destroy");
     }
 
-
-    
     Canis::InputManager inputManager;
-    Canis::FrameRateManager frameRateManager;
+
     frameRateManager.Init(60);
 
     /// SETUP WINDOW
-    Canis::Window window;
     window.MouseLock(true);
 
     unsigned int flags = 0;
@@ -210,9 +233,12 @@ int main(int argc, char *argv[])
                     entity.shader = &shader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     entity.script = new Canis::ScriptInstance(engine, "TestOne", "assets/scripts/TestOne.as");
-                    if (entity.script->IsValid()) {
+                    if (entity.script->IsValid())
+                    {
                         entity.script->Call("Create");
-                    } else {
+                    }
+                    else
+                    {
                         entity.script = nullptr;
                     }
                     world.Spawn(entity);
@@ -225,9 +251,12 @@ int main(int argc, char *argv[])
                     entity.shader = &grassShader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     entity.script = new Canis::ScriptInstance(engine, "TestTwo", "assets/scripts/TestTwo.as");
-                    if (entity.script->IsValid()) {
+                    if (entity.script->IsValid())
+                    {
                         entity.script->Call("Create");
-                    } else {
+                    }
+                    else
+                    {
                         entity.script = nullptr;
                     }
                     world.Spawn(entity);
@@ -246,7 +275,6 @@ int main(int argc, char *argv[])
     while (inputManager.Update(Canis::GetConfig().width, Canis::GetConfig().heigth))
     {
         deltaTime = frameRateManager.StartFrame();
-        s_time.deltaTime = deltaTime;
         Canis::Graphics::ClearBuffer(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
 
         world.Update(deltaTime);
@@ -258,8 +286,7 @@ int main(int argc, char *argv[])
 
         // EndFrame will pause the app when running faster than frame limit
         fps = frameRateManager.EndFrame();
-        s_time.fps = fps;
-        //Canis::Log("FPS: " + std::to_string(fps) + " DeltaTime: " + std::to_string(deltaTime));
+        // Canis::Log("FPS: " + std::to_string(fps) + " DeltaTime: " + std::to_string(deltaTime));
     }
 
     return 0;

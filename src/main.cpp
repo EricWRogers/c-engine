@@ -28,14 +28,6 @@ using namespace glm;
 // git fetch
 // git pull
 
-namespace Time {
-    static float deltaTime;
-    static float fps;
-
-    static float GetDeltaTime() { return deltaTime; }
-    static float GetFPS() { return fps; }
-};
-
 void Print(const std::string& msg) {
     std::cout << "[Script] " << msg << std::endl;
 }
@@ -66,16 +58,28 @@ int InitScriptingEngine() {
     return 0;
 }
 
+class Time {
+public:
+    float deltaTime = 0.0f;
+    float fps = 0.0f;
+
+    float GetDeltaTime() const { return deltaTime; }
+    float GetFPS() const { return fps; }
+};
+
+Time s_time;
+
 void RegisterTime(asIScriptEngine* engine) {
-    int r;
+    int r = engine->RegisterObjectType("Time", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
 
-    //r = engine->RegisterObjectType("Time", 0, asOBJ_REF | asOBJ_NOHANDLE); assert(r >= 0);
+    r = engine->RegisterObjectMethod("Time", "float get_deltaTime() const",
+        asMETHOD(Time, GetDeltaTime), asCALL_THISCALL); assert(r >= 0);
 
-    //r = engine->RegisterGlobalFunction("float Time_deltaTime()", asFUNCTION(Time::GetDeltaTime), asCALL_CDECL); assert(r >= 0);
-    //r = engine->RegisterGlobalFunction("float Time_fps()",       asFUNCTION(Time::GetFPS),       asCALL_CDECL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("Time", "float get_fps() const",
+        asMETHOD(Time, GetFPS), asCALL_THISCALL); assert(r >= 0);
 
-    engine->RegisterGlobalFunction("float Time_deltaTime()", asFUNCTION(Time::GetDeltaTime), asCALL_CDECL);
-    engine->RegisterGlobalFunction("float Time_fps()", asFUNCTION(Time::GetFPS), asCALL_CDECL);
+    // Rename global to avoid name conflict
+    r = engine->RegisterGlobalProperty("const Time @g_Time", &s_time); assert(r >= 0);
 
 }
 
@@ -242,7 +246,7 @@ int main(int argc, char *argv[])
     while (inputManager.Update(Canis::GetConfig().width, Canis::GetConfig().heigth))
     {
         deltaTime = frameRateManager.StartFrame();
-        Time::deltaTime = deltaTime;
+        s_time.deltaTime = deltaTime;
         Canis::Graphics::ClearBuffer(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
 
         world.Update(deltaTime);
@@ -254,7 +258,7 @@ int main(int argc, char *argv[])
 
         // EndFrame will pause the app when running faster than frame limit
         fps = frameRateManager.EndFrame();
-        Time::fps = fps;
+        s_time.fps = fps;
         //Canis::Log("FPS: " + std::to_string(fps) + " DeltaTime: " + std::to_string(deltaTime));
     }
 

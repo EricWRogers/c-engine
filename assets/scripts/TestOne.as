@@ -1,8 +1,3 @@
-class Time {
-    static float get_deltaTime() { return Time_deltaTime(); }
-    static float get_fps() { return Time_fps(); }
-}
-
 class TestOne {
     void Create() {
         Print("Created!");
@@ -14,8 +9,8 @@ class TestOne {
 
     void Update(float dt) {
         Print("Updating with not fps dt: " + dt);
-        //        Print("Updating with fps: " + Time.fps);
-
+        Print("DeltaTime: " + g_Time.get_deltaTime());
+        //Print("FPS: " + g_Time.fps);
     }
 
     void Destroy() {

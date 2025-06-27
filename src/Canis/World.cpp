@@ -45,7 +45,16 @@ namespace Canis
         for (int i = 0; i < m_entities.size(); i++)
         {
             if (m_entities[i].script != nullptr)
-            {
+            {                
+                asIScriptModule* module = m_entities[i].script->GetEngine()->GetModule("Main"); // Or whatever your module name is
+                if (module) {
+                    int index = module->GetGlobalVarIndexByDecl("Canis::Entity entity");
+                    if (index >= 0) {
+                        void* globalPtr = module->GetAddressOfGlobalVar(index);
+                        *reinterpret_cast<Canis::Entity**>(globalPtr) = &m_entities[i]; // or whatever your Entity* is
+                    }
+                }
+
                 m_entities[i].script->CallFloat("Update", _deltaTime);
             }
         }
@@ -80,7 +89,7 @@ namespace Canis
             shader->SetMat4("VIEW", m_camera.GetViewMatrix());
             shader->SetMat4("PROJECTION", project);
 
-            shader->SetMat4("TRANSFORM", m_entities[i].transform.Matrix());
+            shader->SetMat4("TRANSFORM", Matrix(m_entities[i].transform));
             Canis::Draw(*m_entities[i].model);
             shader->UnUse();
         }

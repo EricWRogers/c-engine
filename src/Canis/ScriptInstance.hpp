@@ -16,6 +16,8 @@ public:
     void CallFloat(const std::string& methodName, float value);
 
     bool startCalled = false;
+    asIScriptEngine* GetEngine() { return engine; }
+    asIScriptObject* GetObject() { return object; }
 private:
     asIScriptEngine* engine = nullptr;
     asIScriptObject* object = nullptr;

@@ -1,4 +1,10 @@
 class TestTwo {
+    Canis::Entity@ entity;
+
+    void SetEntity(Canis::Entity@ e) {
+        @entity = e;
+    }
+    
     int counter = 1;
 
     void Create() {
@@ -11,6 +17,7 @@ class TestTwo {
 
     void Update(float dt) {
         Canis::Window.SetName("TestTwo");
+        entity.transform.rotation.y += dt;
     }
 
     void Destroy() {

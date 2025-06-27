@@ -106,6 +106,37 @@ void RegisterWindow(asIScriptEngine *engine)
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
 
+void RegisterTransform(asIScriptEngine* engine)
+{
+    int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
+
+    r = engine->RegisterObjectType("Transform", sizeof(Canis::Transform), asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<Canis::Transform>()); assert(r >= 0);
+
+    r = engine->RegisterObjectProperty("Transform", "vec3 position", asOFFSET(Canis::Transform, position)); assert(r >= 0);
+    r = engine->RegisterObjectProperty("Transform", "vec3 rotation", asOFFSET(Canis::Transform, rotation)); assert(r >= 0);
+    r = engine->RegisterObjectProperty("Transform", "vec3 scale", asOFFSET(Canis::Transform, scale)); assert(r >= 0);
+
+    r = engine->SetDefaultNamespace(""); assert(r >= 0);
+}
+
+
+void RegisterVec3(asIScriptEngine* engine)
+{
+    int r = engine->RegisterObjectType("vec3", sizeof(glm::vec3), asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<glm::vec3>()); assert(r >= 0);
+    r = engine->RegisterObjectProperty("vec3", "float x", asOFFSET(glm::vec3, x)); assert(r >= 0);
+    r = engine->RegisterObjectProperty("vec3", "float y", asOFFSET(glm::vec3, y)); assert(r >= 0);
+    r = engine->RegisterObjectProperty("vec3", "float z", asOFFSET(glm::vec3, z)); assert(r >= 0);
+}
+
+void RegisterEntity(asIScriptEngine* engine) {
+    int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
+
+    r = engine->RegisterObjectType("Entity", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
+    r = engine->RegisterObjectProperty("Entity", "Transform transform", asOFFSET(Canis::Entity, transform)); assert(r >= 0);
+
+    r = engine->SetDefaultNamespace(""); assert(r >= 0);
+}
+
 // 3d array
 std::vector<std::vector<std::vector<unsigned int>>> map = {};
 
@@ -119,6 +150,10 @@ int main(int argc, char *argv[])
     InitScriptingEngine();
     RegisterFrame(engine);
     RegisterWindow(engine);
+    RegisterVec3(engine);
+    RegisterTransform(engine);
+    RegisterEntity(engine);
+
 
     Canis::Log("ENGINE");
 
@@ -233,15 +268,9 @@ int main(int argc, char *argv[])
                     entity.shader = &shader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     entity.script = new Canis::ScriptInstance(engine, "TestOne", "assets/scripts/TestOne.as");
-                    if (entity.script->IsValid())
-                    {
-                        entity.script->Call("Create");
-                    }
-                    else
-                    {
-                        entity.script = nullptr;
-                    }
                     world.Spawn(entity);
+
+                    
                     break;
                 case 2: // places a glass block
                     entity.tag = "grass";
@@ -251,18 +280,32 @@ int main(int argc, char *argv[])
                     entity.shader = &grassShader;
                     entity.transform.position = vec3(x + 0.0f, y + 0.0f, z + 0.0f);
                     entity.script = new Canis::ScriptInstance(engine, "TestTwo", "assets/scripts/TestTwo.as");
-                    if (entity.script->IsValid())
-                    {
-                        entity.script->Call("Create");
-                    }
-                    else
-                    {
-                        entity.script = nullptr;
-                    }
                     world.Spawn(entity);
+                    
+                    
                     break;
                 default:
                     break;
+                }
+
+                Canis::Entity* e = (Canis::Entity*)&(world.GetEntities()[world.GetEntitiesSize()-1]);
+
+                if (e->script->IsValid())
+                {
+                    asIScriptFunction* setEntityFunc = e->script->GetObject()->GetObjectType()->GetMethodByDecl("void SetEntity(Canis::Entity@)");
+                    if (setEntityFunc) {
+                        asIScriptContext* ctx = engine->CreateContext();
+                        ctx->Prepare(setEntityFunc);
+                        ctx->SetObject(e->script->GetObject());
+                        ctx->SetArgObject(0, e); // inject your C++ Entity*
+                        ctx->Execute();
+                        ctx->Release();
+                    }
+                    e->script->Call("Create");
+                }
+                else
+                {
+                    e->script = nullptr;
                 }
             }
         }

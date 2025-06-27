@@ -1,4 +1,10 @@
 class TestOne {
+    Canis::Entity@ entity;
+
+    void SetEntity(Canis::Entity@ e) {
+        @entity = e;
+    }
+    
     void Create() {
         Print("Created!");
     }

@@ -1,6 +1,7 @@
 #include <angelscript.h>
 #include <scriptstdstring.h>
 #include <scriptbuilder.h>
+#include <scriptmath.h>
 #include <cassert>
 
 #include <iostream>
@@ -166,6 +167,7 @@ int main(int argc, char *argv[])
     RegisterTransform(engine);
     RegisterEntity(engine);
     RegisterMath(engine);
+    RegisterScriptMath(engine);
 
 
     Canis::Log("ENGINE");

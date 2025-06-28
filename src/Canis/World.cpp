@@ -46,15 +46,6 @@ namespace Canis
         {
             if (m_entities[i].script != nullptr)
             {                
-                asIScriptModule* module = m_entities[i].script->GetEngine()->GetModule("Main"); // Or whatever your module name is
-                if (module) {
-                    int index = module->GetGlobalVarIndexByDecl("Canis::Entity entity");
-                    if (index >= 0) {
-                        void* globalPtr = module->GetAddressOfGlobalVar(index);
-                        *reinterpret_cast<Canis::Entity**>(globalPtr) = &m_entities[i]; // or whatever your Entity* is
-                    }
-                }
-
                 m_entities[i].script->CallFloat("Update", _deltaTime);
             }
         }

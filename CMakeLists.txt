@@ -18,11 +18,13 @@ include_directories(
 add_library(angelscript_addons
     external/angelscript/sdk/add_on/scriptstdstring/scriptstdstring.cpp
     external/angelscript/sdk/add_on/scriptbuilder/scriptbuilder.cpp
+    external/angelscript/sdk/add_on/scriptmath/scriptmath.cpp
 )
 
 target_include_directories(angelscript_addons PUBLIC
     external/angelscript/sdk/add_on/scriptstdstring
     external/angelscript/sdk/add_on/scriptbuilder
+    external/angelscript/sdk/add_on/scriptmath
 )
 
 # Set where the ImGui files are stored

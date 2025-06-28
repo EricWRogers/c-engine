@@ -12,6 +12,7 @@ CTestTestfile.cmake
 _deps
 dist/
 build/
+__cmake_systeminformation/
 zips/
 .vscode/
 *.blend1

@@ -9,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include "Canis/Canis.hpp"
+#include "Canis/Math.hpp"
 #include "Canis/Graphics.hpp"
 #include "Canis/Window.hpp"
 #include "Canis/Shader.hpp"
@@ -126,6 +127,8 @@ void RegisterVec3(asIScriptEngine* engine)
     r = engine->RegisterObjectProperty("vec3", "float x", asOFFSET(glm::vec3, x)); assert(r >= 0);
     r = engine->RegisterObjectProperty("vec3", "float y", asOFFSET(glm::vec3, y)); assert(r >= 0);
     r = engine->RegisterObjectProperty("vec3", "float z", asOFFSET(glm::vec3, z)); assert(r >= 0);
+
+    r = engine->RegisterObjectMethod("vec3", "string ToString() const", asFUNCTION(Canis::Math::Vec3ToString), asCALL_CDECL_OBJFIRST); assert(r >= 0);
 }
 
 void RegisterEntity(asIScriptEngine* engine) {
@@ -133,8 +136,17 @@ void RegisterEntity(asIScriptEngine* engine) {
 
     r = engine->RegisterObjectType("Entity", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
     r = engine->RegisterObjectProperty("Entity", "Transform transform", asOFFSET(Canis::Entity, transform)); assert(r >= 0);
+    r = engine->RegisterObjectProperty("Entity", "vec3 color", asOFFSET(Canis::Entity, color)); assert(r >= 0);
 
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
+}
+
+void RegisterMath(asIScriptEngine* engine) {
+    int r = engine->SetDefaultNamespace("Canis::Math"); assert(r >= 0);
+
+    r = engine->RegisterGlobalFunction("float RandomFloat(float, float)", asFUNCTION(Canis::Math::RandomFloat), asCALL_CDECL); assert(r >= 0);
+
+    r = engine->SetDefaultNamespace(""); assert(r >= 0); // Reset namespace
 }
 
 // 3d array
@@ -153,6 +165,7 @@ int main(int argc, char *argv[])
     RegisterVec3(engine);
     RegisterTransform(engine);
     RegisterEntity(engine);
+    RegisterMath(engine);
 
 
     Canis::Log("ENGINE");

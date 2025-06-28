@@ -18,6 +18,10 @@ class TestTwo {
     void Update(float dt) {
         Canis::Window.SetName("TestTwo");
         entity.transform.rotation.y += dt;
+        entity.color.x = Canis::Math::RandomFloat(0.0f, 1.0f);
+        entity.color.y = Canis::Math::RandomFloat(0.0f, 1.0f);
+        entity.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);
+        Print("color " + entity.color.ToString());
     }
 
     void Destroy() {

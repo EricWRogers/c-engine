@@ -25,6 +25,12 @@ class TestTwo : Script {
         entity.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);
 
         Print("color " + entity.color.ToString());
+        
+        Canis::Entity@ glassBlock = world.GetEntityWithTag("glass");
+        glassBlock.color.x = Canis::Math::RandomFloat(0.0f, 1.0f);
+        glassBlock.color.y = Canis::Math::RandomFloat(0.0f, 1.0f);
+        glassBlock.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);
+
     }
 
     void Destroy() {

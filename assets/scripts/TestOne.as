@@ -1,10 +1,6 @@
-class TestOne {
-    Canis::Entity@ entity;
+#include "Script.as"
 
-    void SetEntity(Canis::Entity@ e) {
-        @entity = e;
-    }
-    
+class TestOne {
     void Create() {
         Print("Created!");
     }
@@ -14,11 +10,11 @@ class TestOne {
     }
 
     void Update(float dt) {
-        /*Print("Updating with not fps dt: " + dt);
+        Print("Updating with not fps dt: " + dt);
         Print("DeltaTime: " + Canis::Frame.GetDeltaTime());
         Print("FPS: " + Canis::Frame.GetFPS());
         Print("MaxFPS: " + Canis::Frame.GetMaxFPS());
-        Canis::Frame.SetTargetFPS(120.0);*/
+        Canis::Frame.SetTargetFPS(240.0);
     }
 
     void Destroy() {

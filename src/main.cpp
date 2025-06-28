@@ -142,6 +142,15 @@ void RegisterEntity(asIScriptEngine* engine) {
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
 
+void RegisterWorld(asIScriptEngine* engine) {
+    int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
+
+    r = engine->RegisterObjectType("World", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
+    r = engine->RegisterObjectMethod("World", "Entity@ GetEntityWithTag(const string &in)", asMETHOD(Canis::World, GetEntityWithTag), asCALL_THISCALL); assert(r >= 0);
+
+    r = engine->SetDefaultNamespace(""); assert(r >= 0);
+}
+
 void RegisterMath(asIScriptEngine* engine) {
     int r = engine->SetDefaultNamespace("Canis::Math"); assert(r >= 0);
 
@@ -166,6 +175,7 @@ int main(int argc, char *argv[])
     RegisterVec3(engine);
     RegisterTransform(engine);
     RegisterEntity(engine);
+    RegisterWorld(engine);
     RegisterMath(engine);
     RegisterScriptMath(engine);
 
@@ -312,10 +322,22 @@ int main(int argc, char *argv[])
                         asIScriptContext* ctx = engine->CreateContext();
                         ctx->Prepare(setEntityFunc);
                         ctx->SetObject(e->script->GetObject());
-                        ctx->SetArgObject(0, e); // inject your C++ Entity*
+                        ctx->SetArgObject(0, e);
                         ctx->Execute();
                         ctx->Release();
                     }
+
+                    asIScriptFunction* setWorldFunc = e->script->GetObject()->GetObjectType()->GetMethodByDecl("void SetWorld(Canis::World@)");
+                    if (setWorldFunc) {
+                        asIScriptContext* ctx = engine->CreateContext();
+                        ctx->Prepare(setWorldFunc);
+                        ctx->SetObject(e->script->GetObject());
+                        ctx->SetArgObject(0, &world);
+                        ctx->Execute();
+                        ctx->Release();
+                    }
+
+
                     e->script->Call("Create");
                 }
                 else

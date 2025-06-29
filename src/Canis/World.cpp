@@ -116,6 +116,19 @@ namespace Canis
         m_directionalLight = _light;
     }
 
+    Entity* World::GetEntityWithName(std::string _name)
+    {
+        for (int i = 0; i < m_entities.size(); i++)
+        {
+            if (m_entities[i].name == _name)
+            {
+                return &m_entities[i];
+            }
+        }
+
+        return nullptr;
+    }
+
     Entity *World::GetEntityWithTag(std::string _tag)
     {
         for (int i = 0; i < m_entities.size(); i++)

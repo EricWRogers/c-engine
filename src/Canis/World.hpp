@@ -22,6 +22,7 @@ namespace Canis
         Entity* GetEntity(unsigned int _index) { return &m_entities[_index]; }
         std::vector<Entity>& GetEntities() { return m_entities; }
         int GetEntitiesSize() { return m_entities.size(); }
+        Entity* GetEntityWithName(std::string _name);
         Entity* GetEntityWithTag(std::string _tag);
         std::vector<Entity*> GetEntitiesWithTag(std::string _tag);
         PointLight* GetPointLight(glm::vec3 _position); // returns nullptr when light is not found

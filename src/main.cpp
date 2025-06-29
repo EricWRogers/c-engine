@@ -2,6 +2,7 @@
 #include <scriptstdstring.h>
 #include <scriptbuilder.h>
 #include <scriptmath.h>
+#include <scriptarray.h>
 #include <cassert>
 
 #include <iostream>
@@ -121,6 +122,10 @@ void RegisterTransform(asIScriptEngine* engine)
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
 
+glm::vec3 Vec3Constructor(float x, float y, float z)
+{
+    return glm::vec3(x, y, z);
+}
 
 void RegisterVec3(asIScriptEngine* engine)
 {
@@ -129,6 +134,7 @@ void RegisterVec3(asIScriptEngine* engine)
     r = engine->RegisterObjectProperty("vec3", "float y", asOFFSET(glm::vec3, y)); assert(r >= 0);
     r = engine->RegisterObjectProperty("vec3", "float z", asOFFSET(glm::vec3, z)); assert(r >= 0);
 
+    r = engine->RegisterObjectBehaviour("vec3", asBEHAVE_CONSTRUCT, "void f(float, float, float)", asFUNCTION(Vec3Constructor), asCALL_CDECL_OBJLAST); assert(r >= 0);
     r = engine->RegisterObjectMethod("vec3", "string ToString() const", asFUNCTION(Canis::Math::Vec3ToString), asCALL_CDECL_OBJFIRST); assert(r >= 0);
 }
 
@@ -142,12 +148,42 @@ void RegisterEntity(asIScriptEngine* engine) {
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
 
+CScriptArray* GetEntitiesWithTagWrapper(Canis::World* _world, const std::string& _tag)
+{
+    std::vector<Canis::Entity*> entities = _world->GetEntitiesWithTag(_tag);
+
+    asIScriptContext* ctx = asGetActiveContext();
+    if (!ctx) {
+        Canis::Log("No active script context!");
+        return nullptr;
+    }
+
+    asIScriptEngine* e = ctx->GetEngine();
+
+    asITypeInfo* arrayType = e->GetTypeInfoByDecl("array<Canis::Entity@>");
+    if (!arrayType)
+        return nullptr;
+
+    CScriptArray* result = CScriptArray::Create(arrayType, entities.size());
+
+    for (size_t i = 0; i < entities.size(); ++i)
+    {
+        result->SetValue(i, &entities[i]);
+    }
+
+    return result;
+}
+
+
 void RegisterWorld(asIScriptEngine* engine) {
     int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
 
     r = engine->RegisterObjectType("World", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
     r = engine->RegisterObjectMethod("World", "Entity@ GetEntityWithName(const string &in)", asMETHOD(Canis::World, GetEntityWithName), asCALL_THISCALL); assert(r >= 0);
     r = engine->RegisterObjectMethod("World", "Entity@ GetEntityWithTag(const string &in)", asMETHOD(Canis::World, GetEntityWithTag), asCALL_THISCALL); assert(r >= 0);
+    r = engine->RegisterObjectMethod("World", "array<Entity@>@ GetEntitiesWithTag(const string &in)",
+        asFUNCTION(GetEntitiesWithTagWrapper),
+        asCALL_CDECL_OBJFIRST); assert(r >= 0);
 
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
 }
@@ -171,6 +207,10 @@ int main(int argc, char *argv[])
 {
     Canis::Init();
     InitScriptingEngine();
+
+    RegisterScriptArray(engine, true);
+    RegisterScriptMath(engine);
+
     RegisterFrame(engine);
     RegisterWindow(engine);
     RegisterVec3(engine);
@@ -178,7 +218,7 @@ int main(int argc, char *argv[])
     RegisterEntity(engine);
     RegisterWorld(engine);
     RegisterMath(engine);
-    RegisterScriptMath(engine);
+    
 
 
     Canis::Log("ENGINE");
@@ -354,6 +394,8 @@ int main(int argc, char *argv[])
 
     double deltaTime = 0.0;
     double fps = 0.0;
+
+    Canis::Log("glass: " + std::to_string(world.GetEntitiesWithTag("glass").size()));
 
     // Application loop
     while (inputManager.Update(Canis::GetConfig().width, Canis::GetConfig().heigth))

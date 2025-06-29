@@ -2,7 +2,7 @@
 
 class TestOne {
     void Create() {
-        Print("Created!");
+        Canis::Frame.SetTargetFPS(1000.0);
     }
 
     void Start() {
@@ -10,11 +10,11 @@ class TestOne {
     }
 
     void Update(float dt) {
-        Print("Updating with not fps dt: " + dt);
+        /*Print("Updating with not fps dt: " + dt);
         Print("DeltaTime: " + Canis::Frame.GetDeltaTime());
         Print("FPS: " + Canis::Frame.GetFPS());
-        Print("MaxFPS: " + Canis::Frame.GetMaxFPS());
-        Canis::Frame.SetTargetFPS(240.0);
+        Print("MaxFPS: " + Canis::Frame.GetMaxFPS());*/
+        Print("FPS: " + Canis::Frame.GetFPS());
     }
 
     void Destroy() {

@@ -24,13 +24,21 @@ class TestTwo : Script {
         entity.color.y = Canis::Math::RandomFloat(0.0f, 1.0f);
         entity.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);
 
-        Print("color " + entity.color.ToString());
+        //Print("color " + entity.color.ToString());
+
+        array<Canis::Entity@>@ glassBlocks = world.GetEntitiesWithTag("glass");
+        for (uint i = 0; i < glassBlocks.length(); i++)
+        {
+            //glassBlocks[i].color = vec3(0.0f,0.0f,1.0f);
+            glassBlocks[i].color.x = 0.0f;
+            glassBlocks[i].color.y = 0.0f;
+            glassBlocks[i].color.z = 1.0f;
+        }
         
         Canis::Entity@ glassBlock = world.GetEntityWithName("glass_0");
         glassBlock.color.x = Canis::Math::RandomFloat(0.0f, 1.0f);
         glassBlock.color.y = Canis::Math::RandomFloat(0.0f, 1.0f);
         glassBlock.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);
-
     }
 
     void Destroy() {

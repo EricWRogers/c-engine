@@ -26,7 +26,7 @@ class TestTwo : Script {
 
         Print("color " + entity.color.ToString());
         
-        Canis::Entity@ glassBlock = world.GetEntityWithTag("glass");
+        Canis::Entity@ glassBlock = world.GetEntityWithName("glass_0");
         glassBlock.color.x = Canis::Math::RandomFloat(0.0f, 1.0f);
         glassBlock.color.y = Canis::Math::RandomFloat(0.0f, 1.0f);
         glassBlock.color.z = Canis::Math::RandomFloat(0.0f, 1.0f);

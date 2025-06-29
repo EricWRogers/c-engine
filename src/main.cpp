@@ -146,6 +146,7 @@ void RegisterWorld(asIScriptEngine* engine) {
     int r = engine->SetDefaultNamespace("Canis"); assert(r >= 0);
 
     r = engine->RegisterObjectType("World", 0, asOBJ_REF | asOBJ_NOCOUNT); assert(r >= 0);
+    r = engine->RegisterObjectMethod("World", "Entity@ GetEntityWithName(const string &in)", asMETHOD(Canis::World, GetEntityWithName), asCALL_THISCALL); assert(r >= 0);
     r = engine->RegisterObjectMethod("World", "Entity@ GetEntityWithTag(const string &in)", asMETHOD(Canis::World, GetEntityWithTag), asCALL_THISCALL); assert(r >= 0);
 
     r = engine->SetDefaultNamespace(""); assert(r >= 0);
@@ -273,6 +274,8 @@ int main(int argc, char *argv[])
     // Load Map into 3d array
     LoadMap("assets/maps/level.map");
 
+    int glassCount = 0;
+
     // Loop map and spawn objects
     for (int y = 0; y < map.size(); y++)
     {
@@ -286,6 +289,7 @@ int main(int argc, char *argv[])
                 switch (map[y][x][z])
                 {
                 case 1: // places a glass block
+                    entity.name = "glass_" + std::to_string(glassCount++);
                     entity.tag = "glass";
                     entity.albedo = &texture;
                     entity.specular = &textureSpecular;

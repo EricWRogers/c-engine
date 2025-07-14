@@ -4,6 +4,16 @@
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
+#ifdef _WIN32
+#  ifdef CANISENGINE_EXPORTS
+#    define CANIS_API __declspec(dllexport)
+#  else
+#    define CANIS_API __declspec(dllimport)
+#  endif
+#else
+#  define CANIS_API
+#endif
+
 namespace Canis
 {
     struct ProjectConfig
@@ -43,5 +53,6 @@ namespace Canis
     CanisData& GetCanisData();
     bool SaveProjectConfig();
 
-    int Init();
+    CANIS_API int Init();
+    CANIS_API void Start();
 } // end of Canis namespace

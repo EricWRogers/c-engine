@@ -4,7 +4,10 @@ project(c-engine)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 set(ASSETS_DIR_NAME assets)
+set(ASSETS_RELEASE_DIR ${CMAKE_SOURCE_DIR}/assets/scripts/bin/Release/netstandard2.0)
 set(CANIS_ENGINE_LIB CanisEngine)
+set(ROOT_INCLUDE ${CMAKE_SOURCE_DIR}/src)
+set(SCRIPTING_INCLUDE ${ROOT_INCLUDE}/scripting)
 
 set(glew-cmake_BUILD_SHARED FALSE)
 set(glew-cmake_BUILD_STATIC TRUE)
@@ -24,39 +27,56 @@ else()
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(MONO REQUIRED mono-2)
 
+# Set Mono paths
+set(MONO_ROOT "${CMAKE_SOURCE_DIR}/external/mono")
+set(MONO_INCLUDE "${MONO_ROOT}/include/mono-2.0")
+set(MONO_LIB "${MONO_ROOT}/lib")
+set(MONO_ETC "${MONO_ROOT}/etc")
+set(MONO_DLL "${MONO_ROOT}/mono-2.0-sgen.dll")
+
+# add game library
 file(GLOB_RECURSE CANIS_SOURCES src/*.c*)
 file(GLOB_RECURSE CANIS_HEADERS src/*.h*)
 
 add_library(${CANIS_ENGINE_LIB} SHARED ${CANIS_HEADERS} ${CANIS_SOURCES})
 set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
+    # ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
+target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE} ${ROOT_INCLUDE} ${SCRIPTING_INCLUDE} glm libglew_static SDL3::SDL3)
+target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE glm libglew_static SDL3::SDL3 "${MONO_LIB}/mono-2.0-sgen.lib")
+target_compile_definitions(${CANIS_ENGINE_LIB} PRIVATE CANISENGINE_EXPORTS)
 
-target_include_directories(${CANIS_ENGINE_LIB} PRIVATE ${MONO_INCLUDE_DIRS} glm libglew_static SDL3::SDL3)
-target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE ${MONO_LIBRARIES} monosgen-2.0 glm libglew_static SDL3::SDL3)
-
+#  add game executable
 add_executable(${PROJECT_NAME} src/main.cpp)
-
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        glm
+        SDL3::SDL3
+        ${ROOT_INCLUDE}
+        ${SCRIPTING_INCLUDE}
+        ${MONO_INCLUDE}
+)
+target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         glm
         libglew_static
         SDL3::SDL3
-        monosgen-2.0
-        ${MONO_LIBRARIES}
         ${CANIS_ENGINE_LIB}
+        "${MONO_LIB}/mono-2.0-sgen.lib"
 )
 
-target_include_directories(${PROJECT_NAME}
-    PRIVATE
-        glm
-        SDL3::SDL3
-        ${MONO_INCLUDE_DIRS}
+# generate script binding wrappers & compile C# scripts
+add_custom_command(
+    TARGET ${CANIS_ENGINE_LIB} PRE_BUILD
+    COMMAND cd ${CMAKE_SOURCE_DIR} && py ./tools/generate-scripting-wrappers.py && bash ./BuildCSharp.sh
+    COMMENT "Generating script binding wrappers"
 )
 
-# Copy assets directory
+# Copy assets directory - // todo we should not copy over the scripts
 if (WIN32)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -69,25 +89,26 @@ else()
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
 endif()
 
-# Compile C# scripts
-file(GLOB_RECURSE CS_SCRIPTS ${CMAKE_SOURCE_DIR}/assets/scripts/*.cs)
+# Copy game dlls
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND mcs -target:library -out:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GameScripts.dll ${CS_SCRIPTS}
-    COMMENT "Recompiling all C# scripts every build"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ASSETS_RELEASE_DIR}/GameBindings.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${ASSETS_RELEASE_DIR}/GameScripts.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    COMMENT "Copying game dlls"
 )
 
 # Copy Mono runtime files (lib and etc)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/etc
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different /usr/lib/libmonosgen-2.0.so ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib
-    COMMAND ${CMAKE_COMMAND} -E copy_directory /etc/mono ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/etc
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MONO_DLL}" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MONO_LIB}/mono-2.0-sgen.lib" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${MONO_ETC}" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/etc
     COMMENT "Copying Mono runtime files for deployment"
 )
 
 # Copy Mono's class libraries (e.g., mscorlib.dll, System.dll, etc.)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib/mono/4.5
-    COMMAND ${CMAKE_COMMAND} -E copy_directory /usr/lib/mono/4.5 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib/mono/4.5
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${MONO_LIB}/mono/4.5" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mono/lib/mono/4.5
     COMMENT "Copying Mono 4.5 runtime assemblies"
 )

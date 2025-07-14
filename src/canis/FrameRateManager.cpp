@@ -82,7 +82,7 @@ namespace Canis
     float FrameRateManager::EndFrame()
     {
         CalculateFPS();
-        
+
         double frameTicks = SDL_GetTicks() - startTicks;
 
         if ( (1000.0f / maxFPS) > frameTicks)
@@ -97,12 +97,3 @@ namespace Canis
         return fps;
     }
 } // end of Canis namespace
-
-namespace CSharpLayer
-{
-    extern "C" double CSharpLayer_GetDeltaTime()
-    {
-        MonoThread* thread = mono_thread_attach(mono_domain_get());
-        return ((Canis::FrameRateManager*)Canis::GetCanisData().frameRateManager)->GetDeltaTime();
-    }
-}

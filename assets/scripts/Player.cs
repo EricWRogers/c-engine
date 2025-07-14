@@ -1,4 +1,4 @@
-using Canis;
+using CanisEngine;
 using System;
 using System.Collections.Generic;
 
@@ -12,23 +12,23 @@ public class Player
         for (int i = 0; i < 1000; i++)
             m_numbers.Add(i);
         
-        Debug.Log("This is mine now Unity!" + m_counter++);
-        Debug.Warning("This is mine now Unity!" + m_counter++);
-        Debug.Error("This is mine now Unity!" + m_counter++);
-        Debug.Log("m_numbers.Count: " + m_numbers.Count);
+        Logger.Log("This is mine now Unity!" + m_counter++);
+        Logger.Warning("This is mine now Unity!" + m_counter++);
+        Logger.Error("This is mine now Unity!" + m_counter++);
+        Logger.Log("m_numbers.Count: " + m_numbers.Count);
     }
 
     public void Update(float _deltaTime)
     {
-        Window.SetTitle("Set From C#");
-        
-        Debug.Log("Player Update CanisEngine!" + m_counter++);
+        CanisWindow.SetTitle("Set From C#");
 
-        Window.SetBackgroundColor((float)m_counter/10000.0f,0.0f,0.0f,1.0f);
+        Logger.Log("Player Update CanisEngine!" + m_counter++);
+
+        CanisWindow.SetBackgroundColor((float)m_counter / 10000.0f, 0.0f, 0.0f, 1.0f);
     }
 
     public void OnDestroy()
     {
-        Debug.Log("Destroyed");
+        Logger.Log("Destroyed");
     }
 }

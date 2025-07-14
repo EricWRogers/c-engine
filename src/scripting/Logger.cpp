@@ -1,12 +1,11 @@
 #include "Logger.hpp"
-#include "Canis.hpp"
 #include <string>
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/mono-config.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/threads.h>
-#include "Debug.hpp"
+#include "canis/Debug.hpp"
 
 void Logger::FatalError(const char *_message)
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include "ScriptMacros.hpp"
 
-class XPLAT_EXPORT CanisWindow
+class SCRIPTABLE CanisWindow
 {
 public:
     static void SetTitle(const char *_title);

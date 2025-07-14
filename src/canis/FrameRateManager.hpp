@@ -21,7 +21,7 @@ namespace Canis
         high_resolution_clock::time_point previousTime;
 
         unsigned int nanoSecondsDeltaTime;
-        
+
         double fps;
         double maxFPS;
         double frameTime;

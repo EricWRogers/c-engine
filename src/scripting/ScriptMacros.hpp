@@ -1,6 +1,11 @@
 #pragma once
 
-#define EXPOSE_TO_SCRIPT
+// Macro for exporting to DLL
+#ifdef _WIN32
+#define XPLAT_EXPORT __declspec(dllexport)
+#else
+#define XPLAT_EXPORT
+#endif
 
 // This macro will only expand to the 'annotate' attribute when CppSharp is parsing.
 #ifdef CPP_SHARP_PARSER
@@ -16,8 +21,8 @@
     #define BIND_SCRIPT
 #endif
 
-#ifdef _WIN32
-#define XPLAT_EXPORT __declspec(dllexport) BIND_SCRIPT
-#else
-#define XPLAT_EXPORT
-#endif
+// Exposes all fields/methods of a class/struct to C#. Can also be used to expose Global variables/functions.
+#define SCRIPTABLE XPLAT_EXPORT BIND_SCRIPT
+
+// Marks a class/struct as bindable to C#, but doesn't actually expose any fields/methods. You can use BIND_SCRIPT on each field/method to expose them individually.
+#define SCRIPTABLE_PARTIAL XPLAT_EXPORT

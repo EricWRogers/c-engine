@@ -97,27 +97,3 @@ namespace Canis
         return loggingData;
     }
 } // end of Canis namespace#include <Canis/Debug.hpp>
-
-namespace CSharpLayer
-{
-    void CSharpLayer_FatalError(const char *_message)
-    {
-        MonoThread* thread = mono_thread_attach(mono_domain_get());
-        Canis::FatalError(_message);
-    }
-    void CSharpLayer_Error(const char *_message)
-    {
-        MonoThread* thread = mono_thread_attach(mono_domain_get());
-        Canis::Error(_message);
-    }
-    void CSharpLayer_Warning(const char *_message)
-    {
-        MonoThread* thread = mono_thread_attach(mono_domain_get());
-        Canis::Warning(_message);
-    }
-    void CSharpLayer_Log(const char *_message)
-    {
-        MonoThread* thread = mono_thread_attach(mono_domain_get());
-        Canis::Log(_message);
-    }
-}

@@ -4,34 +4,37 @@
 #include <vector>
 
 #include "Debug.hpp"
+#include "Canis.hpp"
+#include "ScriptMacros.hpp"
 
 namespace Canis
 {
-    enum WindowFlags
+    enum SCRIPTABLE WindowFlags
     {
         FULLSCREEN = 1,
         BORDERLESS = 2,
         RESIZEABLE = 4
     };
 
-    namespace Window
+    class SCRIPTABLE_PARTIAL Window
     {
-        int Create(std::string _windowName, int _screenWidth, int _screenHeight, unsigned int _currentFlags);
-        void SetWindowName(std::string _windowName);
+    public:
+        static int Create(std::string _windowName, int _screenWidth, int _screenHeight, unsigned int _currentFlags);
+        static void SetWindowName(std::string _windowName);
 
-        void SwapBuffer();
-        
-        void CenterMouse();
-        void SetMousePosition(int _x, int _y);
+        BIND_SCRIPT static void SwapBuffer();
 
-        void ClearColor();
-        void SetClearColor(glm::vec4 _color);
+        BIND_SCRIPT static void CenterMouse();
+        BIND_SCRIPT static void SetMousePosition(int _x, int _y);
+
+        static void ClearColor();
+        static void SetClearColor(glm::vec4 _color);
         static glm::vec4 GetScreenColor() {
             CanisData& data = GetCanisData();
             return data.clearColor;
         }
 
-        void MouseLock(bool _isLocked);
+        static void MouseLock(bool _isLocked);
         static bool GetMouseLock() {
             CanisData& data = GetCanisData();
             return data.mouseLock;
@@ -46,21 +49,12 @@ namespace Canis
             return data.screenHeight;
         }
 
-        void ToggleFullScreen();
-        void SetWindowSize(int _width, int _height);
-        void SetResized(bool _resized);
-        bool IsResized();
+        static void ToggleFullScreen();
+        static void SetWindowSize(int _width, int _height);
+        static void SetResized(bool _resized);
+        static bool IsResized();
 
-        bool GetVSync();
-        void SetVSync(bool _vsync);
-    }
+        static bool GetVSync();
+        static void SetVSync(bool _vsync);
+    };
 } // end of Canis namespace
-
-namespace CSharpLayer
-{
-    extern "C" {
-        void CSharpLayer_SetTitle(const char* _title);
-        void CSharpLayer_SetWindowSize(int _width, int _height);
-        void CSharpLayer_SetBackgroundColor(float _red, float _green, float _blue, float _alpha);
-    }
-}

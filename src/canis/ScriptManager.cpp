@@ -1,5 +1,6 @@
 #include "ScriptManager.hpp"
 #include <mono/metadata/threads.h>
+#include <direct.h>
 
 namespace Canis {
     namespace ScriptManager {
@@ -9,11 +10,11 @@ namespace Canis {
             return data;
         }
 
-        void Init(std::string _dllPath)
+        void Init(std::string _bindingsDllPath, std::string _scriptDllPath)
         {
             Data& data = GetData();
             mono_set_dirs("mono/lib", "mono/etc");
-
+            mono_config_parse(NULL);
 
             data.domain = mono_jit_init("ScriptDomain");
             if (!data.domain) {
@@ -21,13 +22,22 @@ namespace Canis {
                 return;
             }
 
-            data.assembly = mono_domain_assembly_open(data.domain, _dllPath.c_str());
-            if (!data.assembly) {
-                FatalError(("Failed to load assembly: " + _dllPath).c_str());
+            data.bindingsAssembly = mono_domain_assembly_open(data.domain, _bindingsDllPath.c_str());
+            if (!data.bindingsAssembly) {
+                FatalError(("Failed to load bindings assembly: " + _bindingsDllPath).c_str());
+                char* cwd = _getcwd(nullptr, 0);
+                printf("Current working dir: %s\n", cwd);
+                free(cwd);
                 return;
             }
 
-            data.image = mono_assembly_get_image(data.assembly);
+            data.scriptAssembly = mono_domain_assembly_open(data.domain, _scriptDllPath.c_str());
+            if (!data.scriptAssembly) {
+                FatalError(("Failed to load script assembly: " + _scriptDllPath).c_str());
+                return;
+            }
+
+            data.image = mono_assembly_get_image(data.scriptAssembly);
             if (!data.image) {
                 FatalError("Failed to get image from assembly.");
                 return;
@@ -79,11 +89,11 @@ namespace Canis {
 
             { // cache methods
                 script.startMethod = mono_class_get_method_from_name(script.klass, "Start", 0);
-                
+
                 script.updateMethod = mono_class_get_method_from_name(script.klass, "Update", 1);
                 if (!script.updateMethod)
                     std::cerr << "Failed to find Update(float) method.\n";
-                
+
                 script.onDestroyMethod = mono_class_get_method_from_name(script.klass, "OnDestroy", 0);
             }
 

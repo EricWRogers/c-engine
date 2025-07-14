@@ -9,7 +9,7 @@ namespace Canis
     int Window::Create(std::string _windowName, int _screenWidth, int _screenHeight, unsigned int _currentFlags)
     {
         CanisData& data = GetCanisData();
-        // if you wanted you application to support multiple rendering apis 
+        // if you wanted you application to support multiple rendering apis
         // you would not want to hard code it here
         Uint32 flags = SDL_WINDOW_OPENGL;
 
@@ -28,7 +28,7 @@ namespace Canis
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
         #endif
-        
+
         if (_currentFlags & WindowFlags::FULLSCREEN)
         {
             flags |= SDL_WINDOW_FULLSCREEN;
@@ -51,7 +51,7 @@ namespace Canis
         #else
         // Create Window
         data.sdlWindow = SDL_CreateWindow(_windowName.c_str(), _screenWidth, _screenHeight, flags);
-        
+
         SDL_Surface *surface;     // Declare an SDL_Surface to be filled in with pixel data from an image file
         Uint16 pixels[16*16] = {  // ...or with raw pixel data:
             0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0xf435, 0xf435, 0xf435, 0xf435, 0xf435, 0xf435, 0x0fff, 0x0fff, 0x0fff, 0x0fff, 0x0fff,
@@ -119,7 +119,7 @@ namespace Canis
         Log((std::string("OpenGL version loaded: ") + std::to_string(major) + std::string(".") + std::to_string(minor)).c_str());
         #endif
 
-        
+
 
         // before a new frame is drawn we need to clear the buffer
         // the clear color will be the new value of all of the pixels
@@ -150,7 +150,7 @@ namespace Canis
         // get the old buffer to start drawing our next frame to
         SDL_GL_SwapWindow((SDL_Window*)data.sdlWindow);
     }
-    
+
     void Window::CenterMouse()
     {
         CanisData& data = GetCanisData();
@@ -214,7 +214,7 @@ namespace Canis
         CanisData& data = GetCanisData();
         if ( _width == data.screenWidth && _height == data.screenHeight)
             return;
-        
+
         data.resized = true;
 
         data.screenWidth = _width;
@@ -235,23 +235,3 @@ namespace Canis
         return GetCanisData().resized;
     }
 } // end of Canis namespace
-
-namespace CSharpLayer
-{
-    void CSharpLayer_SetTitle(const char *_title)
-    {
-        Canis::Window::SetWindowName(std::string(_title));
-    }
-
-    void CSharpLayer_SetWindowSize(int _width, int _height)
-    {
-        Canis::Window::SetWindowSize(_width, _height);
-    }
-
-    
-    void CSharpLayer_SetBackgroundColor(float _red, float _green, float _blue, float _alpha)
-    {
-        Canis::Window::SetClearColor(glm::vec4(_red,_green,_blue,_alpha));
-        Canis::Window::ClearColor();
-    }
-}

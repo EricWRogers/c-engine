@@ -1,7 +1,7 @@
 #pragma once
 #include "ScriptMacros.hpp"
 
-class XPLAT_EXPORT Logger
+class SCRIPTABLE Logger
 {
 public:
   static void FatalError(const char *_message);

@@ -19,3 +19,6 @@ zips/
 *.dll
 *.so
 
+test_fs_support_case_sensitivity
+external/mono/
+.generated/

@@ -1,13 +1,15 @@
 ﻿using CppSharp;
 using CppSharp.AST;
 using CppSharp.Generators;
-using System.Linq;
+using CppSharp.Passes;
 
 namespace EngineBindingsGenerator
 {
     class EngineBindings : ILibrary
     {
-        private const string BIND_SCRIPT_ATTRIBUTE = "BIND_SCRIPT";
+        public const string BIND_SCRIPT_ATTRIBUTE = "BIND_SCRIPT";
+        public const string SCRIPTABLE_ATTRIBUTE = "SCRIPTABLE";
+
         public static readonly List<string> AllowedHeaderFolders = [
             Path.GetFullPath("../src"),
         ];
@@ -17,6 +19,7 @@ namespace EngineBindingsGenerator
             var options = driver.Options;
             options.GeneratorKind = GeneratorKind.CSharp;
             options.OutputDir = "../GameBindings/Generated";
+            options.GenerationOutputMode = GenerationOutputMode.FilePerUnit;
             options.MarshalCharAsManagedChar = false;
             options.MarshalConstCharArrayAsString = false;
             options.GenerateInternalImports = false;
@@ -46,45 +49,27 @@ namespace EngineBindingsGenerator
             var allowedTUs = new List<TranslationUnit>();
             foreach (var tu in ctx.TranslationUnits.Where(u => u.IsValid))
             {
-                // Get the path of the main file parsed for this translation unit.
                 var tuPath = Path.GetFullPath(tu.FilePath);
-
-                // Check if this main file is inside one of our allowed folders.
                 if (AllowedHeaderFolders.Any(dir => tuPath.StartsWith(dir)))
+                {
+                    allowedTUs.Add(tu);
+                }
+                else
                 {
                     allowedTUs.Add(tu);
                 }
             }
 
-            // 1. Mark all declarations to be ignored by default (opt-in).
             var ignoreVisitor = new IgnoreAllDeclarationsVisitor();
             foreach (var tu in ctx.TranslationUnits.Where(u => u.IsValid))
             {
                 tu.Visit(ignoreVisitor);
             }
 
-            // 2. Collect all declarations that have our BIND_API attribute.
-            var findVisitor = new FindMarkedDeclarationsVisitor(BIND_SCRIPT_ATTRIBUTE);
-            foreach (var tu in allowedTUs)
+            var findVisitor = new FindMarkedDeclarationsVisitor();
+            foreach (var tu in ctx.TranslationUnits.Where(u => u.IsValid))
             {
                 tu.Visit(findVisitor);
-            }
-
-            Console.WriteLine("Marked Declarations: " + findVisitor.MarkedDeclarations.Count);
-
-            //3. Un-ignore the collected declarations and their parent containers.
-            foreach (var decl in findVisitor.MarkedDeclarations)
-            {
-                // Un-ignore the declaration itself
-                decl.Ignore = false;
-
-                // Walk up the parent hierarchy (class, namespace) and un-ignore them too.
-                var parent = decl.Namespace;
-                while (parent != null)
-                {
-                    parent.Ignore = false;
-                    parent = parent.Namespace;
-                }
             }
         }
 
@@ -99,40 +84,75 @@ namespace EngineBindingsGenerator
     {
         public override bool VisitDeclaration(Declaration decl)
         {
-            //if (!IsDeclarationAllowed(decl))
-            //{
-            //    decl.Ignore = true;
-            //    return false; // Returning false stops traversal down this path.
-            //}
-
             decl.Ignore = true;
             return base.VisitDeclaration(decl);
         }
     }
 
     /// <summary>
-    /// CppSharp AST visitor that finds all declarations marked with a specific attribute.
+    /// CppSharp AST visitor that finds all declarations marked with our MACROS
     /// </summary>
     public class FindMarkedDeclarationsVisitor : CustomAstVisitor
     {
-        public readonly List<Declaration> MarkedDeclarations = new List<Declaration>();
-        private readonly string _attributeText;
+        public readonly HashSet<Declaration> MarkedDeclarations = [];
 
-        public FindMarkedDeclarationsVisitor(string attributeText)
+        public FindMarkedDeclarationsVisitor()
         {
-            _attributeText = attributeText;
+            //
         }
 
         public override bool VisitDeclaration(Declaration decl)
         {
+            var declPath = Path.GetFullPath(decl.TranslationUnit.FilePath);
             if (!IsDeclarationAllowed(decl))
-                return false;
-
-            Console.WriteLine("Decl: " + decl.ToString());
-            Console.WriteLine("Attrs: " + string.Join(',', decl.Attributes.Select(a => a.Value)));
-            if (decl.Attributes.Any(attr => attr.Value == _attributeText))
             {
+                return false;
+            }
+
+            var debug = false;
+            //var debug = declPath.EndsWith("\\Window.hpp");
+            if (debug)
+            {
+                Console.WriteLine("Visiting.. " + decl.ToString());
+                Console.WriteLine("Type.. " + decl.GetType().FullName);
+            }
+
+            if (decl.Namespace != null && MarkedDeclarations.Contains(decl.Namespace))
+            {
+                if (debug)
+                    Console.WriteLine("Parent is marked.");
+                decl.GenerationKind = GenerationKind.Generate;
+                MarkedDeclarations.Add(decl);   // To allow transitive generation
+            }
+
+            bool foundMacro = false;
+            IEnumerable<MacroExpansion> macros = GetAppropriateMacros(decl);
+            if (macros.Any((MacroExpansion e) => e.Text == EngineBindings.SCRIPTABLE_ATTRIBUTE || e.Text == EngineBindings.BIND_SCRIPT_ATTRIBUTE))
+            {
+                foundMacro = true;
+            }
+
+            if (debug)
+            {
+                Console.WriteLine("Macros: " + string.Join(',', macros.Select(m => m.Text)));
+            }
+
+            if (decl.Ignore && foundMacro)
+            {
+                if (debug)
+                    Console.WriteLine("Macro Found.");
+                decl.GenerationKind = GenerationKind.Generate;
                 MarkedDeclarations.Add(decl);
+
+                // Walk up the parent hierarchy (class, namespace, TU) and un-ignore them as well
+                var parent = decl.Namespace;
+                while (parent != null)
+                {
+                    parent.GenerationKind = GenerationKind.Generate;
+                    if (debug)
+                        Console.WriteLine("Unignoring parent.. " + parent.ToString());
+                    parent = parent.Namespace;
+                }
             }
 
             return base.VisitDeclaration(decl);
@@ -144,16 +164,31 @@ namespace EngineBindingsGenerator
         public bool IsDeclarationAllowed(Declaration decl)
         {
             var declPath = Path.GetFullPath(decl.TranslationUnit.FilePath);
-
-            //// If the declaration is not from a source file in our allowed folders, skip it.
             if (!EngineBindings.AllowedHeaderFolders.Any(dir => declPath.StartsWith(dir)))
             {
-                return false; // Stop traversal down this AST branch.
+                return false;
+            }
+            return true;
+        }
+
+        public IEnumerable<MacroExpansion> GetAppropriateMacros(Declaration decl)
+        {
+            var macroExpansions = decl.PreprocessedEntities.OfType<MacroExpansion>();
+
+            if (decl is Class)
+            {
+                return macroExpansions.Where(me => me.MacroLocation == MacroLocation.ClassHead);
+            }
+            else if (decl is Function)
+            {
+                return macroExpansions.Where(me => me.MacroLocation == MacroLocation.FunctionHead);
+            }
+            else if (decl is TranslationUnit || decl is Namespace)
+            {
+                return [];
             }
 
-            Console.WriteLine("Checking.. " + declPath);
-            //Console.WriteLine(declPath);
-            return true;
+            return macroExpansions;
         }
     }
 }

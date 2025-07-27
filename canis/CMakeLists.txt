@@ -11,8 +11,6 @@ target_include_directories(EngineApp PRIVATE
 # Link to SDL3 with GPU support
 target_link_libraries(EngineApp
     SDL3::SDL3
-    SDL3_shadercross::SDL3_shadercross
-    dl
 )
 
 # Set output path for easier library loading

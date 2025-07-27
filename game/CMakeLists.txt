@@ -12,7 +12,6 @@ target_include_directories(GameCode PRIVATE
 # Link to SDL3 (for logging or future rendering use)
 target_link_libraries(GameCode
     SDL3::SDL3
-    SDL3_shadercross::SDL3_shadercross
 )
 
 # Set output directory to match the engine executable

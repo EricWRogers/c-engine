@@ -10,7 +10,7 @@ struct GameData {
 void* GameInit() {
     SDL_Log("Game initialized!");
     GameData* gameData = (GameData*)malloc(sizeof(GameData));
-    gameData->id = 5;
+    gameData->id = 10;
     return (void*) gameData;
 }
 

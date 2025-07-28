@@ -16,16 +16,16 @@ namespace Canis
         #endif
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
-        GameCodeObjectInitFunction(&gameCodeObject);
+        GameCodeObjectInitFunction(&gameCodeObject, this);
 
         while (true)
         {
             // call the dynamically loaded function
-            GameCodeObjectUpdateFunction(&gameCodeObject, 0.16f);
-            GameCodeObjectWatchFile(&gameCodeObject);
+            GameCodeObjectUpdateFunction(&gameCodeObject, this, 0.16f);
+            GameCodeObjectWatchFile(&gameCodeObject, this);
         }
 
-        gameCodeObject.GameShutdownFunction(gameCodeObject.gameData);
+        gameCodeObject.GameShutdownFunction((void*)this, gameCodeObject.gameData);
         SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
     }
 }

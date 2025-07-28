@@ -11,9 +11,9 @@ struct GameCodeObject
     const char* path;
     SDL_PathInfo pathInfo;
     void *gameData;
-    void *(*GameInitFunction)();
-    void (*GameUpdateFunction)(float, void *);
-    void (*GameShutdownFunction)(void *);
+    void *(*GameInitFunction)(void *);
+    void (*GameUpdateFunction)(void *, float, void *);
+    void (*GameShutdownFunction)(void *, void *);
     
     SDL_PathInfo _lastPathInfo;
     Uint64 _lastFileCheck;
@@ -43,7 +43,7 @@ GameCodeObject GameCodeObjectInit(const char *_path)
 
     // load the exported function from mylib.so
     const char *gameInitName = "GameInit";
-    gco.GameInitFunction = (void *(*)())SDL_LoadFunction(gco.sharedObjectHandle, gameInitName);
+    gco.GameInitFunction = (void *(*)(void *))SDL_LoadFunction(gco.sharedObjectHandle, gameInitName);
     if (gco.GameInitFunction == NULL)
     {
         SDL_Log("Error loading function '%s': %s", gameInitName, SDL_GetError());
@@ -52,7 +52,7 @@ GameCodeObject GameCodeObjectInit(const char *_path)
     }
 
     const char *gameUpdateName = "GameUpdate";
-    gco.GameUpdateFunction = (void (*)(float, void *))SDL_LoadFunction(gco.sharedObjectHandle, gameUpdateName);
+    gco.GameUpdateFunction = (void (*)(void *, float, void *))SDL_LoadFunction(gco.sharedObjectHandle, gameUpdateName);
     if (gco.GameUpdateFunction == NULL)
     {
         SDL_Log("Error loading function '%s': %s", gameUpdateName, SDL_GetError());
@@ -61,7 +61,7 @@ GameCodeObject GameCodeObjectInit(const char *_path)
     }
 
     const char *gameShutdownName = "GameShutdown";
-    gco.GameShutdownFunction = (void (*)(void *))SDL_LoadFunction(gco.sharedObjectHandle, gameShutdownName);
+    gco.GameShutdownFunction = (void (*)(void *, void *))SDL_LoadFunction(gco.sharedObjectHandle, gameShutdownName);
     if (gco.GameShutdownFunction == NULL)
     {
         SDL_Log("Error loading function '%s': %s", gameShutdownName, SDL_GetError());
@@ -72,17 +72,17 @@ GameCodeObject GameCodeObjectInit(const char *_path)
     return gco;
 }
 
-void GameCodeObjectInitFunction(GameCodeObject* _gameCodeObject)
+void GameCodeObjectInitFunction(GameCodeObject* _gameCodeObject, Canis::App *_app)
 {
-    _gameCodeObject->gameData = _gameCodeObject->GameInitFunction();
+    _gameCodeObject->gameData = _gameCodeObject->GameInitFunction((void*)_app);
 }
 
-void GameCodeObjectUpdateFunction(GameCodeObject* _gameCodeObject, float _deltaTime)
+void GameCodeObjectUpdateFunction(GameCodeObject* _gameCodeObject, Canis::App *_app, float _deltaTime)
 {
-    _gameCodeObject->GameUpdateFunction(_deltaTime, _gameCodeObject->gameData);
+    _gameCodeObject->GameUpdateFunction((void*)_app, _deltaTime, _gameCodeObject->gameData);
 }
 
-void GameCodeObjectWatchFile(GameCodeObject* _gameCodeObject)
+void GameCodeObjectWatchFile(GameCodeObject* _gameCodeObject, Canis::App *_app)
 {
     if (SDL_GetTicksNS() - _gameCodeObject->_lastFileCheck > 1.e9)
     {
@@ -96,10 +96,10 @@ void GameCodeObjectWatchFile(GameCodeObject* _gameCodeObject)
             {
                 if (_gameCodeObject->_lastPathInfo.size == info.size)
                 {
-                    _gameCodeObject->GameShutdownFunction(_gameCodeObject->gameData);
+                    _gameCodeObject->GameShutdownFunction((void*)_app, _gameCodeObject->gameData);
                     SDL_UnloadObject(_gameCodeObject->sharedObjectHandle);
                     *_gameCodeObject = GameCodeObjectInit(_gameCodeObject->path);
-                    GameCodeObjectInitFunction(_gameCodeObject);
+                    GameCodeObjectInitFunction(_gameCodeObject, _app);
                 }
             }
         }

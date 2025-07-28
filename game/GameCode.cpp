@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <SDL3/SDL_log.h>
+#include <Canis/GameCodeObject.hpp>
+
 extern "C" {
 
 struct GameData {
@@ -10,7 +12,7 @@ struct GameData {
 void* GameInit() {
     SDL_Log("Game initialized!");
     GameData* gameData = (GameData*)malloc(sizeof(GameData));
-    gameData->id = 10;
+    gameData->id = 20;
     return (void*) gameData;
 }
 

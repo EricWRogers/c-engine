@@ -7,16 +7,30 @@ add_library(GameCode SHARED
 # Include SDL3 headers if needed
 target_include_directories(GameCode PRIVATE
     ${SDL3_INCLUDE_DIRS}
+    CanisEngine
 )
 
 # Link to SDL3 (for logging or future rendering use)
 target_link_libraries(GameCode
     SDL3::SDL3
+    CanisEngine
 )
 
 # Set output directory to match the engine executable
 set_target_properties(GameCode PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
+
+# Copy assets directory
+if (WIN32)
+    add_custom_command(TARGET GameCode POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/../${ASSETS_DIR_NAME}/
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
+else()
+    add_custom_command(TARGET GameCode PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_SOURCE_DIR}/${ASSETS_DIR_NAME}/
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
+endif()

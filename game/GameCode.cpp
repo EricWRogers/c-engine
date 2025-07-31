@@ -9,7 +9,26 @@ struct GameData : public Canis::ScriptableEntity {
 public:
     int id = 5;
     int counter = 0;
-    
+
+    void OnCreate()
+    {
+        SDL_Log("OnCreate");
+    }
+
+    void OnReady()
+    {
+        SDL_Log("OnReady");
+    }
+
+    void OnDestroy()
+    {
+        SDL_Log("OnDestroy");
+    }
+
+    void OnUpdate(float _dt)
+    {
+        SDL_Log("OnUpdate");
+    }
 };
 
 class Game : public Canis::ScriptableEntity {

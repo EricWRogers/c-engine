@@ -17,14 +17,17 @@ namespace Canis
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
+        scene.Init();
 
         while (true)
         {
+            scene.Update(0.16f);
             // call the dynamically loaded function
             GameCodeObjectUpdateFunction(&gameCodeObject, this, 0.16f);
             GameCodeObjectWatchFile(&gameCodeObject, this);
         }
 
+        scene.Unload();
         gameCodeObject.GameShutdownFunction((void*)this, gameCodeObject.gameData);
         SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
     }

@@ -7,6 +7,9 @@ namespace Canis
 
     class ScriptableEntity
     {
+    friend Scene;
+    private:
+        bool m_onReadyCalled = false;
     public:
         virtual void OnCreate() {}
         virtual void OnReady() {}
@@ -16,18 +19,33 @@ namespace Canis
 
     class Entity
     {
+    friend Scene;
     private:
+        std::vector<ScriptableEntity *> m_scriptComponents = {};
     public:
         int id;
         Scene *scene;
-        std::vector<ScriptableEntity *> scriptComponents = {};
+        
+
+        template <typename T>
+        T *AddScript()
+        {
+            T *scriptableEntity = new T();
+
+            // might check if the entity already has script
+
+            m_scriptComponents.push_back((ScriptableEntity*)scriptableEntity);
+            scriptableEntity->OnCreate();
+
+            return scriptableEntity;
+        }
 
         template <typename T>
         T *GetScript()
         {
             T *scriptableEntity = nullptr;
 
-            for (ScriptableEntity *sc : scriptComponents)
+            for (ScriptableEntity *sc : m_scriptComponents)
             {
                 if ((scriptableEntity = dynamic_cast<T *>(sc)) != nullptr)
                 {

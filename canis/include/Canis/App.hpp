@@ -1,12 +1,12 @@
 #pragma once
-#include <Canis/Entity.hpp>
+#include <Canis/Scene.hpp>
 
 namespace Canis
 {
 class App
 {
 public:
-    Entity entity;
+    Scene scene;
     void Run();
 };
 }

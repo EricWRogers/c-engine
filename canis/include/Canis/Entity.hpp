@@ -3,6 +3,8 @@
 
 namespace Canis
 {
+    class Scene;
+
     class ScriptableEntity
     {
     public:
@@ -17,6 +19,7 @@ namespace Canis
     private:
     public:
         int id;
+        Scene *scene;
         std::vector<ScriptableEntity *> scriptComponents = {};
 
         template <typename T>

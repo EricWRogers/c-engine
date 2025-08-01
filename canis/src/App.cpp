@@ -3,7 +3,10 @@
 #include <SDL3/SDL_loadso.h>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_filesystem.h>
+
+#include <Canis/Time.hpp>
 #include <Canis/GameCodeObject.hpp>
+
 
 namespace Canis
 {
@@ -17,17 +20,21 @@ namespace Canis
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
+        Time::Init(60.0f);
         scene.Init();
 
         while (true)
         {
-            scene.Update(0.16f);
+            float deltaTime = Time::StartFrame();
+            scene.Update(deltaTime);
             // call the dynamically loaded function
-            GameCodeObjectUpdateFunction(&gameCodeObject, this, 0.16f);
+            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             GameCodeObjectWatchFile(&gameCodeObject, this);
+            Time::EndFrame();
         }
 
         scene.Unload();
+        Time::Quit();
         gameCodeObject.GameShutdownFunction((void*)this, gameCodeObject.gameData);
         SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
     }

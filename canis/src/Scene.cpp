@@ -42,6 +42,8 @@ namespace Canis
         {
             delete e;
         }
+
+        m_entities.clear();
     }
 
     Entity* Scene::CreateEntity()

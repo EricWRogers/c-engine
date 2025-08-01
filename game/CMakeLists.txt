@@ -1,12 +1,15 @@
-# Build the game logic as a shared library
+file(GLOB_RECURSE GAME_SOURCES src/*.c*)
+file(GLOB_RECURSE GAME_HEADERS include/*.h*)
+
 add_library(GameCode SHARED
-    GameCode.cpp
-    GameCode.hpp
+    ${GAME_HEADERS}
+    ${GAME_SOURCES}
 )
 
 # Include SDL3 headers if needed
 target_include_directories(GameCode PRIVATE
     ${SDL3_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     CanisEngine
 )
 

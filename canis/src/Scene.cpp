@@ -55,7 +55,7 @@ namespace Canis
         return entity;
     }
 
-    void Destroy(uint _id)
+    void Destroy(int _id)
     {
 
     }

@@ -1,12 +1,9 @@
 #include <Canis/Time.hpp>
-#include <SDL3/SDL_log.h>
+#include <Canis/Debug.hpp>
 #include <SDL3/SDL_timer.h>
 
-namespace Canis
+namespace Canis::Time
 {
-    namespace Time
-    {
-
         struct TimeData
         {
             float deltaTime = 0.0f;
@@ -31,7 +28,7 @@ namespace Canis
             }
             else
             {
-                // error
+                Debug::FatalError("You called Canis::Time::Init more the once!");
             }
         }
 
@@ -44,7 +41,7 @@ namespace Canis
             }
             else
             {
-                // error
+                Debug::FatalError("Canis::Time::Quit called with Time not initialized");
             }
         }
 
@@ -173,6 +170,4 @@ namespace Canis
                 return 0.0f;
             }
         }
-
-    }
 }

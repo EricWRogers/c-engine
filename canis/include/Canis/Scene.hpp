@@ -13,7 +13,7 @@ namespace Canis
         void Unload();
 
         Entity* CreateEntity();
-        void Destroy(uint _id);
+        void Destroy(int _id);
     private:
         std::vector <Entity*> m_entities = {};
     };

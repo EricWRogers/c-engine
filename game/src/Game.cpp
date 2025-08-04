@@ -2,10 +2,10 @@
 
 #include <stdio.h>
 #include <stdlib.h> 
-#include <SDL3/SDL_log.h>
 
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
+#include <Canis/Debug.hpp>
 #include <Canis/GameCodeObject.hpp>
 
 struct GameData {
@@ -20,24 +20,24 @@ public:
 
     void OnCreate()
     {
-        SDL_Log("OnCreate");
+        Canis::Debug::Log("OnCreate");
         Canis::Time::SetTargetFPS(60.0f);
     }
 
     void OnReady()
     {
-        SDL_Log("OnReady");
+        Canis::Debug::Log("OnReady");
     }
 
     void OnDestroy()
     {
-        SDL_Log("OnDestroy");
+        Canis::Debug::Log("OnDestroy");
     }
 
     void OnUpdate(float _dt)
     {
-        SDL_Log("OnUpdate");
-        SDL_Log("Yo Game Script update %.2f %d Counter %d FPS: %f", _dt, id, counter++, Canis::Time::FPS());
+        Canis::Debug::Log("OnUpdate");
+        Canis::Debug::Log("Yo Game Script update %.2f %d Counter %d FPS: %f", _dt, id, counter++, Canis::Time::FPS());
     }
 };
 
@@ -48,7 +48,7 @@ void* GameInit(void* _app) {
     Canis::Entity* entityOne = app.scene.CreateEntity();
     entityOne->AddScript<GameScript>();
 
-    SDL_Log("Game initialized!");
+    Canis::Debug::Log("Game initialized!");
     GameData* gameData = (GameData*)malloc(sizeof(GameData));
     *gameData = GameData{};
     gameData->id = 15;
@@ -58,13 +58,13 @@ void* GameInit(void* _app) {
 void  GameUpdate(void* _app, float dt, void* _data) {
     Canis::App& app = *(Canis::App*)_app;
     GameData& gameData = *(GameData*)_data;
-    SDL_Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
+    Canis::Debug::Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
 }
 
 void  GameShutdown(void* _app, void* _data) {
     Canis::App& app = *(Canis::App*)_app;
     app.scene.Unload();
-    SDL_Log("Game shutdown!");
-    delete _data;
+    Canis::Debug::Log("Game shutdown!");
+    delete (GameData*)_data;
 }
 }

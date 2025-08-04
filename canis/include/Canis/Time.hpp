@@ -1,8 +1,6 @@
 #pragma once
 
-namespace Canis
-{
-namespace Time
+namespace Canis::Time
 {
 // init engine time system
 extern void Init(float _targetFPS);
@@ -28,5 +26,4 @@ extern float DeltaTime();
 
 // get average fps
 extern float FPS();
-}
 }

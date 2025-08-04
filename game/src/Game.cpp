@@ -8,10 +8,7 @@
 #include <Canis/Debug.hpp>
 #include <Canis/GameCodeObject.hpp>
 
-struct GameData {
-    int id = 5;
-    int counter = 0;
-};
+#include <GameData.hpp>
 
 class GameScript : public Canis::ScriptableEntity {
 public:

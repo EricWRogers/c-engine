@@ -118,7 +118,6 @@ namespace Canis::Time
 
                 if ( (1000000000.0f / timeData->targetFPS) > frameTicks)
                 {
-                    SDL_Log("Slow down");
                     SDL_DelayNS((1000000000.0 / timeData->targetFPS) - frameTicks + timeData->carryOverFrameDelay);
                 }
 

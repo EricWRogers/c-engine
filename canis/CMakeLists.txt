@@ -16,16 +16,21 @@ target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLES2 REQUIRED glesv2)
+
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${GLES2_LIBRARIES}
 )
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
     ${CANIS_ENGINE_LIB}
+    ${GLES2_LIBRARIES}
 )
 
 #add_custom_command(TARGET CanisEngine POST_BUILD

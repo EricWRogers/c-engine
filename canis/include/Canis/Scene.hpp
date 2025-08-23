@@ -3,12 +3,14 @@
 
 namespace Canis
 {
+    class App;
+
     class Scene
     {
-    
     public:
+        App* app = nullptr;
         
-        void Init();
+        void Init(App *_app);
         void Update(float _deltaTime);
         void Unload();
 

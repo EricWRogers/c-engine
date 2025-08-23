@@ -18,7 +18,7 @@ public:
     void OnCreate()
     {
         Canis::Debug::Log("OnCreate");
-        Canis::Time::SetTargetFPS(60.0f);
+        Canis::Time::SetTargetFPS(30.0f);
     }
 
     void OnReady()
@@ -33,8 +33,8 @@ public:
 
     void OnUpdate(float _dt)
     {
-        Canis::Debug::Log("OnUpdate");
-        Canis::Debug::Log("Yo Game Script update %.2f %d Counter %d FPS: %f", _dt, id, counter++, Canis::Time::FPS());
+        //Canis::Debug::Log("OnUpdate Updated");
+        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f", _dt, id, counter++, Canis::Time::FPS());
     }
 };
 
@@ -55,7 +55,7 @@ void* GameInit(void* _app) {
 void  GameUpdate(void* _app, float dt, void* _data) {
     Canis::App& app = *(Canis::App*)_app;
     GameData& gameData = *(GameData*)_data;
-    Canis::Debug::Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
+    //Canis::Debug::Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
 }
 
 void  GameShutdown(void* _app, void* _data) {

@@ -1,29 +1,27 @@
 #pragma once
 
-namespace Canis::Time
-{
-// init engine time system
-extern void Init(float _targetFPS);
-// clean up engine time system
-extern void Quit();
+namespace Canis::Time {
+  // init engine time system
+  void Init(float _targetFPS);
+  // clean up engine time system
+  void Quit();
 
-// call when you start working on your frame
-// return deltaTime
-extern float StartFrame();
+  // call when you start working on your frame
+  // return deltaTime
+  float StartFrame();
 
-// call when you finish your frame
-// return fps
-extern float EndFrame();
+  // call when you finish your frame
+  // return fps
+  float EndFrame();
 
+  // game code
 
-// game code
+  // set target fps
+  void SetTargetFPS(float _targetFPS);
 
-// set target fps
-extern void SetTargetFPS(float _targetFPS);
+  // get deltaTime of last frame
+  float DeltaTime();
 
-// get deltaTime of last frame
-extern float DeltaTime();
-
-// get average fps
-extern float FPS();
-}
+  // get average fps
+  float FPS();
+} // namespace Canis

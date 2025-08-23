@@ -10,42 +10,65 @@
 #include <Canis/Time.hpp>
 #include <Canis/Window.hpp>
 
-namespace Canis {
-void App::Run() {
+namespace Canis
+{
+    void App::Run()
+    {
 #ifdef Win32
-  const char *sharedObjectPath = "./libGameCode.dll";
+        const char *sharedObjectPath = "./libGameCode.dll";
 #elif __APPLE__
-  const char *sharedOpbjectPath = "./libGameCode.dylib";
+        const char *sharedOpbjectPath = "./libGameCode.dylib";
 #else
-  const char *sharedObjectPath = "./libGameCode.so";
+        const char *sharedObjectPath = "./libGameCode.so";
 #endif
 
-  Window window("Canis Beta", 400, 240);
+        // init window
+        Window window("Canis Beta", 512, 512);
 
-  GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
-  GameCodeObjectInitFunction(&gameCodeObject, this);
-  Time::Init(60.0f);
-  scene.Init();
+        Time::Init(120.0f);
 
-  while (!window.ShouldClose()) {
-    window.PollEvents();
-    window.Clear(0.1f, 0.1f, 0.1f, 1.0f);
+        scene.Init(this);
 
-    float deltaTime = Time::StartFrame();
-    scene.Update(deltaTime);
-    // call the dynamically loaded function
-    GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
-    GameCodeObjectWatchFile(&gameCodeObject, this);
+        GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
+        GameCodeObjectInitFunction(&gameCodeObject, this);
+        
 
-    window.Render();
-    window.Display();
+        while (!window.ShouldClose())
+        {
+            window.PollEvents();
+            window.Clear(0.1f, 0.1f, 0.1f, 1.0f);
 
-    Time::EndFrame();
-  }
+            float deltaTime = Time::StartFrame();
+            scene.Update(deltaTime);
+            // call the dynamically loaded function
+            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+            GameCodeObjectWatchFile(&gameCodeObject, this);
 
-  scene.Unload();
-  Time::Quit();
-  gameCodeObject.GameShutdownFunction((void *)this, gameCodeObject.gameData);
-  SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
-}
+            window.Render();
+            window.Display();
+
+            Time::EndFrame();
+        }
+
+        scene.Unload();
+        Time::Quit();
+        gameCodeObject.GameShutdownFunction((void *)this, gameCodeObject.gameData);
+        SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
+    }
+
+    float App::FPS()
+    {
+        return Time::FPS();
+    }
+
+    float App::DeltaTime()
+    {
+        return Time::DeltaTime();
+    }
+
+    void App::SetTargetFPS(float _targetFPS)
+    {
+        Time::SetTargetFPS(_targetFPS);
+    }
+
 } // namespace Canis

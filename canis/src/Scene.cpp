@@ -1,16 +1,14 @@
 #include <Canis/Scene.hpp>
-#include <SDL3/SDL_log.h>
 
 namespace Canis
 {
-    void Scene::Init()
+    void Scene::Init(App *_app)
     {
-
+        app = _app;
     }
 
     void Scene::Update(float _deltaTime)
     {
-        SDL_Log("Scene::Update");
         for (Entity* e : m_entities)
         {
             for (ScriptableEntity* se : e->m_scriptComponents)

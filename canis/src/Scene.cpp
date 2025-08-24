@@ -1,4 +1,5 @@
 #include <Canis/Scene.hpp>
+#include <Canis/Entity.hpp>
 
 namespace Canis
 {
@@ -51,6 +52,15 @@ namespace Canis
         entity->scene = this;
         m_entities.push_back(entity);
         return entity;
+    }
+
+    Entity* Scene::GetEntity(int _id)
+    {
+        if (_id > -1 && _id < m_entities.size())
+            return m_entities[_id];
+        
+        // TODO : Handle Error
+        return nullptr; 
     }
 
     void Destroy(int _id)

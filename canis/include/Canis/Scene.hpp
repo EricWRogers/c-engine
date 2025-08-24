@@ -1,9 +1,10 @@
 #pragma once
-#include <Canis/Entity.hpp>
+#include <vector>
 
 namespace Canis
 {
     class App;
+    class Entity;
 
     class Scene
     {
@@ -15,6 +16,8 @@ namespace Canis
         void Unload();
 
         Entity* CreateEntity();
+        Entity* GetEntity(int _id);
+
         void Destroy(int _id);
     private:
         std::vector <Entity*> m_entities = {};

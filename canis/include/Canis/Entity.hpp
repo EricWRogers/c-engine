@@ -1,22 +1,13 @@
 #pragma once
 #include <vector>
+#include <Canis/Math.hpp>
 
 namespace Canis
 {
     class Scene;
+    class ScriptableEntity;
 
-    class ScriptableEntity
-    {
-    friend Scene;
-    private:
-        bool m_onReadyCalled = false;
-    public:
-        virtual void OnCreate() {}
-        virtual void OnReady() {}
-        virtual void OnDestroy() {}
-        virtual void OnUpdate(float _dt) {}
-    };
-
+    
     class Entity
     {
     friend Scene;
@@ -31,6 +22,7 @@ namespace Canis
         T *AddScript()
         {
             T *scriptableEntity = new T();
+            scriptableEntity->entity = this;
 
             // might check if the entity already has script
 
@@ -55,5 +47,31 @@ namespace Canis
 
             return scriptableEntity;
         }
+    };
+
+    class ScriptableEntity
+    {
+    friend Scene;
+    private:
+        bool m_onReadyCalled = false;
+    public:
+        Canis::Entity* entity = nullptr;
+        virtual void OnCreate() {}
+        virtual void OnReady() {}
+        virtual void OnDestroy() {}
+        virtual void OnUpdate(float _dt) {}
+    };
+
+    class RectTransform : public ScriptableEntity
+    {
+    public:
+        Vector2D position;
+        Vector2D rotation;
+        Vector2D size;
+    };
+    
+    class Sprite : public ScriptableEntity
+    {
+    public:
     };
 }

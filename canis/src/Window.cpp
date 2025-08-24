@@ -1,16 +1,9 @@
 #include "SDL3/SDL_video.h"
 #include <Canis/Window.hpp>
+#include <Canis/OpenGL.hpp>
 #include <SDL3/SDL_log.h>
 #include <cstdlib>
 #include <SDL3/SDL_log.h>
-//#include <SDL3/SDL_egl.h>
-//#include <GL/glew.h>
-#include <GLES3/gl3.h>
-#include <EGL/egl.h>
-#include <SDL3/SDL_opengl.h>
-//#include <SDL3/SDL_opengl_glext.h>
-//#include <SDL3/SDL_opengles.h>
-#include <SDL3/SDL_opengles2_gl2.h>
 
 // Simple vertex shader: passes position
 static const char* vertexShaderSrc = R"(

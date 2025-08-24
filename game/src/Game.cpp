@@ -6,6 +6,7 @@
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Debug.hpp>
+#include <Canis/Entity.hpp>
 #include <Canis/GameCodeObject.hpp>
 
 #include <GameData.hpp>
@@ -19,6 +20,9 @@ public:
     {
         Canis::Debug::Log("OnCreate");
         Canis::Time::SetTargetFPS(30.0f);
+
+        Canis::RectTransform* rect = entity->GetScript<Canis::RectTransform>();
+        rect->position.x = 10.0f;
     }
 
     void OnReady()
@@ -34,7 +38,8 @@ public:
     void OnUpdate(float _dt)
     {
         //Canis::Debug::Log("OnUpdate Updated");
-        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f", _dt, id, counter++, Canis::Time::FPS());
+        Canis::RectTransform* rect = entity->GetScript<Canis::RectTransform>();
+        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), rect->position.x++);
     }
 };
 
@@ -43,6 +48,7 @@ void* GameInit(void* _app) {
     Canis::App& app = *(Canis::App*)_app;
 
     Canis::Entity* entityOne = app.scene.CreateEntity();
+    entityOne->AddScript<Canis::RectTransform>();
     entityOne->AddScript<GameScript>();
 
     Canis::Debug::Log("Game initialized!");

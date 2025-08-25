@@ -27,7 +27,7 @@ namespace Canis
 
         Time::Init(120.0f);
 
-        scene.Init(this);
+        scene.Init(this, &window);
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);

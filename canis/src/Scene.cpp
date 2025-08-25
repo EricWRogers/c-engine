@@ -1,11 +1,13 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Entity.hpp>
+#include <Canis/System.hpp>
 
 namespace Canis
 {
-    void Scene::Init(App *_app)
+    void Scene::Init(App *_app, Window *_window)
     {
         app = _app;
+        m_window = _window;
     }
 
     void Scene::Update(float _deltaTime)
@@ -66,5 +68,15 @@ namespace Canis
     void Destroy(int _id)
     {
 
+    }
+
+    void Scene::ReadySystem(System *_system)
+    {
+        _system->scene = this;
+        _system->window = m_window;
+        //_system->inputManager = inputManager;
+        //_system->time = m_time;
+        //_system->camera = camera;
+        m_systems.push_back(_system);
     }
 }

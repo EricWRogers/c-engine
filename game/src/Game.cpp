@@ -1,7 +1,7 @@
 #include <Game.hpp>
 
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
@@ -9,9 +9,12 @@
 #include <Canis/Entity.hpp>
 #include <Canis/GameCodeObject.hpp>
 
+#include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
+
 #include <GameData.hpp>
 
-class GameScript : public Canis::ScriptableEntity {
+class GameScript : public Canis::ScriptableEntity
+{
 public:
     int id = 5;
     int counter = 0;
@@ -21,7 +24,7 @@ public:
         Canis::Debug::Log("OnCreate");
         Canis::Time::SetTargetFPS(30.0f);
 
-        Canis::RectTransform* rect = entity->GetScript<Canis::RectTransform>();
+        Canis::RectTransform *rect = entity->GetScript<Canis::RectTransform>();
         rect->position.x = 10.0f;
     }
 
@@ -37,37 +40,43 @@ public:
 
     void OnUpdate(float _dt)
     {
-        //Canis::Debug::Log("OnUpdate Updated");
-        Canis::RectTransform* rect = entity->GetScript<Canis::RectTransform>();
+        // Canis::Debug::Log("OnUpdate Updated");
+        Canis::RectTransform *rect = entity->GetScript<Canis::RectTransform>();
         Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), rect->position.x++);
     }
 };
 
-extern "C" {
-void* GameInit(void* _app) {
-    Canis::App& app = *(Canis::App*)_app;
+extern "C"
+{
+    void *GameInit(void *_app)
+    {
+        Canis::App &app = *(Canis::App *)_app;
 
-    Canis::Entity* entityOne = app.scene.CreateEntity();
-    entityOne->AddScript<Canis::RectTransform>();
-    entityOne->AddScript<GameScript>();
+        app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
 
-    Canis::Debug::Log("Game initialized!");
-    GameData* gameData = (GameData*)malloc(sizeof(GameData));
-    *gameData = GameData{};
-    gameData->id = 15;
-    return (void*) gameData;
-}
+        Canis::Entity *entityOne = app.scene.CreateEntity();
+        entityOne->AddScript<Canis::RectTransform>();
+        entityOne->AddScript<GameScript>();
 
-void  GameUpdate(void* _app, float dt, void* _data) {
-    Canis::App& app = *(Canis::App*)_app;
-    GameData& gameData = *(GameData*)_data;
-    //Canis::Debug::Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
-}
+        Canis::Debug::Log("Game initialized!");
+        GameData *gameData = (GameData *)malloc(sizeof(GameData));
+        *gameData = GameData{};
+        gameData->id = 15;
+        return (void *)gameData;
+    }
 
-void  GameShutdown(void* _app, void* _data) {
-    Canis::App& app = *(Canis::App*)_app;
-    app.scene.Unload();
-    Canis::Debug::Log("Game shutdown!");
-    delete (GameData*)_data;
-}
+    void GameUpdate(void *_app, float dt, void *_data)
+    {
+        Canis::App &app = *(Canis::App *)_app;
+        GameData &gameData = *(GameData *)_data;
+        // Canis::Debug::Log("Game update %.2f %d Counter %d", dt, gameData.id, gameData.counter++);
+    }
+
+    void GameShutdown(void *_app, void *_data)
+    {
+        Canis::App &app = *(Canis::App *)_app;
+        app.scene.Unload();
+        Canis::Debug::Log("Game shutdown!");
+        delete (GameData *)_data;
+    }
 }

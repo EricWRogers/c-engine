@@ -65,9 +65,9 @@ namespace Canis
     class RectTransform : public ScriptableEntity
     {
     public:
-        Vector2D position;
-        Vector2D rotation;
-        Vector2D size;
+        Vector2 position;
+        Vector2 rotation;
+        Vector2 size;
     };
     
     class Sprite : public ScriptableEntity

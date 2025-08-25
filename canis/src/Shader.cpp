@@ -156,7 +156,7 @@ namespace Canis
             glUniform1f( location, _value); 
     }
     
-    void Shader::SetVec2(const std::string &_name, const Vector2D &_value) const
+    void Shader::SetVec2(const std::string &_name, const Vector2 &_value) const
     {
         size_t valueHash = _value.Hash();
         int location = GetUniformLocation(_name, valueHash);
@@ -166,12 +166,12 @@ namespace Canis
 
     void Shader::SetVec2(const std::string &_name, float _x, float _y) const
     {
-        SetVec2(_name, Vector2D(_x, _y));
+        SetVec2(_name, Vector2(_x, _y));
     }
     
-    /*void Shader::SetVec3(const std::string &_name, const glm::vec3 &_value) const
+    /*void Shader::SetVec3(const std::string &_name, const Vector3 &_value) const
     {
-        size_t valueHash = std::hash<glm::vec3>{}(_value);
+        size_t valueHash = std::hash<Vector3>{}(_value);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform3fv( location, 1, &_value[0]); 
@@ -179,15 +179,15 @@ namespace Canis
 
     void Shader::SetVec3(const std::string &_name, float _x, float _y, float _z) const
     {
-        size_t valueHash = std::hash<glm::vec3>{}(glm::vec3(_x,_y,_z));
+        size_t valueHash = std::hash<Vector3>{}(Vector3(_x,_y,_z));
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform3f( location, _x, _y, _z); 
     }
     
-    void Shader::SetVec4(const std::string &_name, const glm::vec4 &_value) const
+    void Shader::SetVec4(const std::string &_name, const Vector4 &_value) const
     {
-        size_t valueHash = std::hash<glm::vec4>{}(_value);
+        size_t valueHash = std::hash<Vector4>{}(_value);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform4fv( location, 1, &_value[0]); 
@@ -195,7 +195,7 @@ namespace Canis
 
     void Shader::SetVec4(const std::string &_name, float _x, float _y, float _z, float _w) 
     {
-        size_t valueHash = std::hash<glm::vec4>{}(glm::vec4(_x,_y,_z,_w));
+        size_t valueHash = std::hash<Vector4>{}(Vector4(_x,_y,_z,_w));
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform4f( location, _x, _y, _z, _w); 
@@ -217,9 +217,9 @@ namespace Canis
             glUniformMatrix3fv( location, 1, GL_FALSE, &_mat[0][0]);
     }
     
-    void Shader::SetMat4(const std::string &_name, const glm::mat4 &_mat) const
+    void Shader::SetMat4(const std::string &_name, const Matrix4 &_mat) const
     {
-        size_t valueHash = std::hash<glm::mat4>{}(_mat);
+        size_t valueHash = std::hash<Matrix4>{}(_mat);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniformMatrix4fv(location, 1, GL_FALSE, &_mat[0][0]);

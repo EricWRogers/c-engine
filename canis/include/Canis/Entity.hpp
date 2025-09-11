@@ -62,16 +62,15 @@ namespace Canis
         virtual void OnUpdate(float _dt) {}
     };
 
-    class RectTransform : public ScriptableEntity
+    class Sprite2D : public ScriptableEntity
     {
     public:
         Vector2 position;
+        Vector2 originOffset;
+        float   depth;
         Vector2 rotation;
         Vector2 size;
-    };
-    
-    class Sprite : public ScriptableEntity
-    {
-    public:
+        Vector4 color;
+        Vector2 uv;
     };
 }

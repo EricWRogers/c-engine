@@ -33,6 +33,9 @@ Window::Window(const char* title, int width, int height) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
+    m_screenWidth = width;
+    m_screenHeight = height;
+
     m_window = SDL_CreateWindow(title,
                                 width,
                                 height,

@@ -2,13 +2,13 @@
 
 #include <Canis/Camera2D.hpp>
 
-#include <Canis/ECS/Components/RectTransform.hpp>
-#include <Canis/ECS/Components/Color.hpp>
-#include <Canis/ECS/Components/Sprite2DComponent.hpp>
-#include <Canis/ECS/Components/Camera2DComponent.hpp>
-
 #include <Canis/Math.hpp>
 #include <Canis/Entity.hpp>
+#include <Canis/Scene.hpp>
+#include <Canis/Shader.hpp>
+#include <Canis/Window.hpp>
+
+#include <Canis/OpenGL.hpp>
 
 namespace Canis
 {
@@ -308,7 +308,7 @@ namespace Canis
         if (use2DCamera)
             projection = camera2D.GetCameraMatrix();
         else
-            projection = glm::ortho(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()));
+            projection.Orthographic(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()), 0.0f, 100.0f);
 
         spriteShader->SetMat4("P", projection);
 
@@ -386,20 +386,6 @@ namespace Canis
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_ALWAYS);
-        
-        bool camFound = false;
-        auto cam = _registry.view<const Camera2DComponent>();
-        for (auto [entity, camera] : cam.each())
-        {
-            camera2D.SetPosition(camera.position);
-            camera2D.SetScale(camera.scale);
-            camera2D.Update();
-            camFound = true;
-            continue;
-        }
-
-        if (!camFound)
-            return;
 
         Begin(glyphSortType);
 

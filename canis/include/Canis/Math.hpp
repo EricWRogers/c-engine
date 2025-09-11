@@ -1,12 +1,15 @@
+
 #pragma once
 #include <stdio.h>
 #include <string>
 
-// ---- Vector2 --------------------------------------------------------------
 struct Vector2 {
     float x, y;
 
-    // hashing / utils
+    Vector2() { x = 0.0f; y = 0.0f; }
+    Vector2(float _scalor) { x = _scalor; y = _scalor; }
+    Vector2(float _x, float _y) { x = _x; y = _y; }
+
     size_t Hash() const;
     float Distance2D(const Vector2& _other) const;
     const char* ToCString() const;
@@ -23,7 +26,6 @@ struct Vector2 {
     Vector2& operator/=(float scalar);
 };
 
-// ---- Vector3  (dual view: xyz <-> rgb) ------------------------------------
 struct Vector3 {
     union {
         struct { float x, y, z; };  // positional
@@ -31,7 +33,10 @@ struct Vector3 {
         float v[3];                 // array access
     };
 
-    // hashing / utils
+    Vector3() { x = 0.0f; y = 0.0f; z = 0.0f; }
+    Vector3(float _scalor) { x = _scalor; y = _scalor; z = _scalor; }
+    Vector3(float _x, float _y, float _z) { x = _x; y = _y; z = _z; }
+
     size_t Hash() const;
     const char* ToCString() const;
 
@@ -47,7 +52,6 @@ struct Vector3 {
     Vector3& operator/=(float scalar);
 };
 
-// ---- Vector4  (dual view: xyzw <-> rgba) ----------------------------------
 struct Vector4 {
     union {
         struct { float x, y, z, w; }; // positional
@@ -71,23 +75,31 @@ struct Vector4 {
     Vector4& operator/=(float scalar);
 };
 
-// ---- Matrix4 (row-major) ---------------------------------------------------
 struct Matrix4 {
-    float m[16]; // row-major: m[row*4 + col]
+    float m[16]; // column major
 
-    // hashing / utils
+    float& operator[](int _idx) { return m[_idx]; }
+    const float& operator[](int _idx) const { return m[_idx]; }
+
     size_t Hash() const;
     const char* ToCString() const;
 
-    // arithmetic
-    Matrix4 operator+(const Matrix4& rhs) const;
-    Matrix4 operator-(const Matrix4& rhs) const;
-    Matrix4 operator*(const Matrix4& rhs) const; // matrix * matrix
-    Vector4 operator*(const Vector4& v) const; // matrix * vec4
-    Matrix4 operator*(float scalar) const;
+    Matrix4 operator+(const Matrix4& _rhs) const;
+    Matrix4 operator-(const Matrix4& _rhs) const;
+    Matrix4 operator*(const Matrix4& _rhs) const; // matrix * matrix
+    Vector4 operator*(const Vector4& _v) const; // matrix * vec4
+    Matrix4 operator*(float _scalar) const;
 
-    Matrix4& operator+=(const Matrix4& rhs);
-    Matrix4& operator-=(const Matrix4& rhs);
-    Matrix4& operator*=(const Matrix4& rhs);
-    Matrix4& operator*=(float scalar);
+    Matrix4& operator+=(const Matrix4& _rhs);
+    Matrix4& operator-=(const Matrix4& _rhs);
+    Matrix4& operator*=(const Matrix4& _rhs);
+    Matrix4& operator*=(float _scalar);
+
+    void Identity();
+    void Translate(const Vector3& _translation);
+    void Scale(const Vector3& _scale);
+    void Rotate(float _radians, const Vector3& _axis);
+    void Orthographic(float _left, float _right,
+                                float _bottom, float _top,
+                                float _near, float _far);
 };

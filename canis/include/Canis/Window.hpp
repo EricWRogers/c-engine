@@ -10,6 +10,9 @@ public:
     Window(const char* title, int width, int height);
     ~Window();
 
+    int GetScreenWidth() { return m_screenWidth; }
+    int GetScreenHeight() { return m_screenHeight; }
+
     // Polls for SDL events and updates internal state
     void PollEvents();
     // Returns true if a quit event was received
@@ -29,6 +32,9 @@ private:
 
     GLuint           m_program    = 0;
     GLuint           m_vbo        = 0;
+
+    int m_screenWidth = 0;
+    int m_screenHeight = 0;
 
     void InitGL();
     GLuint CompileShader(GLenum type, const char* source);

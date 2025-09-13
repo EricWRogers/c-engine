@@ -51,10 +51,12 @@ namespace Canis
             m_renderSystems.push_back(s);
             ReadySystem(s);
         }
+
+        std::vector<Entity*>& GetEntities() { return m_entities; }
     private:
         Window *m_window;
         std::vector<Entity*>  m_entities = {};
-        std::vector<System *> m_systems = {};
+        std::vector<System*> m_systems = {};
         std::vector<System*>  m_updateSystems = {};
         std::vector<System*>  m_renderSystems = {};
 

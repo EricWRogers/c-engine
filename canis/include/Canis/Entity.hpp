@@ -70,7 +70,7 @@ namespace Canis
         float   depth;
         Vector2 rotation;
         Vector2 size;
-        Vector4 color;
+        Color   color;
         Vector2 uv;
     };
 }

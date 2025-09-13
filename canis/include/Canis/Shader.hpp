@@ -29,7 +29,7 @@ namespace Canis
         //void SetVec4(const std::string &_name, float _x, float _y, float _z, float _w);
         //void SetMat2(const std::string &_name, const glm::mat2 &_mat) const;
         //void SetMat3(const std::string &_name, const glm::mat3 &_mat) const;
-        //void SetMat4(const std::string &_name, const Matrix4 &_mat) const;
+        void SetMat4(const std::string &_name, const Matrix4 &_mat) const;
 
         bool IsLinked() { return m_isLinked; }
         int GetUniformLocation(const std::string &uniformName, const size_t _valueHash) const;

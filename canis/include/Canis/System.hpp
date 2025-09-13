@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#include <Canis/External/GetNameOfType.hpp>
+
 namespace Canis
 {
     class Scene;

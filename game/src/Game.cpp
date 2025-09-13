@@ -18,14 +18,14 @@ class GameScript : public Canis::ScriptableEntity
 public:
     int id = 5;
     int counter = 0;
+    Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
 
     void OnCreate()
     {
         Canis::Debug::Log("OnCreate");
         Canis::Time::SetTargetFPS(30.0f);
 
-        Canis::RectTransform *rect = entity->GetScript<Canis::RectTransform>();
-        rect->position.x = 10.0f;
+        sprite.position.x = 10.0f;
     }
 
     void OnReady()
@@ -40,9 +40,7 @@ public:
 
     void OnUpdate(float _dt)
     {
-        // Canis::Debug::Log("OnUpdate Updated");
-        Canis::RectTransform *rect = entity->GetScript<Canis::RectTransform>();
-        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), rect->position.x++);
+        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite.position.x++);
     }
 };
 
@@ -55,7 +53,7 @@ extern "C"
         app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
 
         Canis::Entity *entityOne = app.scene.CreateEntity();
-        entityOne->AddScript<Canis::RectTransform>();
+        entityOne->AddScript<Canis::Sprite2D>();
         entityOne->AddScript<GameScript>();
 
         Canis::Debug::Log("Game initialized!");

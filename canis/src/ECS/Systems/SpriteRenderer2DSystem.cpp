@@ -1,12 +1,17 @@
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
+#include <vector>
+#include <algorithm>
+
 #include <Canis/Camera2D.hpp>
 
 #include <Canis/Math.hpp>
+#include <Canis/Time.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Shader.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/AssetHandle.hpp>
 
 #include <Canis/OpenGL.hpp>
 
@@ -159,25 +164,25 @@ namespace Canis
         newGlyph->topLeft.position.x = destRect.x;
         newGlyph->topLeft.position.y = destRect.y + destRect.w;
         newGlyph->topLeft.position.z = depth;
-        newGlyph->topLeft.color = color.color;
+        newGlyph->topLeft.color = color;
         newGlyph->topLeft.uv = Vector2(uvRect.x, uvRect.y + uvRect.w);
 
         newGlyph->bottomLeft.position.x = destRect.x;
         newGlyph->bottomLeft.position.y = destRect.y;
         newGlyph->bottomLeft.position.z = depth;
-        newGlyph->bottomLeft.color = color.color;
+        newGlyph->bottomLeft.color = color;
         newGlyph->bottomLeft.uv = Vector2(uvRect.x, uvRect.y);
 
         newGlyph->bottomRight.position.x = destRect.x + destRect.z;
         newGlyph->bottomRight.position.y = destRect.y;
         newGlyph->bottomRight.position.z = depth;
-        newGlyph->bottomRight.color = color.color;
+        newGlyph->bottomRight.color = color;
         newGlyph->bottomRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y);
 
         newGlyph->topRight.position.x = destRect.x + destRect.z;
         newGlyph->topRight.position.y = destRect.y + destRect.w;
         newGlyph->topRight.position.z = depth;
-        newGlyph->topRight.color = color.color;
+        newGlyph->topRight.color = color;
         newGlyph->topRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y + uvRect.w);*/
 
         if (angle != 0.0f)
@@ -195,25 +200,25 @@ namespace Canis
         newGlyph->topLeft.position.x = topLeft.x + destRect.x;
         newGlyph->topLeft.position.y = topLeft.y + destRect.y;
         newGlyph->topLeft.position.z = depth;
-        newGlyph->topLeft.color = color.color;
+        newGlyph->topLeft.color = color;
         newGlyph->topLeft.uv = Vector2(uvRect.x, uvRect.y + uvRect.w);
 
         newGlyph->bottomLeft.position.x = bottomLeft.x + destRect.x;
         newGlyph->bottomLeft.position.y = bottomLeft.y + destRect.y;
         newGlyph->bottomLeft.position.z = depth;
-        newGlyph->bottomLeft.color = color.color;
+        newGlyph->bottomLeft.color = color;
         newGlyph->bottomLeft.uv = Vector2(uvRect.x, uvRect.y);
 
         newGlyph->bottomRight.position.x = bottomRight.x + destRect.x;
         newGlyph->bottomRight.position.y = bottomRight.y + destRect.y;
         newGlyph->bottomRight.position.z = depth;
-        newGlyph->bottomRight.color = color.color;
+        newGlyph->bottomRight.color = color;
         newGlyph->bottomRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y);
 
         newGlyph->topRight.position.x = topRight.x + destRect.x;
         newGlyph->topRight.position.y = topRight.y + destRect.y;
         newGlyph->topRight.position.z = depth;
-        newGlyph->topRight.color = color.color;
+        newGlyph->topRight.color = color;
         newGlyph->topRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y + uvRect.w);
 
        
@@ -262,7 +267,7 @@ namespace Canis
         newGlyph->topLeft.position.x = topLeft.x + destRect.x;
         newGlyph->topLeft.position.y = topLeft.y + destRect.y;
         newGlyph->topLeft.position.z = depth;
-        newGlyph->topLeft.color = color.color;
+        newGlyph->topLeft.color = color;
         newGlyph->topLeft.uv.x = uvRect.x;
         newGlyph->topLeft.uv.y = uvRect.y + uvRect.w;
 
@@ -270,7 +275,7 @@ namespace Canis
         newGlyph->bottomLeft.position.x = bottomLeft.x + destRect.x;
         newGlyph->bottomLeft.position.y = bottomLeft.y + destRect.y;
         newGlyph->bottomLeft.position.z = depth;
-        newGlyph->bottomLeft.color = color.color;
+        newGlyph->bottomLeft.color = color;
         // newGlyph->bottomLeft.uv = Vector2(uvRect.x, uvRect.y);
         newGlyph->bottomLeft.uv.x = uvRect.x;
         newGlyph->bottomLeft.uv.y = uvRect.y;
@@ -279,7 +284,7 @@ namespace Canis
         newGlyph->bottomRight.position.x = bottomRight.x + destRect.x;
         newGlyph->bottomRight.position.y = bottomRight.y + destRect.y;
         newGlyph->bottomRight.position.z = depth;
-        newGlyph->bottomRight.color = color.color;
+        newGlyph->bottomRight.color = color;
         // newGlyph->bottomRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y);
         newGlyph->bottomRight.uv.x = uvRect.x + uvRect.z;
         newGlyph->bottomRight.uv.y = uvRect.y;
@@ -288,7 +293,7 @@ namespace Canis
         newGlyph->topRight.position.x = topRight.x + destRect.x;
         newGlyph->topRight.position.y = topRight.y + destRect.y;
         newGlyph->topRight.position.z = depth;
-        newGlyph->topRight.color = color.color;
+        newGlyph->topRight.color = color;
         // newGlyph->topRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y + uvRect.w);
         newGlyph->topRight.uv.x = uvRect.x + uvRect.z;
         newGlyph->topRight.uv.y = uvRect.y + uvRect.w;
@@ -303,7 +308,9 @@ namespace Canis
         spriteShader->Use();
         spriteShader->SetFloat("TIME", m_time);
         glBindVertexArray(vao);
-        Matrix4 projection = Matrix4(1.0f);
+
+        Matrix4 projection;
+        projection.Identity();
 
         if (use2DCamera)
             projection = camera2D.GetCameraMatrix();
@@ -378,9 +385,9 @@ namespace Canis
         CreateVertexArray();
     }
 
-    void SpriteRenderer2DSystem::Update(entt::registry &_registry, float _deltaTime)
+    void SpriteRenderer2DSystem::Update()
     {
-        m_time += _deltaTime;
+        m_time += Canis::Time::DeltaTime();
         
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -390,7 +397,6 @@ namespace Canis
         Begin(glyphSortType);
 
         // Draw
-        auto view = _registry.view<const RectTransform, const Sprite2DComponent>();
         Vector2 positionAnchor = Vector2(0.0f);
         float halfWidth = window->GetScreenWidth() / 2;
         float halfHeight = window->GetScreenHeight() / 2;
@@ -405,13 +411,21 @@ namespace Canis
             GetAnchor(Canis::RectAnchor::BOTTOMLEFT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::BOTTOMCENTER, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::BOTTOMRIGHT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight())};
-        Color color;
+        
+        
         Vector2 p;
         Vector2 s;
 
-        for (auto [entity, rect_transform, sprite] : view.each())
+        std::vector<Entity*>& entities = scene->GetEntities();
+
+        for (Entity* entity : entities)
         {
-            p = rect_transform.position + anchorTable[rect_transform.anchor];
+            Sprite2D* sprite = entity->GetScript<Sprite2D>();
+
+            if (sprite == nullptr)
+                return;
+            
+            p = sprite->position + anchorTable[rect_transform.anchor];
             s.x = rect_transform.size.x + halfWidth;
             s.y = rect_transform.size.y + halfHeight;
             if (p.x > camPos.x - s.x &&
@@ -420,13 +434,12 @@ namespace Canis
                 p.y < camPos.y + s.y &&
                 rect_transform.active)
             {
-                color = _registry.get<const Color>(entity);
                 Draw(
                     Vector4(rect_transform.position.x + anchorTable[rect_transform.anchor].x, rect_transform.position.y + anchorTable[rect_transform.anchor].y, rect_transform.size.x, rect_transform.size.y),
-                    sprite.uv,
+                    sprite->uv,
                     sprite.textureHandle.texture,
                     rect_transform.depth,
-                    color,
+                    sprite->color,
                     rect_transform.rotation,
                     rect_transform.originOffset);
             }

@@ -252,3 +252,26 @@ void Matrix4::Orthographic(float _left, float _right,
     m[13] = -(_top   + _bottom) / tb; // (1,3)
     m[14] = -(_far   + _near) / fn; // (2,3)
 }
+
+void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle)
+{
+    float x = _point.x;
+    float y = _point.y;
+    _point.x = x * _cosAngle - y * _sinAngle;
+    _point.y = x * _sinAngle + y * _cosAngle;
+}
+
+void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian)
+{
+    float s = sin(-_radian);
+    float c = cos(-_radian);
+
+    Vector2 holder = _point;
+
+    holder -= _pivot;
+
+    _point.x = holder.x * c - holder.y * s;
+    _point.y = holder.x * s + holder.y * c;
+
+    _point += _pivot;
+}

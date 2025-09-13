@@ -1,21 +1,23 @@
 #pragma once
 #include <Canis/Scene.hpp>
+#include <Canis/OpenGL.hpp>
+#include <Canis/Data/GLTexture.hpp>
 #include <Canis/Camera2D.hpp>
 #include <Canis/Data/Glyph.hpp>
 #include <Canis/System.hpp>
 
 namespace Canis
 {
-    struct Color;
+    class Shader;
 
     class RenderBatch
     {
     public:
-        RenderBatch(GLuint Offset, GLuint NumVertices, GLuint Texture) : offset(Offset),
+        RenderBatch(unsigned int Offset, unsigned int NumVertices, unsigned int Texture) : offset(Offset),
                                                                          numVertices(NumVertices), texture(Texture) {}
-        GLuint offset;
-        GLuint numVertices;
-        GLuint texture;
+        unsigned int offset;
+        unsigned int numVertices;
+        unsigned int texture;
     };
 
     class SpriteRenderer2DSystem : public System
@@ -65,7 +67,7 @@ namespace Canis
 
         void Ready() {}
 
-        void Update(entt::registry &_registry, float _deltaTime);
+        void Update();
     private:
         float m_time = 0.0f;
     };

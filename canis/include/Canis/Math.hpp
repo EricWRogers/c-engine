@@ -2,6 +2,7 @@
 #pragma once
 #include <stdio.h>
 #include <string>
+#include <math.h>
 
 struct Vector2 {
     float x, y;
@@ -75,8 +76,12 @@ struct Vector4 {
     Vector4& operator/=(float scalar);
 };
 
+typedef Vector4 Color;
+
 struct Matrix4 {
     float m[16]; // column major
+
+    Matrix4() {};
 
     float& operator[](int _idx) { return m[_idx]; }
     const float& operator[](int _idx) const { return m[_idx]; }
@@ -103,3 +108,7 @@ struct Matrix4 {
                                 float _bottom, float _top,
                                 float _near, float _far);
 };
+
+extern void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle);
+
+extern void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian);

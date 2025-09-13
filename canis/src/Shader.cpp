@@ -215,15 +215,15 @@ namespace Canis
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniformMatrix3fv( location, 1, GL_FALSE, &_mat[0][0]);
-    }
+    }*/
     
     void Shader::SetMat4(const std::string &_name, const Matrix4 &_mat) const
     {
-        size_t valueHash = std::hash<Matrix4>{}(_mat);
+        size_t valueHash = _mat.Hash();
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
-            glUniformMatrix4fv(location, 1, GL_FALSE, &_mat[0][0]);
-    }*/
+            glUniformMatrix4fv(location, 1, GL_FALSE, &_mat[0]);
+    }
 
 
     void Shader::CompileShaderFile(const std::string &_filePath, unsigned int &_id)

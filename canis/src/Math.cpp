@@ -14,6 +14,21 @@ float Vector2::Distance2D(const Vector2& _other) const {
                  (_other.y - y) * (_other.y - y));
 }
 
+float Vector2::Magnitude() const {
+    return std::sqrt(x * x + y * y);
+}
+
+Vector2 Vector2::Normalize() {
+    float magnitude = Magnitude();
+	*this = (magnitude != 0.0f) ? *this / magnitude : Vector2(0.0f);
+    return *this;
+}
+
+Vector2 Vector2::Normalize(const Vector2 &_vector) {
+    float magnitude = _vector.Magnitude();
+	return (magnitude != 0.0f) ? _vector / magnitude : Vector2(0.0f);
+}
+
 const char* Vector2::ToCString() const {
     static thread_local std::string s;
     s = "(" + std::to_string(x) + ", " + std::to_string(y) + ")";

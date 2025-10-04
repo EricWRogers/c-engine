@@ -7,6 +7,7 @@
 #include <Canis/Time.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
+#include <Canis/Window.hpp>
 #include <Canis/AssetManager.hpp>
 #include <Canis/GameCodeObject.hpp>
 
@@ -14,12 +15,16 @@
 
 #include <GameData.hpp>
 
+using namespace Canis;
+
 class GameScript : public Canis::ScriptableEntity
 {
 public:
     int id = 5;
     int counter = 0;
-    float amplitude = 10.0f;
+    float amplitude = 20.0f;
+    Vector2 direction = Vector2(1.0f, 0.5f);
+    float speed = 200.0f;
 
     Canis::Sprite2D* sprite;
     
@@ -27,8 +32,11 @@ public:
     void Create()
     {
         sprite = entity->GetScript<Canis::Sprite2D>();
-        //Canis::Debug::Log("OnCreate");
-        //Canis::Time::SetTargetFPS(30.0f);
+        Canis::Debug::Log("OnCreate");
+        Canis::Time::SetTargetFPS(30.0f);
+        direction = Vector2(1.0f, 0.5f).Normalize();
+        direction = Vector2::Normalize(direction);
+        
 
         //sprite.position.x = 10.0f;
     }
@@ -45,9 +53,40 @@ public:
 
     void Update(float _dt)
     {
-        //Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
-        sprite->position.x = sin(Canis::Time::TimeSinceLaunch()/1000.0f) * amplitude;
-        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite->position.x++);
+        Vector2 delta = direction * speed * Time::DeltaTime();
+        Debug::Log("pos: %s", sprite->position.ToCString());
+        sprite->position += delta;
+        Debug::Log("pos: %s", sprite->position.ToCString());
+        //sprite->size += Time::DeltaTime();
+        CheckWalls();
+        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite->position.x);
+    }
+
+    void CheckWalls()
+    {
+        Canis::Window* window = entity->scene->GetWindow();
+
+        if (window->GetScreenWidth() * 0.5f <= sprite->position.x + sprite->size.x * 0.5f) {
+            if (direction.x > 0.0f) {
+                direction.x *= -1.0f;
+                Debug::Log("Redirect Left");
+            }
+        } else if (-window->GetScreenWidth() * 0.5f >= sprite->position.x - sprite->size.x* 0.5f) {
+            if (direction.x < 0.0f) {
+                direction.x *= -1.0f;
+                Debug::Log("Redirect Right");
+            }
+        } else if (window->GetScreenHeight() * 0.5f <= sprite->position.y + sprite->size.y * 0.5f) {
+            if (direction.y > 0.0f) {
+                direction.y *= -1.0f;
+                Debug::Log("Redirect Down");
+            }
+        } else if (-window->GetScreenHeight() * 0.5f >= sprite->position.y - sprite->size.y* 0.5f) {
+            if (direction.y < 0.0f) {
+                direction.y *= -1.0f;
+                Debug::Log("Redirect Up");
+            }
+        }
     }
 };
 

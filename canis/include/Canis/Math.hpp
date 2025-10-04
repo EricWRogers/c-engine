@@ -13,7 +13,11 @@ struct Vector2 {
 
     size_t Hash() const;
     float Distance2D(const Vector2& _other) const;
+    float Magnitude() const;
+    Vector2 Normalize();
     const char* ToCString() const;
+
+    static Vector2 Normalize(const Vector2 &_vector);
 
     // arithmetic
     Vector2 operator+(const Vector2& rhs) const;

@@ -1,12 +1,10 @@
 #include <Canis/Asset.hpp>
-#include <Canis/Canis.hpp>
 #include <Canis/Debug.hpp>
+#include <Canis/OpenGL.hpp>
 #include <Canis/IOManager.hpp>
-#include <Canis/External/OpenGl.hpp>
 #include <memory>
 #include <string.h>
 #include <unordered_map>
-#define TINYGLTF_IMPLEMENTATION
 
 namespace Canis
 {
@@ -24,6 +22,21 @@ namespace Canis
     bool TextureAsset::Free()
     {
         glDeleteTextures(1, &m_texture.id);
+        return true;
+    }
+
+    bool ShaderAsset::Load(std::string _path)
+    {
+        m_shader->Compile(
+            _path + ".vs",
+            _path + ".fs");
+
+        return true;
+    }
+
+    bool ShaderAsset::Free()
+    {
+        delete m_shader;
         return true;
     }
 }

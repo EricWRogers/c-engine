@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <Canis/Debug.hpp>
 
 namespace Canis
 {
@@ -15,7 +16,9 @@ namespace Canis
         
         void Init(App *_app, Window *_window);
         void Update(float _deltaTime);
+        void Render(float _deltaTime);
         void Unload();
+        void Load();
 
         Entity* CreateEntity();
         Entity* GetEntity(int _id);
@@ -46,6 +49,7 @@ namespace Canis
         template <typename T>
         void CreateRenderSystem()
         {
+            Debug::Log("CreateRenderSystem");
             System *s = new T();
 
             m_renderSystems.push_back(s);

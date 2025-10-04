@@ -8,12 +8,15 @@
 
 #include <Canis/GameCodeObject.hpp>
 #include <Canis/Time.hpp>
+#include <Canis/Debug.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
 {
     void App::Run()
     {
+        Debug::Log("App Run");
 #ifdef Win32
         const char *sharedObjectPath = "./libGameCode.dll";
 #elif __APPLE__
@@ -28,6 +31,8 @@ namespace Canis
         Time::Init(120.0f);
 
         scene.Init(this, &window);
+        scene.CreateRenderSystem<SpriteRenderer2DSystem>();
+        scene.Load();
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
@@ -35,16 +40,18 @@ namespace Canis
 
         while (!window.ShouldClose())
         {
+            //Canis::Debug::Log("New Frame");
             window.PollEvents();
-            window.Clear(0.1f, 0.1f, 0.1f, 1.0f);
+            window.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
             float deltaTime = Time::StartFrame();
             scene.Update(deltaTime);
             // call the dynamically loaded function
             GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             GameCodeObjectWatchFile(&gameCodeObject, this);
-
-            window.Render();
+            
+            scene.Render(deltaTime);
+            //window.Render();
             window.Display();
 
             Time::EndFrame();

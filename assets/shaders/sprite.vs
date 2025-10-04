@@ -4,9 +4,9 @@
     precision mediump float;
 #endif
 
-in vec3 vertexPosition;
-in vec4 vertexColor;
-in vec2 vertexUV;
+layout (location = 0) in vec3 vertexPosition;
+layout (location = 1) in vec4 vertexColor;
+layout (location = 2) in vec2 vertexUV;
 
 out vec3 fragmentPosition;
 out vec4 fragmentColor;
@@ -17,12 +17,17 @@ uniform float TIME;
 
 void main()
 {
+    /*gl_Position = P * vec4(vertexPosition, 1.0);
+    fragmentPosition = vertexPosition;
+    fragmentColor = vertexColor;
+    fragmentUV = vec2(vertexUV.x, 1.0 - vertexUV.y);*/
+
     gl_Position.xyz = (P * vec4(vertexPosition, 1.0)).xyz;
     gl_Position.w = 1.0;
     
     fragmentPosition = vertexPosition;
     fragmentColor = vertexColor;
-    fragmentUV = vec2(vertexUV.x, 1 - vertexUV.y);
+    fragmentUV = vec2(vertexUV.x, 1.0 - vertexUV.y);
 }
 
 /*

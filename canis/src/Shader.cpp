@@ -120,6 +120,7 @@ namespace Canis
 
     void Shader::Use()
     {
+        Debug::Log("Shader::Use %i", m_programId);
         glUseProgram(m_programId);
         for (int i = 0; i < m_numberOfAttributes; i++)
         {

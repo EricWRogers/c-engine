@@ -3,7 +3,7 @@
 namespace Canis
 {
     Camera2D::Camera2D() : m_position(0.0f, 0.0f),
-                           m_scale(1.0f),
+                           m_scale(8.0f),
                            m_needsMatrixUpdate(true),
                            m_screenWidth(500),
                            m_screenHeight(500)

@@ -11,8 +11,8 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
-target_include_directories(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3)
+target_include_directories(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -22,6 +22,7 @@ pkg_check_modules(GLES2 REQUIRED glesv2)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
+    stb
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${GLES2_LIBRARIES}
 )
@@ -29,6 +30,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
+    stb
     ${CANIS_ENGINE_LIB}
     ${GLES2_LIBRARIES}
 )

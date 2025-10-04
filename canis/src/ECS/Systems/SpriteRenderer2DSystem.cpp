@@ -12,6 +12,7 @@
 #include <Canis/Shader.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/AssetHandle.hpp>
+#include <Canis/AssetManager.hpp>
 
 #include <Canis/OpenGL.hpp>
 
@@ -305,6 +306,7 @@ namespace Canis
     {
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0);
+        Debug::Log("spriteShader %p", spriteShader);
         spriteShader->Use();
         spriteShader->SetFloat("TIME", m_time);
         glBindVertexArray(vao);
@@ -369,9 +371,11 @@ namespace Canis
     {
         int id = AssetManager::LoadShader("assets/shaders/sprite");
         Canis::Shader *shader = AssetManager::Get<Canis::ShaderAsset>(id)->GetShader();
+        Debug::Log("shader %p", shader);
 
         if (!shader->IsLinked())
         {
+            Debug::Log("Link");
             shader->AddAttribute("vertexPosition");
             shader->AddAttribute("vertexColor");
             shader->AddAttribute("vertexUV");
@@ -380,6 +384,8 @@ namespace Canis
         }
 
         spriteShader = shader;
+
+        Debug::Log("Screen: %i %i", (int)window->GetScreenWidth(), (int)window->GetScreenHeight());
 
         camera2D.Init((int)window->GetScreenWidth(), (int)window->GetScreenHeight());
         CreateVertexArray();
@@ -396,12 +402,16 @@ namespace Canis
 
         Begin(glyphSortType);
 
+        camera2D.SetPosition(Vector2(0.0f));
+        camera2D.SetScale(8.0f);
+        camera2D.Update();
+
         // Draw
         Vector2 positionAnchor = Vector2(0.0f);
         float halfWidth = window->GetScreenWidth() / 2;
         float halfHeight = window->GetScreenHeight() / 2;
         Vector2 camPos = camera2D.GetPosition();
-        Vector2 anchorTable[] = {
+        /*Vector2 anchorTable[] = {
             GetAnchor(Canis::RectAnchor::TOPLEFT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::TOPCENTER, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::TOPRIGHT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
@@ -411,7 +421,7 @@ namespace Canis
             GetAnchor(Canis::RectAnchor::BOTTOMLEFT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::BOTTOMCENTER, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::BOTTOMRIGHT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight())};
-        
+        */
         
         Vector2 p;
         Vector2 s;
@@ -425,23 +435,31 @@ namespace Canis
             if (sprite == nullptr)
                 return;
             
-            p = sprite->position + anchorTable[rect_transform.anchor];
-            s.x = rect_transform.size.x + halfWidth;
-            s.y = rect_transform.size.y + halfHeight;
+            p = sprite->position;// + anchorTable[rect_transform.anchor];
+            s.x = sprite->size.x + halfWidth;
+            s.y = sprite->size.y + halfHeight;
             if (p.x > camPos.x - s.x &&
                 p.x < camPos.x + s.x &&
                 p.y > camPos.y - s.y &&
                 p.y < camPos.y + s.y &&
-                rect_transform.active)
+                entity->active)
             {
-                Draw(
+                /*Draw(
                     Vector4(rect_transform.position.x + anchorTable[rect_transform.anchor].x, rect_transform.position.y + anchorTable[rect_transform.anchor].y, rect_transform.size.x, rect_transform.size.y),
                     sprite->uv,
                     sprite.textureHandle.texture,
                     rect_transform.depth,
                     sprite->color,
                     rect_transform.rotation,
-                    rect_transform.originOffset);
+                    rect_transform.originOffset);*/
+                Draw(
+                    Vector4(sprite->position.x, sprite->position.y, sprite->size.x, sprite->size.y),
+                    sprite->uv,
+                    sprite->textureHandle.texture,
+                    sprite->depth,
+                    sprite->color,
+                    sprite->rotation,
+                    sprite->originOffset);
             }
         }
 

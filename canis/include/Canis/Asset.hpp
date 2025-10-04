@@ -1,18 +1,10 @@
 #pragma once
 #include <string>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <map>
 
 #include <Canis/Shader.hpp>
 #include <Canis/Data/GLTexture.hpp>
-#include <Canis/Data/Character.hpp>
-#include <Canis/Data/Vertex.hpp>
-#include <Canis/Data/DefaultMeshData.hpp>
-
-#include <yaml-cpp/node/node.h>
 
 namespace Canis
 {
@@ -41,5 +33,19 @@ namespace Canis
         GLTexture GetGLTexture() { return m_texture; }
         GLTexture *GetPointerToTexture() { return &m_texture; }
         std::string GetPath() { return m_path; }
+    };
+
+    class ShaderAsset : public Asset
+    {
+    private:
+        Canis::Shader *m_shader;
+
+    public:
+        ShaderAsset() { m_shader = new Canis::Shader(); }
+
+        bool Load(std::string _path) override;
+        bool Free() override;
+
+        Canis::Shader *GetShader() { return m_shader; }
     };
 } // end of Canis namespace

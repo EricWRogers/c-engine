@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <Canis/Math.hpp>
+#include <Canis/AssetHandle.hpp>
 
 namespace Canis
 {
@@ -16,6 +17,7 @@ namespace Canis
     public:
         int id;
         Scene *scene;
+        bool active = true;
         
 
         template <typename T>
@@ -65,12 +67,13 @@ namespace Canis
     class Sprite2D : public ScriptableEntity
     {
     public:
-        Vector2 position;
-        Vector2 originOffset;
-        float   depth;
-        Vector2 rotation;
-        Vector2 size;
-        Color   color;
-        Vector2 uv;
+        Vector2 position = Vector2(0.0f);
+        Vector2 originOffset = Vector2(0.0f);
+        float   depth = 0.0f;
+        float rotation = 0.0f;
+        Vector2 size = Vector2(32.0f);
+        Color   color = Color(1.0f);
+        Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        TextureHandle textureHandle;
     };
 }

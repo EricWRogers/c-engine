@@ -1,4 +1,5 @@
 #include <Canis/Scene.hpp>
+#include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/System.hpp>
 
@@ -18,6 +19,16 @@ namespace Canis
             {
                 se->OnUpdate(_deltaTime);
             }
+        }
+    }
+
+    void Scene::Render(float _deltaTime)
+    {
+        //Canis::Debug::Log("Render Update %i", m_renderSystems.size());
+        for (System* renderer : m_renderSystems)
+        {
+            //Canis::Debug::Log("Render Update for");
+            renderer->Update();
         }
     }
 
@@ -45,6 +56,19 @@ namespace Canis
         }
 
         m_entities.clear();
+    }
+
+    void Scene::Load()
+    {
+        for (System* system : m_systems)
+        {
+            system->Create();
+        }
+
+        for (System* system : m_systems)
+        {
+            system->Ready();
+        }
     }
 
     Entity* Scene::CreateEntity()

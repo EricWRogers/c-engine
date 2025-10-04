@@ -7,7 +7,7 @@ namespace Canis
 {
     class Scene;
     class Entity;
-    class Time;
+    //class Time;
     //class Camera;
     class Window;
     //class InputManager;
@@ -35,7 +35,7 @@ namespace Canis
         Scene *scene = nullptr;
         Window *window = nullptr;
         //InputManager *inputManager = nullptr;
-        Time *time = nullptr;
+        //Time *time = nullptr;
         //Camera *camera = nullptr;
     };
 } // end of Canis namespace

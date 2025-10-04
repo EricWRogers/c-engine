@@ -33,8 +33,8 @@ namespace Canis
     private:
         int m_screenWidth, m_screenHeight;
         bool m_needsMatrixUpdate;
-        float m_scale;
-        Vector2 m_position;
+        float m_scale = 1.0f;
+        Vector2 m_position = Vector2(0.0f);
         Matrix4 m_cameraMatrix;
         Matrix4 m_view;
         Matrix4 m_projection;

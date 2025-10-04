@@ -23,6 +23,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(external/SDL)
+add_subdirectory(external/stb)
 #add_subdirectory(external/SDL_shadercross)
 add_subdirectory(canis)
 add_subdirectory(game)

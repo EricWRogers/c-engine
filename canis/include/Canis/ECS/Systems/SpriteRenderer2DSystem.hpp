@@ -2,13 +2,13 @@
 #include <Canis/Scene.hpp>
 #include <Canis/OpenGL.hpp>
 #include <Canis/Data/GLTexture.hpp>
-#include <Canis/Camera2D.hpp>
 #include <Canis/Data/Glyph.hpp>
 #include <Canis/System.hpp>
 
 namespace Canis
 {
     class Shader;
+    class Camera2D;
 
     class RenderBatch
     {
@@ -29,7 +29,7 @@ namespace Canis
         std::vector<unsigned int> indices = {};
         std::vector<RenderBatch> spriteRenderBatch;
         Shader *spriteShader;
-        Camera2D camera2D;
+        Camera2D *camera2D;
 
         unsigned int vbo = 0;
         unsigned int vao = 0;

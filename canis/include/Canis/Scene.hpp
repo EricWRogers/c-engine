@@ -20,6 +20,8 @@ namespace Canis
         void Unload();
         void Load();
 
+        Window* GetWindow() { return m_window; }
+
         Entity* CreateEntity();
         Entity* GetEntity(int _id);
 

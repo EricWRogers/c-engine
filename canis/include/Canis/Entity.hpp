@@ -24,12 +24,12 @@ namespace Canis
         T *AddScript()
         {
             T *scriptableEntity = new T();
-            scriptableEntity->entity = this;
 
             // might check if the entity already has script
 
             m_scriptComponents.push_back((ScriptableEntity*)scriptableEntity);
-            scriptableEntity->OnCreate();
+            scriptableEntity->entity = this;
+            scriptableEntity->Create();
 
             return scriptableEntity;
         }
@@ -56,12 +56,12 @@ namespace Canis
     friend Scene;
     private:
         bool m_onReadyCalled = false;
-    public:
+    public:        
         Canis::Entity* entity = nullptr;
-        virtual void OnCreate() {}
-        virtual void OnReady() {}
-        virtual void OnDestroy() {}
-        virtual void OnUpdate(float _dt) {}
+        virtual void Create() {}
+        virtual void Ready() {}
+        virtual void Destroy() {}
+        virtual void Update(float _dt) {}
     };
 
     class Sprite2D : public ScriptableEntity
@@ -75,5 +75,42 @@ namespace Canis
         Color   color = Color(1.0f);
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
         TextureHandle textureHandle;
+    };
+
+    class Camera2D : public ScriptableEntity
+    {
+    public:
+        Camera2D();
+        ~Camera2D();
+
+        void Create();
+
+        void Update(float _dt);
+
+        void SetPosition(const Vector2 &newPosition)
+        {
+            m_position = newPosition;
+            m_needsMatrixUpdate = true;
+        }
+        void SetScale(float newScale)
+        {
+            m_scale = newScale;
+            m_needsMatrixUpdate = true;
+        }
+
+        Vector2 GetPosition() { return m_position; }
+        Matrix4 GetCameraMatrix() { return m_cameraMatrix; }
+        Matrix4 GetViewMatrix() { return m_view; }
+        Matrix4 GetProjectionMatrix() { return m_projection; }
+        float GetScale() { return m_scale; }
+
+    private:
+        int m_screenWidth, m_screenHeight;
+        bool m_needsMatrixUpdate;
+        float m_scale = 1.0f;
+        Vector2 m_position = Vector2(0.0f);
+        Matrix4 m_cameraMatrix;
+        Matrix4 m_view;
+        Matrix4 m_projection;
     };
 }

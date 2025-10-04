@@ -28,7 +28,7 @@ namespace Canis
         // init window
         Window window("Canis Beta", 512, 512);
 
-        Time::Init(120.0f);
+        Time::Init(1200.0f);
 
         scene.Init(this, &window);
         scene.CreateRenderSystem<SpriteRenderer2DSystem>();

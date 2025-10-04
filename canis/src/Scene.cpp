@@ -17,7 +17,7 @@ namespace Canis
         {
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
-                se->OnUpdate(_deltaTime);
+                se->Update(_deltaTime);
             }
         }
     }
@@ -38,7 +38,7 @@ namespace Canis
         {
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
-                se->OnDestroy();
+                se->Destroy();
             }
         }
 

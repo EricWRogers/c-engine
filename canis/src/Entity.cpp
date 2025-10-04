@@ -1,4 +1,7 @@
-#include <Canis/Camera2D.hpp>
+#include <Canis/Entity.hpp>
+#include <Canis/App.hpp>
+#include <Canis/Scene.hpp>
+#include <Canis/Window.hpp>
 
 namespace Canis
 {
@@ -17,15 +20,16 @@ namespace Canis
     {
     }
 
-    void Camera2D::Init(int screenWidth, int screenHeight)
+    void Camera2D::Create()
     {
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        m_screenWidth = entity->scene->GetWindow()->GetScreenWidth();
+        m_screenHeight = entity->scene->GetWindow()->GetScreenHeight();
         m_projection.Orthographic(0.0f, (float)m_screenWidth, 0.0f, (float)m_screenHeight, 0.0f, 100.0f);
-        SetPosition(Vector2((float)m_screenWidth / 2, (float)m_screenHeight / 2));
+        SetPosition(Vector2(0.0f));//Vector2((float)m_screenWidth / 2, (float)m_screenHeight / 2));
+        SetScale(1.0f);
     }
 
-    void Camera2D::Update()
+    void Camera2D::Update(float _dt)
     {
         if (m_needsMatrixUpdate)
         {

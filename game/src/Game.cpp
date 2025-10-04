@@ -20,32 +20,34 @@ public:
     int id = 5;
     int counter = 0;
     float amplitude = 10.0f;
+
+    Canis::Sprite2D* sprite;
     
 
-    void OnCreate()
+    void Create()
     {
-        //Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
+        sprite = entity->GetScript<Canis::Sprite2D>();
         //Canis::Debug::Log("OnCreate");
         //Canis::Time::SetTargetFPS(30.0f);
 
         //sprite.position.x = 10.0f;
     }
 
-    void OnReady()
+    void Ready()
     {
         Canis::Debug::Log("OnReady");
     }
 
-    void OnDestroy()
+    void Destroy()
     {
         Canis::Debug::Log("OnDestroy");
     }
 
-    void OnUpdate(float _dt)
+    void Update(float _dt)
     {
-        Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
-        sprite.position.x = sin(Canis::Time::TimeSinceLaunch()/1000.0f) * amplitude;
-        //Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite.position.x++);
+        //Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
+        sprite->position.x = sin(Canis::Time::TimeSinceLaunch()/1000.0f) * amplitude;
+        Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite->position.x++);
     }
 };
 
@@ -55,7 +57,11 @@ extern "C"
     {
         Canis::App &app = *(Canis::App *)_app;
 
+        // TODO : fix following line
         //app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+    
+        Canis::Entity *cEntity = app.scene.CreateEntity();
+        Canis::Camera2D *camera2D = cEntity->AddScript<Canis::Camera2D>();
 
         Canis::Entity *entityOne = app.scene.CreateEntity();
         Canis::Sprite2D* sprite = entityOne->AddScript<Canis::Sprite2D>();

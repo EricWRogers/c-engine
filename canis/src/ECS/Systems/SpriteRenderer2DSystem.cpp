@@ -3,8 +3,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <Canis/Camera2D.hpp>
-
 #include <Canis/Math.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Entity.hpp>
@@ -314,10 +312,13 @@ namespace Canis
         Matrix4 projection;
         projection.Identity();
 
-        if (use2DCamera)
-            projection = camera2D.GetCameraMatrix();
-        else
+
+
+        if (use2DCamera) {
+            projection = camera2D->GetCameraMatrix();
+        } else {
             projection.Orthographic(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()), 0.0f, 100.0f);
+        }
 
         spriteShader->SetMat4("P", projection);
 
@@ -371,7 +372,6 @@ namespace Canis
     {
         int id = AssetManager::LoadShader("assets/shaders/sprite");
         Canis::Shader *shader = AssetManager::Get<Canis::ShaderAsset>(id)->GetShader();
-        Debug::Log("shader %p", shader);
 
         if (!shader->IsLinked())
         {
@@ -385,9 +385,6 @@ namespace Canis
 
         spriteShader = shader;
 
-        Debug::Log("Screen: %i %i", (int)window->GetScreenWidth(), (int)window->GetScreenHeight());
-
-        camera2D.Init((int)window->GetScreenWidth(), (int)window->GetScreenHeight());
         CreateVertexArray();
     }
 
@@ -402,15 +399,32 @@ namespace Canis
 
         Begin(glyphSortType);
 
-        camera2D.SetPosition(Vector2(0.0f));
-        camera2D.SetScale(8.0f);
-        camera2D.Update();
+        bool cameraFound = false;
+
+        std::vector<Entity*>& entities = scene->GetEntities();
+
+        for (Entity* entity : entities)
+        {
+            Camera2D* camera = entity->GetScript<Camera2D>();
+
+            if (camera == nullptr)
+                continue;
+
+            camera2D = camera;
+            cameraFound = true;
+        }
 
         // Draw
         Vector2 positionAnchor = Vector2(0.0f);
         float halfWidth = window->GetScreenWidth() / 2;
         float halfHeight = window->GetScreenHeight() / 2;
-        Vector2 camPos = camera2D.GetPosition();
+        Vector2 camPos;
+
+        if (cameraFound)
+            camPos = camera2D->GetPosition();
+        else
+            camPos = Vector2(0.0f);
+        
         /*Vector2 anchorTable[] = {
             GetAnchor(Canis::RectAnchor::TOPLEFT, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
             GetAnchor(Canis::RectAnchor::TOPCENTER, (float)window->GetScreenWidth(), (float)window->GetScreenHeight()),
@@ -426,14 +440,13 @@ namespace Canis
         Vector2 p;
         Vector2 s;
 
-        std::vector<Entity*>& entities = scene->GetEntities();
 
         for (Entity* entity : entities)
         {
             Sprite2D* sprite = entity->GetScript<Sprite2D>();
 
             if (sprite == nullptr)
-                return;
+                continue;
             
             p = sprite->position;// + anchorTable[rect_transform.anchor];
             s.x = sprite->size.x + halfWidth;
@@ -464,7 +477,7 @@ namespace Canis
         }
 
         End();
-        SpriteRenderBatch(true);
+        SpriteRenderBatch(cameraFound);
 
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);

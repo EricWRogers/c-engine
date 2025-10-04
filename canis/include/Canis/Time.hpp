@@ -24,4 +24,7 @@ namespace Canis::Time {
 
   // get average fps
   float FPS();
+
+  // number of milliseconds that have the start canis
+  unsigned long long TimeSinceLaunch();
 } // namespace Canis

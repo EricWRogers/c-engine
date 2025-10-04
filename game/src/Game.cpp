@@ -19,6 +19,7 @@ class GameScript : public Canis::ScriptableEntity
 public:
     int id = 5;
     int counter = 0;
+    float amplitude = 10.0f;
     
 
     void OnCreate()
@@ -42,7 +43,8 @@ public:
 
     void OnUpdate(float _dt)
     {
-        //Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
+        Canis::Sprite2D& sprite = *entity->GetScript<Canis::Sprite2D>();
+        sprite.position.x = sin(Canis::Time::TimeSinceLaunch()/1000.0f) * amplitude;
         //Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite.position.x++);
     }
 };
@@ -57,7 +59,7 @@ extern "C"
 
         Canis::Entity *entityOne = app.scene.CreateEntity();
         Canis::Sprite2D* sprite = entityOne->AddScript<Canis::Sprite2D>();
-        //entityOne->AddScript<GameScript>();
+        entityOne->AddScript<GameScript>();
 
         sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         sprite->size = Vector2(32.0f);

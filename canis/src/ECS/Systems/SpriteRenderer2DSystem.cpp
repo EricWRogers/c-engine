@@ -304,15 +304,12 @@ namespace Canis
     {
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0);
-        Debug::Log("spriteShader %p", spriteShader);
         spriteShader->Use();
         spriteShader->SetFloat("TIME", m_time);
         glBindVertexArray(vao);
 
         Matrix4 projection;
         projection.Identity();
-
-
 
         if (use2DCamera) {
             projection = camera2D->GetCameraMatrix();

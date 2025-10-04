@@ -32,13 +32,9 @@ public:
     void Create()
     {
         sprite = entity->GetScript<Canis::Sprite2D>();
-        Canis::Debug::Log("OnCreate");
         Canis::Time::SetTargetFPS(30.0f);
         direction = Vector2(1.0f, 0.5f).Normalize();
         direction = Vector2::Normalize(direction);
-        
-
-        //sprite.position.x = 10.0f;
     }
 
     void Ready()
@@ -54,10 +50,8 @@ public:
     void Update(float _dt)
     {
         Vector2 delta = direction * speed * Time::DeltaTime();
-        Debug::Log("pos: %s", sprite->position.ToCString());
         sprite->position += delta;
-        Debug::Log("pos: %s", sprite->position.ToCString());
-        //sprite->size += Time::DeltaTime();
+        
         CheckWalls();
         Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite->position.x);
     }

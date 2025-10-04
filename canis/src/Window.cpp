@@ -54,12 +54,9 @@ Window::Window(const char* title, int width, int height) {
     SDL_GL_SetSwapInterval(0);
 
     InitGL();
-    SetupTriangle();
 }
 
 Window::~Window() {
-    if (m_vbo)        glDeleteBuffers(1, &m_vbo);
-    if (m_program)    glDeleteProgram(m_program);
     if (m_context)    SDL_GL_DestroyContext(m_context);
     if (m_window)     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -83,74 +80,12 @@ void Window::Clear(float r, float g, float b, float a) const {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Window::Render() const {
-    glUseProgram(m_program);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
 void Window::Display() const {
     SDL_GL_SwapWindow(m_window);
 }
 
 void Window::InitGL() {
     // No additional GL initialization needed for GLES2
-}
-
-GLuint Window::CompileShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, nullptr);
-    glCompileShader(shader);
-
-    GLint compiled;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    if (!compiled) {
-        char log[512];
-        glGetShaderInfoLog(shader, 512, nullptr, log);
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Shader compile error: %s", log);
-        std::exit(1);
-    }
-    return shader;
-}
-
-void Window::SetupTriangle() {
-    // Compile shaders
-    GLuint vert = CompileShader(GL_VERTEX_SHADER,   vertexShaderSrc);
-    GLuint frag = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
-
-    m_program = glCreateProgram();
-    glAttachShader(m_program, vert);
-    glAttachShader(m_program, frag);
-    glBindAttribLocation(m_program, 0, "aPos");
-    glLinkProgram(m_program);
-
-    GLint linked;
-    glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
-    if (!linked) {
-        char log[512];
-        glGetProgramInfoLog(m_program, 512, nullptr, log);
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Program link error: %s", log);
-        std::exit(1);
-    }
-
-    glDeleteShader(vert);
-    glDeleteShader(frag);
-
-    // Vertex data for a triangle
-    GLfloat vertices[] = {
-         0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-    };
-
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 
 } // namespace Canis

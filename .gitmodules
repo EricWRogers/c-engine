@@ -7,3 +7,9 @@
 [submodule "external/stb/stb"]
 	path = external/stb/stb
 	url = https://github.com/nothings/stb.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "external/imguizmo"]
+	path = external/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

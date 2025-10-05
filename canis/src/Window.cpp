@@ -3,7 +3,6 @@
 #include <Canis/OpenGL.hpp>
 #include <SDL3/SDL_log.h>
 #include <cstdlib>
-#include <SDL3/SDL_log.h>
 
 // Simple vertex shader: passes position
 static const char* vertexShaderSrc = R"(

@@ -23,12 +23,11 @@ namespace Canis
         template <typename T>
         T *AddScript()
         {
-            T *scriptableEntity = new T();
+            T *scriptableEntity = new T(*this);
 
             // might check if the entity already has script
 
             m_scriptComponents.push_back((ScriptableEntity*)scriptableEntity);
-            scriptableEntity->entity = this;
             scriptableEntity->Create();
 
             return scriptableEntity;
@@ -57,7 +56,9 @@ namespace Canis
     private:
         bool m_onReadyCalled = false;
     public:        
-        Canis::Entity* entity = nullptr;
+        ScriptableEntity(Canis::Entity& _entity) : entity(_entity) {}
+
+        Canis::Entity& entity;
         virtual void Create() {}
         virtual void Ready() {}
         virtual void Destroy() {}
@@ -67,6 +68,8 @@ namespace Canis
     class Sprite2D : public ScriptableEntity
     {
     public:
+        Sprite2D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
         Vector2 position = Vector2(0.0f);
         Vector2 originOffset = Vector2(0.0f);
         float   depth = 0.0f;
@@ -80,7 +83,7 @@ namespace Canis
     class Camera2D : public ScriptableEntity
     {
     public:
-        Camera2D();
+        Camera2D(Canis::Entity& _entity);
         ~Camera2D();
 
         void Create();

@@ -40,7 +40,7 @@ class GameScript : public Canis::ScriptableEntity {
     void Destroy() { Canis::Debug::Log("OnDestroy"); }
 
     void Update(float _dt) {
-        Vector2 delta = direction * speed * Time::DeltaTime();
+        Vector2 delta = direction * speed * 6.0f * Time::DeltaTime();
         sprite.position += delta;
 
         CheckWalls();

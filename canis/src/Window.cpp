@@ -4,22 +4,6 @@
 #include <SDL3/SDL_log.h>
 #include <cstdlib>
 
-// Simple vertex shader: passes position
-static const char* vertexShaderSrc = R"(
-attribute vec3 aPos;
-void main() {
-    gl_Position = vec4(aPos, 1.0);
-}
-)";
-
-// Simple fragment shader: outputs red
-static const char* fragmentShaderSrc = R"(
-precision mediump float;
-void main() {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}
-)";
-
 namespace Canis {
 
 Window::Window(const char* title, int width, int height) {

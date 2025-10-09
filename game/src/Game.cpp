@@ -23,7 +23,7 @@ class GameScript : public Canis::ScriptableEntity {
     int counter = 0;
     float amplitude = 20.0f;
     Vector2 direction = Vector2(1.0f, 0.5f);
-    float speed = 200.0f;
+    float speed = 100.0f;
 
     Canis::Sprite2D& sprite = *entity.GetScript<Canis::Sprite2D>();
 
@@ -80,8 +80,9 @@ extern "C" {
 void *GameInit(void *_app) {
     Canis::App &app = *(Canis::App *)_app;
 
-    // TODO : fix following line
-    // app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+    app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+
+    app.scene.Load(); // call after all the systems are added
 
     Canis::Entity *cEntity = app.scene.CreateEntity();
     Canis::Camera2D *camera2D = cEntity->AddScript<Canis::Camera2D>();

@@ -31,8 +31,6 @@ namespace Canis
         Time::Init(1200.0f);
 
         scene.Init(this, &window);
-        scene.CreateRenderSystem<SpriteRenderer2DSystem>();
-        scene.Load();
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);

@@ -56,6 +56,20 @@ namespace Canis
         }
 
         m_entities.clear();
+
+        for (System* system : m_systems)
+        {
+            system->OnDestroy();
+        }
+
+        for (System* system : m_systems)
+        {
+            delete system;
+        }
+
+        m_systems.clear();
+        m_updateSystems.clear();
+        m_renderSystems.clear();
     }
 
     void Scene::Load()

@@ -24,6 +24,7 @@ namespace Canis
         virtual void Create() {}
         virtual void Ready() {}
         virtual void Update() {}
+        virtual void OnDestroy() {}
 
         bool IsCreated() { return m_isCreated; }
         std::string GetName() { return m_name; }

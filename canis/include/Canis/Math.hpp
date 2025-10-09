@@ -4,6 +4,8 @@
 #include <string>
 #include <math.h>
 
+
+
 struct Vector2 {
     float x, y;
 
@@ -29,7 +31,12 @@ struct Vector2 {
     Vector2& operator-=(const Vector2& rhs);
     Vector2& operator*=(float scalar);
     Vector2& operator/=(float scalar);
+
+    bool operator==(const Vector2& _other) { return x == _other.x && y == _other.y; }
+    bool operator!=(const Vector2& _other) { return x != _other.x || y != _other.y; }
 };
+
+const Vector2 VECTOR2_ZERO;
 
 struct Vector3 {
     union {

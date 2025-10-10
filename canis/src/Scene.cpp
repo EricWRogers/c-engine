@@ -5,10 +5,11 @@
 
 namespace Canis
 {
-    void Scene::Init(App *_app, Window *_window)
+    void Scene::Init(App *_app, Window *_window, InputManager *_inputManger)
     {
         app = _app;
         m_window = _window;
+        m_inputManager = _inputManger;
     }
 
     void Scene::Update(float _deltaTime)

@@ -10,6 +10,7 @@
 #include <Canis/Time.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/InputManager.hpp>
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
@@ -28,28 +29,32 @@ namespace Canis
         // init window
         Window window("Canis Beta", 512, 512);
 
+        InputManager inputManager;
+
         Time::Init(1200.0f);
 
-        scene.Init(this, &window);
+        scene.Init(this, &window, &inputManager);
+
+        scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+
+        scene.Load(); // call after all the systems are added
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
-        
 
-        while (!window.ShouldClose())
+        while (inputManager.Update((void *)&window))
         {
-            //Canis::Debug::Log("New Frame");
-            window.PollEvents();
             window.Clear(1.0f, 1.0f, 1.0f, 1.0f);
 
             float deltaTime = Time::StartFrame();
             scene.Update(deltaTime);
+
             // call the dynamically loaded function
             GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             GameCodeObjectWatchFile(&gameCodeObject, this);
-            
+
             scene.Render(deltaTime);
-            window.Display();
+            window.SwapBuffer();
 
             Time::EndFrame();
         }

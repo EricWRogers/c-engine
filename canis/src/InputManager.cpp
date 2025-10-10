@@ -1,5 +1,5 @@
 #include <Canis/InputManager.hpp>
-#include <SDL_events.h>
+#include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
 //#include <imgui_impl_sdl2.h>
 #include <Canis/Window.hpp>
@@ -15,18 +15,20 @@ namespace Canis
     {
         while(m_gameControllers.size())
         {
-            SDL_GamepadClose((SDL_Gamepad*)(m_gameControllers.begin()->controller));
+            SDL_CloseGamepad((SDL_Gamepad*)(m_gameControllers.begin()->controller));
             m_gameControllers.erase( m_gameControllers.begin() );
         }
     }
 
-    bool InputManager::Update(int _screenWidth, int _screenHeight, void* _window)
+    bool InputManager::Update(void* _window)
     {
         SwapMaps();
         mouseRel = Vector2(0.0f);
         m_scrollVertical = 0;
 
         Window* window = (Window*)_window;
+        int screenWidth = window->GetScreenWidth();
+        int screenHeight = window->GetScreenHeight();
         window->SetResized(false);
 
         SDL_Event event;
@@ -39,61 +41,62 @@ namespace Canis
             }
             #endif
 
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                 return false;
 
             switch (event.type)
             {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 return false;
                 break;
-            case SDL_WINDOWEVENT:
-                if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow())) {
-                    _screenWidth = event.window.data1;
-                    _screenHeight = event.window.data2;
-                    window->SetWindowSize(_screenWidth, _screenHeight);
+            case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                if(event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow())) {
+                    screenWidth = event.window.data1;
+                    screenHeight = event.window.data2;
+                    window->SetWindowSize(screenWidth, screenHeight);
                 }
                 break;
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                     mouse.x = event.motion.x;
-                    mouse.y = _screenHeight - event.motion.y;
+                    mouse.y = screenHeight - event.motion.y;
                     mouseRel.x = event.motion.xrel;
                     mouseRel.y = event.motion.yrel;
                     
                     m_lastInputDeviceType = (mouseRel != Vector2(0.0f)) ? InputDevice::MOUSE : m_lastInputDeviceType;
                 break;
-            case SDL_MOUSEWHEEL:
+            case SDL_EVENT_MOUSE_WHEEL:
                 m_scrollVertical = event.wheel.y;
                 
                 m_lastInputDeviceType = (m_scrollVertical != 0.0f) ? InputDevice::MOUSE : m_lastInputDeviceType;
                 break;
-            case SDL_KEYUP:
-                ReleasedKey(event.key.keysym.sym);
+            case SDL_EVENT_KEY_UP:
+                ReleasedKey(event.key.scancode);
                 break;
-            case SDL_KEYDOWN:
-                PressKey(event.key.keysym.sym);
+            case SDL_EVENT_KEY_DOWN:
+                Debug::Log("Key Down: %i", event.key.scancode);
+                PressKey(event.key.scancode);
                 m_lastInputDeviceType = InputDevice::KEYBOARD;
                 break;
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if (event.button.button == SDL_BUTTON_LEFT)
                     m_leftClick = true;
                 if (event.button.button == SDL_BUTTON_RIGHT)
                     m_rightClick = true;
                 break;
-            case SDL_MOUSEBUTTONUP:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (event.button.button == SDL_BUTTON_LEFT)
                     m_leftClick = false;
                 if (event.button.button == SDL_BUTTON_RIGHT)
                     m_rightClick = false;
                 break;
-            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_EVENT_GAMEPAD_ADDED:
                 m_lastInputDeviceType = InputDevice::GAMEPAD;
                 OnGameControllerConnected(&event.cdevice);
                 break;
-            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_EVENT_GAMEPAD_REMOVED:
                 OnGameControllerDisconnect(&event.cdevice);
                 break;
-            case SDL_CONTROLLERBUTTONDOWN:
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 m_lastInputDeviceType = InputDevice::GAMEPAD;
                 break;
             }
@@ -102,9 +105,12 @@ namespace Canis
         std::vector<SDL_Gamepad*> currentControllers;
 
         // find active controllers
-        for (int i = 0; i < SDL_NumJoysticks(); i++) {
-            if (SDL_IsGamepad(i)) {
-                SDL_Gamepad *controller = SDL_GamepadOpen(i);
+        int countJoysticks = 0;
+        SDL_JoystickID *joysticks = SDL_GetJoysticks(&countJoysticks);
+        for (int i = 0; i < countJoysticks; i++) {
+            SDL_JoystickID jid = joysticks[i];
+            if (SDL_IsGamepad(jid)) {
+                SDL_Gamepad *controller = SDL_OpenGamepad(i);
                 currentControllers.push_back(controller);
             }
         }
@@ -394,7 +400,7 @@ namespace Canis
             if (gameController.controller)
             { 
                 SDL_Joystick* j = SDL_GetGamepadJoystick((SDL_Gamepad*)gameController.controller);
-                gameController.joyId = SDL_JoystickID(j);
+                gameController.joyId = SDL_GetJoystickID(j);
 
                 m_lastInputDeviceType = InputDevice::GAMEPAD;
                 gameController.lastButtonsPressed = ControllerButton::DPAD_UP;
@@ -409,7 +415,7 @@ namespace Canis
 
                 m_gameControllers.push_back(gameController);
 
-                Debug::Log("Game Controller Connected Joy ID: %s Name: %s", std::to_string(gameController.joyId), controllerName);
+                Debug::Log("Game Controller Connected Joy ID: %s Name: %s", std::to_string(gameController.joyId).c_str(), controllerName.c_str());
             }
         }
     }
@@ -423,11 +429,14 @@ namespace Canis
         std::vector<SDL_Gamepad*> currentControllers;
 
         // find active controllers
-        for (int i = 0; i < SDL_GetNumJoysticks(); i++) {
-            if (SDL_IsGamepad(i)) {
-                controller = SDL_OpenGamepad(i);
+        int countJoysticks = 0;
+        SDL_JoystickID *joysticks = SDL_GetJoysticks(&countJoysticks);
+        for (int i = 0; i < countJoysticks; i++) {
+            SDL_JoystickID jid = joysticks[i];
+            if (SDL_IsGamepad(jid)) {
+                controller = SDL_OpenGamepad(jid);
                 SDL_Joystick * js = SDL_GetGamepadJoystick(controller);
-                if (device.which == SDL_JoystickID(js)) {
+                if (device.which == SDL_GetJoystickID(js)) {
                     SDL_CloseGamepad(controller);
                     joyID = device.which;
                 }

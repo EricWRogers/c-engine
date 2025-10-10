@@ -6,6 +6,7 @@ namespace Canis
 {
     class App;
     class Window;
+    class InputManager;
     class Entity;
     class System;
 
@@ -14,13 +15,15 @@ namespace Canis
     public:
         App* app = nullptr;
         
-        void Init(App *_app, Window *_window);
+        void Init(App *_app, Window *_window, InputManager *_inputManger);
         void Update(float _deltaTime);
         void Render(float _deltaTime);
         void Unload();
         void Load();
 
-        Window* GetWindow() { return m_window; }
+        Window& GetWindow() { return *m_window; }
+        InputManager& GetInputManager() { return *m_inputManager; }
+
 
         Entity* CreateEntity();
         Entity* GetEntity(int _id);
@@ -61,6 +64,7 @@ namespace Canis
         std::vector<Entity*>& GetEntities() { return m_entities; }
     private:
         Window *m_window;
+        InputManager *m_inputManager;
         std::vector<Entity*>  m_entities = {};
         std::vector<System*> m_systems = {};
         std::vector<System*>  m_updateSystems = {};

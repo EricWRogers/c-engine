@@ -50,7 +50,7 @@ namespace Canis
     };
     struct GameController
     {
-        SDL_GameController *controller = nullptr;
+        SDL_Gamepad *controller = nullptr;
         GameControllerType gameControllerType = GameControllerType::XBOX;
         unsigned int index = 0;
         SDL_JoystickID joyId;
@@ -70,7 +70,7 @@ namespace Canis
         InputManager();
         ~InputManager();
 
-        bool Update(int _screenWidth, int _screenHeight, void* _window);
+        bool Update(void* _window);
 
         bool GetKey(unsigned int _keyID);
         bool JustPressedKey(unsigned int _keyID);

@@ -15,8 +15,8 @@ Camera2D::Camera2D(Canis::Entity &_entity)
 Camera2D::~Camera2D() {}
 
 void Camera2D::Create() {
-    m_screenWidth = entity.scene->GetWindow()->GetScreenWidth();
-    m_screenHeight = entity.scene->GetWindow()->GetScreenHeight();
+    m_screenWidth = entity.scene->GetWindow().GetScreenWidth();
+    m_screenHeight = entity.scene->GetWindow().GetScreenHeight();
     m_projection.Orthographic(0.0f, (float)m_screenWidth, 0.0f,
                               (float)m_screenHeight, 0.0f, 100.0f);
     SetPosition(Vector2(0.0f)); // Vector2((float)m_screenWidth / 2,

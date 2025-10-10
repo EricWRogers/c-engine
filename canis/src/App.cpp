@@ -10,6 +10,7 @@
 #include <Canis/Time.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
@@ -28,6 +29,9 @@ namespace Canis
 
         // init window
         Window window("Canis Beta", 512, 512);
+
+        Editor editor;
+        editor.Init(&window);
 
         InputManager inputManager;
 
@@ -55,6 +59,8 @@ namespace Canis
 
             scene.Render(deltaTime);
             window.SwapBuffer();
+
+            editor.Draw(&scene, &window);
 
             Time::EndFrame();
         }

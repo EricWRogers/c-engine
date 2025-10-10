@@ -5,6 +5,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_N
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_definitions(-DCANIS_EDITOR)
+
 find_program(CCACHE_PROGRAM ccache)
 if (CCACHE_PROGRAM)
     message(STATUS "Found ccache at ${CCACHE_PROGRAM}")

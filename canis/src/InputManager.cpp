@@ -1,7 +1,7 @@
 #include <Canis/InputManager.hpp>
 #include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
-//#include <imgui_impl_sdl2.h>
+#include <imgui_impl_sdl3.h>
 #include <Canis/Window.hpp>
 
 namespace Canis
@@ -35,10 +35,10 @@ namespace Canis
         while (SDL_PollEvent(&event))
         {
             #if CANIS_EDITOR
-            if (GetProjectConfig().editor)
-            {
-                ImGui_ImplSDL2_ProcessEvent(&event);
-            }
+            //if (GetProjectConfig().editor)
+            //{
+                ImGui_ImplSDL3_ProcessEvent(&event);
+            //}
             #endif
 
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))

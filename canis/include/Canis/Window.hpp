@@ -29,7 +29,8 @@ namespace Canis
         void SetResized(bool _resized);
         bool IsResized();
 
-        void *GetSDLWindow() { return m_window; }
+        void* GetSDLWindow() { return m_window; }
+        void* GetGLContext() { return m_context; }
 
         Sync GetSync();
         void SetSync(Sync _type);

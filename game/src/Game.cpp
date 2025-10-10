@@ -114,13 +114,13 @@ extern "C"
 
         app.SetTargetFPS(100000);
 
-        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_SPACE))
+        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_C))
         {
             SpawnCamera(app);
         }
 
         // if (app.scene.GetInputManager().mouseRel != VECTOR2_ZERO)
-        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_SPACE))
+        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_B))
         {
             SpawnAwesome(app);
         }
@@ -130,7 +130,7 @@ extern "C"
             ReloadScene(app);
         }
 
-        Canis::Debug::Log("Update FPS: %f", Canis::Time::FPS());
+        //Canis::Debug::Log("Update FPS: %f", Canis::Time::FPS());
     }
 
     void GameShutdown(void *_app, void *_data)
@@ -153,8 +153,7 @@ extern "C"
         Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
         entityOne->AddScript<GameScript>();
 
-        sprite->textureHandle = Canis::AssetManager::GetTextureHandle(
-            "assets/textures/awesome_face.png");
+        sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         sprite->size = Vector2(32.0f);
     }
 

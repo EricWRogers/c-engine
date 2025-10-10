@@ -48,39 +48,34 @@ public:
         sprite.position += delta;
 
         CheckWalls();
-        // Canis::Debug::Log("Game Script update %.2f %d Counter %d FPS: %f rect.x: %f", _dt, id, counter++, Canis::Time::FPS(), sprite.position.x);
     }
 
     void CheckWalls()
     {
         Canis::Window &window = entity.scene->GetWindow();
 
-        if (window.GetScreenWidth() * 0.5f <=
-            sprite.position.x + sprite.size.x * 0.5f)
+        if (window.GetScreenWidth() * 0.5f <= sprite.position.x + sprite.size.x * 0.5f)
         {
             if (direction.x > 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (-window.GetScreenWidth() * 0.5f >=
-                 sprite.position.x - sprite.size.x * 0.5f)
+        else if (-window.GetScreenWidth() * 0.5f >= sprite.position.x - sprite.size.x * 0.5f)
         {
             if (direction.x < 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (window.GetScreenHeight() * 0.5f <=
-                 sprite.position.y + sprite.size.y * 0.5f)
+        else if (window.GetScreenHeight() * 0.5f <= sprite.position.y + sprite.size.y * 0.5f)
         {
             if (direction.y > 0.0f)
             {
                 direction.y *= -1.0f;
             }
         }
-        else if (-window.GetScreenHeight() * 0.5f >=
-                 sprite.position.y - sprite.size.y * 0.5f)
+        else if (-window.GetScreenHeight() * 0.5f >= sprite.position.y - sprite.size.y * 0.5f)
         {
             if (direction.y < 0.0f)
             {
@@ -114,18 +109,18 @@ extern "C"
 
         app.SetTargetFPS(100000);
 
-        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_C))
+        if (app.scene.GetInputManager().JustPressedKey(Canis::Key::C))
         {
             SpawnCamera(app);
         }
 
         // if (app.scene.GetInputManager().mouseRel != VECTOR2_ZERO)
-        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_B))
+        if (app.scene.GetInputManager().JustPressedKey(Canis::Key::B))
         {
             SpawnAwesome(app);
         }
 
-        if (app.scene.GetInputManager().JustPressedKey(SDL_SCANCODE_R))
+        if (app.scene.GetInputManager().JustPressedKey(Canis::Key::SPACE))
         {
             ReloadScene(app);
         }

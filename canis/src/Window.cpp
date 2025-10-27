@@ -15,9 +15,18 @@ namespace Canis
             std::exit(1);
         }
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#ifdef __EMSCRIPTEN__
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+#endif
 
         m_screenWidth = width;
         m_screenHeight = height;
@@ -66,7 +75,17 @@ namespace Canis
 
     void Window::InitGL()
     {
-        // No additional GL initialization needed for GLES2
+#ifdef __EMSCRIPTEN__
+
+#else
+        glewExperimental = GL_TRUE; // required for core profile
+        if (glewInit() != GLEW_OK)
+        {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GLEW initialization failed: %s",
+                         (const char *)glewGetErrorString(glewInit()));
+            std::exit(1);
+        }
+#endif
     }
 
     void Window::SetWindowSize(int _width, int _height)

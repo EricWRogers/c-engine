@@ -58,9 +58,10 @@ namespace Canis
             GameCodeObjectWatchFile(&gameCodeObject, this);
 
             scene.Render(deltaTime);
+            editor.Draw(&scene, &window);
             window.SwapBuffer();
 
-            editor.Draw(&scene, &window);
+            
 
             Time::EndFrame();
         }

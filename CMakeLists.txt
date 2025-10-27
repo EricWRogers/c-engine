@@ -25,6 +25,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(SDL_OPENGLES ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 
+set(glew-cmake_BUILD_SHARED         FALSE)
+set(glew-cmake_BUILD_STATIC         TRUE)
+
+if( NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+add_subdirectory(external/GL)
+endif()
+
 add_subdirectory(external/SDL)
 add_subdirectory(external/stb)
 

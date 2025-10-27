@@ -1,8 +1,8 @@
 [OPENGL VERSION]
 
-#ifdef GL_ES
-    precision mediump float;
-#endif
+//#ifdef GL_ES
+//    precision mediump float;
+//#endif
 
 layout (location = 0) in vec3 vertexPosition;
 layout (location = 1) in vec4 vertexColor;

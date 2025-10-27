@@ -13,3 +13,6 @@
 [submodule "external/imguizmo"]
 	path = external/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "external/GL"]
+	path = external/GL
+	url = https://github.com/Perlmint/glew-cmake

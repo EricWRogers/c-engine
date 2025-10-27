@@ -37,7 +37,12 @@ namespace Canis
             #if CANIS_EDITOR
             //if (GetProjectConfig().editor)
             //{
+                //Debug::Log("ProcessEvent");
                 ImGui_ImplSDL3_ProcessEvent(&event);
+                ImGuiIO& io = ImGui::GetIO();
+                //if (!io.WantCaptureMouse || !io.WantCaptureKeyboard) {
+                //    continue;
+                //}
             //}
             #endif
 
@@ -57,6 +62,10 @@ namespace Canis
                 }
                 break;
             case SDL_EVENT_MOUSE_MOTION:
+                #if CANIS_EDITOR
+                if (io.WantCaptureMouse)
+                    continue;
+                #endif
                     mouse.x = event.motion.x;
                     mouse.y = screenHeight - event.motion.y;
                     mouseRel.x = event.motion.xrel;
@@ -65,25 +74,45 @@ namespace Canis
                     m_lastInputDeviceType = (mouseRel != Vector2(0.0f)) ? InputDevice::MOUSE : m_lastInputDeviceType;
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
+            #if CANIS_EDITOR
+                if (io.WantCaptureMouse)
+                    continue;
+                #endif
                 m_scrollVertical = event.wheel.y;
                 
                 m_lastInputDeviceType = (m_scrollVertical != 0.0f) ? InputDevice::MOUSE : m_lastInputDeviceType;
                 break;
             case SDL_EVENT_KEY_UP:
+                #if CANIS_EDITOR
+                if (io.WantCaptureKeyboard)
+                    continue;
+                #endif
                 ReleasedKey(event.key.scancode);
                 break;
             case SDL_EVENT_KEY_DOWN:
+                #if CANIS_EDITOR
+                if (io.WantCaptureKeyboard)
+                    continue;
+                #endif
                 Debug::Log("Key Down: %i", event.key.scancode);
                 PressKey(event.key.scancode);
                 m_lastInputDeviceType = InputDevice::KEYBOARD;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                #if CANIS_EDITOR
+                if (io.WantCaptureMouse)
+                    continue;
+                #endif
                 if (event.button.button == SDL_BUTTON_LEFT)
                     m_leftClick = true;
                 if (event.button.button == SDL_BUTTON_RIGHT)
                     m_rightClick = true;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
+                #if CANIS_EDITOR
+                if (io.WantCaptureMouse)
+                    continue;
+                #endif
                 if (event.button.button == SDL_BUTTON_LEFT)
                     m_leftClick = false;
                 if (event.button.button == SDL_BUTTON_RIGHT)

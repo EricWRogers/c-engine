@@ -1,8 +1,8 @@
 [OPENGL VERSION]
 
-#ifdef GL_ES
-    precision mediump float;
-#endif
+//#ifdef GL_ES
+//    precision mediump float;
+//#endif
 
 in vec3 fragmentPosition;
 in vec4 fragmentColor;

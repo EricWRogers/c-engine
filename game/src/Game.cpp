@@ -1,4 +1,4 @@
-#include <Game.hpp>
+#include "../include/Game.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
-#include <GameData.hpp>
+#include "../include/GameData.hpp"
 
 using namespace Canis;
 

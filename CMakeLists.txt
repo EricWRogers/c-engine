@@ -37,8 +37,8 @@ add_subdirectory(external/stb)
 
 # imgui
 set(IMGUI_PATH  "external/imgui")
-file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl3.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp) 
-file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl3.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h) 
+file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp) 
+file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl3.h ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h) 
 add_library("imgui" STATIC ${IMGUI_SOURCES})
 target_include_directories("imgui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends/ ${IMGUI_PATH}/misc/cpp/)
 target_link_libraries("imgui" PRIVATE SDL3::SDL3)

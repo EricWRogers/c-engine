@@ -1,6 +1,9 @@
+#pragma once
+
 namespace Canis
 {
     class Scene;
+    class App;
     //class SceneManager;
     //class Time;
     class Window;
@@ -15,15 +18,17 @@ namespace Canis
     class Editor
     {
     friend class Scene;
+    friend class App;
+
     public:
         Editor() = default;
         ~Editor() = default;
         void Init(Window* _window);
-        void Draw(Scene* _scene, Window* _window/*, Time *_time*/);
+        void Draw(Scene* _scene, Window* _window, App* _app/*, Time *_time*/);
 
         EditorMode GetMode() { return m_mode; }
     private:
-        //void DrawInspectorPanel();
+        void DrawInspectorPanel();
         //void DrawSystemPanel();
         void DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);
@@ -42,6 +47,7 @@ namespace Canis
         };
 
         Scene *m_scene;
+        App *m_app;
         int m_index = 0;
         bool m_forceRefresh = false;
         EditorMode m_mode = EditorMode::EDIT;

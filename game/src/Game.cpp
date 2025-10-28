@@ -18,18 +18,16 @@
 
 using namespace Canis;
 
-class GameScript : public Canis::ScriptableEntity
+class BallMovement : public Canis::ScriptableEntity
 {
 public:
-    int id = 5;
-    int counter = 0;
-    float amplitude = 20.0f;
     Vector2 direction = Vector2(1.0f, 0.5f);
     float speed = 100.0f;
+    float randomRotation = 0;
 
     Canis::Sprite2D &sprite = *entity.GetScript<Canis::Sprite2D>();
 
-    GameScript(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
+    BallMovement(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 
     void Create()
     {
@@ -48,6 +46,14 @@ public:
         sprite.position += delta;
 
         CheckWalls();
+    }
+
+    void EditorInspectorDraw() {
+        std::string nameOfType = "BallMovement";
+        ImGui::Text("%s", nameOfType.c_str());
+        ImGui::InputFloat2("direction", &direction.x, "%.3f");
+        ImGui::InputFloat("speed", &speed);
+        ImGui::InputFloat("randomRotation", &randomRotation);
     }
 
     void CheckWalls()
@@ -85,6 +91,24 @@ public:
     }
 };
 
+ScriptConf ballMovementConf = {
+    .name = "BallMovement",
+    .Add = [](Entity& _entity) -> void { _entity.AddScript<BallMovement>(); },
+    .Has = [](Entity& _entity) -> bool { return (_entity.GetScript<BallMovement>() != nullptr); },
+    .Remove = [](Entity& _entity) -> void { _entity.RemoveScript<BallMovement>(); },
+    .DrawInspector = [](Editor& _editor, Entity& _entity) -> void {
+        BallMovement* ball = nullptr;
+        if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
+        {
+            std::string nameOfType = "BallMovement";
+            ImGui::Text("%s", nameOfType.c_str());
+            ImGui::InputFloat2("direction", &ball->direction.x, "%.3f");
+            ImGui::InputFloat("speed", &ball->speed);
+            ImGui::InputFloat("randomRotation", &ball->randomRotation);
+        }
+    },
+};
+
 extern "C"
 {
     void SpawnCamera(Canis::App &_app);
@@ -94,6 +118,10 @@ extern "C"
     void *GameInit(void *_app)
     {
         Canis::App &app = *(Canis::App *)_app;
+
+        
+
+        app.RegisterScript(ballMovementConf);
 
         Canis::Debug::Log("Game initialized!");
         GameData *gameData = (GameData *)malloc(sizeof(GameData));
@@ -132,21 +160,23 @@ extern "C"
     {
         Canis::App &app = *(Canis::App *)_app;
 
+        app.UnregisterScript(ballMovementConf);
+
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;
     }
 
     void SpawnCamera(Canis::App &_app)
     {
-        Canis::Entity *cEntity = _app.scene.CreateEntity();
+        Canis::Entity *cEntity = _app.scene.CreateEntity("Camera", "MainCamera");
         Canis::Camera2D *camera2D = cEntity->AddScript<Canis::Camera2D>();
     }
 
     void SpawnAwesome(Canis::App &_app)
     {
-        Canis::Entity *entityOne = _app.scene.CreateEntity();
+        Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
         Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
-        entityOne->AddScript<GameScript>();
+        entityOne->AddScript<BallMovement>();
 
         sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         sprite->size = Vector2(32.0f);
@@ -158,7 +188,8 @@ extern "C"
         _app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
         _app.scene.Load(); // call after all the systems are added
 
-        SpawnCamera(_app);
         SpawnAwesome(_app);
+        SpawnCamera(_app);
+        
     }
 }

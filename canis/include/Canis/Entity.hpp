@@ -1,24 +1,35 @@
 #pragma once
 #include <vector>
+#include <functional>
+#include <unordered_map>
+
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
+
+#include <imgui.h>
+#include <imgui_stdlib.h>
 
 namespace Canis
 {
     class Scene;
+    class Editor;
     class ScriptableEntity;
 
     
     class Entity
     {
     friend Scene;
+    friend Editor;
     private:
         std::vector<ScriptableEntity *> m_scriptComponents = {};
     public:
         int id;
         Scene *scene;
         bool active = true;
+        std::string name = "";
+        std::string tag = "";
         
+        Entity() = default;
 
         template <typename T>
         T *AddScript()
@@ -48,6 +59,23 @@ namespace Canis
 
             return scriptableEntity;
         }
+
+        template <typename T>
+        void RemoveScript()
+        {
+            T *scriptableEntity = nullptr;
+
+            for (int i = 0; i < m_scriptComponents.size(); i++)
+            {
+                if ((scriptableEntity = dynamic_cast<T *>(m_scriptComponents[i])) != nullptr)
+                {
+                    scriptableEntity->Destroy();
+                    delete scriptableEntity;
+                    m_scriptComponents.erase(m_scriptComponents.begin() + i);
+                    return;
+                }
+            }
+        }
     };
 
     class ScriptableEntity
@@ -63,12 +91,36 @@ namespace Canis
         virtual void Ready() {}
         virtual void Destroy() {}
         virtual void Update(float _dt) {}
+        virtual void EditorInspectorDraw() {}
+    };
+
+    struct ScriptConf {
+        std::string name;
+        std::function<void(Entity&)> Add = nullptr;
+        std::function<bool(Entity&)> Has = nullptr;
+        std::function<void(Entity&)> Remove = nullptr;
+        std::function<void(Editor&, Entity&)> DrawInspector = nullptr;
+        //std::unordered_map<std::string, std::function<void>> exposedFunctions;
     };
 
     class Sprite2D : public ScriptableEntity
     {
     public:
         Sprite2D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw() {
+            std::string nameOfType = "Sprite2D";
+            ImGui::Text("%s", nameOfType.c_str());
+            ImGui::InputFloat2("position", &position.x, "%.3f");
+            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
+            ImGui::InputFloat("depth", &depth);
+            // let user work with degrees
+            ImGui::InputFloat("rotation", &rotation);
+            ImGui::InputFloat2("size", &size.x, "%.3f");
+            ImGui::ColorEdit4("color", &color.r);
+            ImGui::InputFloat4("uv", &uv.x, "%.3f");
+            // textureHandle
+        }
 
         Vector2 position = Vector2(0.0f);
         Vector2 originOffset = Vector2(0.0f);
@@ -99,6 +151,23 @@ namespace Canis
         {
             m_scale = newScale;
             m_needsMatrixUpdate = true;
+        }
+
+        void EditorInspectorDraw() {
+            std::string nameOfType = "Camera2D";
+            ImGui::Text("%s", nameOfType.c_str());
+
+            Vector2 lastPosition = GetPosition();
+            float lastScale = GetScale();
+
+            ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
+            ImGui::InputFloat("scale", &lastScale);
+
+            if (lastPosition != GetPosition())
+                SetPosition(lastPosition);
+            
+            if (lastScale != GetScale())
+                SetScale(lastScale);
         }
 
         Vector2 GetPosition() { return m_position; }

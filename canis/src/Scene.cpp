@@ -86,11 +86,13 @@ namespace Canis
         }
     }
 
-    Entity* Scene::CreateEntity()
+    Entity* Scene::CreateEntity(std::string _name, std::string _tag)
     {
         Entity* entity = new Entity();
         entity->id = m_entities.size();
         entity->scene = this;
+        entity->name = _name;
+        entity->tag = _tag;
         m_entities.push_back(entity);
         return entity;
     }

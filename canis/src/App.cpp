@@ -27,6 +27,60 @@ namespace Canis
         const char *sharedObjectPath = "./libGameCode.so";
 #endif
 
+        ScriptConf sprite2DConf = {
+            .name = "Sprite2D",
+            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Sprite2D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity) -> void {
+                Sprite2D* sprite = nullptr;
+                if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
+                {
+                    std::string nameOfType = "Sprite2D";
+                    ImGui::Text("%s", nameOfType.c_str());
+                    ImGui::InputFloat2("position", &sprite->position.x, "%.3f");
+                    ImGui::InputFloat2("originOffset", &sprite->originOffset.x, "%.3f");
+                    ImGui::InputFloat("depth", &sprite->depth);
+                    // let user work with degrees
+                    ImGui::InputFloat("rotation", &sprite->rotation);
+                    ImGui::InputFloat2("size", &sprite->size.x, "%.3f");
+                    ImGui::ColorEdit4("color", &sprite->color.r);
+                    ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
+                    // textureHandle
+                }
+            },
+        };
+
+        ScriptConf camera2DConf = {
+            .name = "Camera2D",
+            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity) -> void {
+                Camera2D* camera = nullptr;
+                if ((camera = _entity.GetScript<Camera2D>()) != nullptr)
+                {
+                    std::string nameOfType = "Camera2D";
+                    ImGui::Text("%s", nameOfType.c_str());
+
+                    Vector2 lastPosition = camera->GetPosition();
+                    float lastScale = camera->GetScale();
+
+                    ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
+                    ImGui::InputFloat("scale", &lastScale);
+
+                    if (lastPosition != camera->GetPosition())
+                        camera->SetPosition(lastPosition);
+                    
+                    if (lastScale != camera->GetScale())
+                        camera->SetScale(lastScale);
+                }
+            },
+        };
+
+        RegisterScript(sprite2DConf);
+        RegisterScript(camera2DConf);
+
         // init window
         Window window("Canis Beta", 512, 512);
 
@@ -58,10 +112,8 @@ namespace Canis
             GameCodeObjectWatchFile(&gameCodeObject, this);
 
             scene.Render(deltaTime);
-            editor.Draw(&scene, &window);
+            editor.Draw(&scene, &window, this);
             window.SwapBuffer();
-
-            
 
             Time::EndFrame();
         }
@@ -85,6 +137,27 @@ namespace Canis
     void App::SetTargetFPS(float _targetFPS)
     {
         Time::SetTargetFPS(_targetFPS);
+    }
+
+    void App::RegisterScript(ScriptConf &_conf)
+    {
+        for (ScriptConf &sc : m_scriptRegistry)
+            if (_conf.name == sc.name)
+                return;
+
+        m_scriptRegistry.push_back(_conf);
+    }
+
+    void App::UnregisterScript(ScriptConf &_conf)
+    {
+        for (int i = 0; i < m_scriptRegistry.size(); i++)
+        {
+            if (_conf.name == m_scriptRegistry[i].name)
+            {
+                m_scriptRegistry.erase(m_scriptRegistry.begin() + i);
+                i--;
+            }
+        }
     }
 
 } // namespace Canis

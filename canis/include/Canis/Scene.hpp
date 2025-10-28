@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <Canis/Debug.hpp>
 
 namespace Canis
@@ -25,7 +26,7 @@ namespace Canis
         InputManager& GetInputManager() { return *m_inputManager; }
 
 
-        Entity* CreateEntity();
+        Entity* CreateEntity(std::string _name = "", std::string _tag = "");
         Entity* GetEntity(int _id);
 
         void Destroy(int _id);

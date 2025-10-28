@@ -3,6 +3,9 @@
 #include <Canis/Debug.hpp>
 #include <Canis/OpenGL.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/Scene.hpp>
+#include <Canis/Entity.hpp>
+#include <Canis/App.hpp>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -14,9 +17,10 @@ namespace Canis
     void Editor::Init(Window *_window)
     {
 #if CANIS_EDITOR
-        // if (GetProjectConfig().editor)
+        // if (GetProjectConfig().editor == false)
+        //     return;
         //{
-        //  Setup Dear ImGui context
+
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
@@ -39,12 +43,12 @@ namespace Canis
         // ImGui::StyleColorsLight();
 
         // Setup scaling
-        ImGuiStyle& style = ImGui::GetStyle();
+        ImGuiStyle &style = ImGui::GetStyle();
         float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-        style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-        style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
-        io.ConfigDpiScaleFonts = true;          // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
-        io.ConfigDpiScaleViewports = true;      // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
+        style.ScaleAllSizes(main_scale);   // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+        style.FontScaleDpi = main_scale;   // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+        io.ConfigDpiScaleFonts = true;     // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
+        io.ConfigDpiScaleViewports = true; // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
 
         // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -56,21 +60,19 @@ namespace Canis
         // Setup Platform/Renderer backends
         ImGui_ImplSDL3_InitForOpenGL((SDL_Window *)_window->GetSDLWindow(), (SDL_GLContext)_window->GetGLContext());
         ImGui_ImplOpenGL3_Init(OPENGLVERSION);
-        
-        //}
 #endif
     }
 
-    void Editor::Draw(Scene *_scene, Window *_window /*, Time *_time*/)
+    void Editor::Draw(Scene *_scene, Window *_window, App* _app /*, Time *_time*/)
     {
 #if CANIS_EDITOR
         // if (GetProjectConfig().editor)
         //{
-        Debug::Log("Editor::Draw");
         if (m_scene != _scene)
         {
             Debug::Log("new scene");
         }
+        m_app = _app;
         m_scene = _scene;
 
         // Start the Dear ImGui frame
@@ -78,9 +80,9 @@ namespace Canis
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::DockSpaceOverViewport();
+        // ImGui::DockSpaceOverViewport();
 
-        // DrawInspectorPanel();
+        DrawInspectorPanel();
         // DrawSystemPanel();
         DrawHierarchyPanel();
         // DrawScenePanel(_window, _time);
@@ -302,7 +304,12 @@ namespace Canis
     {
         ImGui::Begin("Hierarchy");
 
-        ImGui::Text("Hello World!");
+        std::vector<Entity *> &entities = m_scene->GetEntities();
+
+        for (int i = 0; i < entities.size(); i++)
+        {
+            ImGui::Text("%s", entities[i]->name.c_str());
+        }
 
         /*for (int i = 0; i < GetSceneManager().hierarchyElements.size(); i++)
         {
@@ -330,6 +337,38 @@ namespace Canis
             GetSceneManager().hierarchyElements.push_back(hei);
             m_forceRefresh = true;
         }*/
+
+        ImGui::End();
+    }
+
+    void Editor::DrawInspectorPanel()
+    {
+        ImGui::Begin("Inspector");
+
+        std::vector<Entity *> &entities = m_scene->GetEntities();
+
+        if (entities.size() != 0)
+        {
+            Clamp(m_index, 0, entities.size() - 1);
+
+            Entity& entity = *entities[m_index];
+
+            ImGui::Text("name: %s", entity.name.c_str());
+            ImGui::Text("tag: %s", entity.tag.c_str());
+
+            //for (ScriptableEntity* scriptableEntity : entity.m_scriptComponents)
+            //{
+            //    scriptableEntity->EditorInspectorDraw();
+            //}
+
+            for (ScriptConf& conf : m_app->GetScriptRegistry())
+            {
+                if (conf.Has(entity))
+                {
+                    conf.DrawInspector(*this, entity);
+                }
+            }
+        }
 
         ImGui::End();
     }

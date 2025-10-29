@@ -115,7 +115,7 @@ namespace Canis
     {
         _system->scene = this;
         _system->window = m_window;
-        //_system->inputManager = inputManager;
+        _system->inputManager = m_inputManager;
         //_system->time = m_time;
         //_system->camera = camera;
         m_systems.push_back(_system);

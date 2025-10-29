@@ -32,18 +32,18 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Sprite2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
-            .DrawInspector = [this](Editor& _editor, Entity& _entity) -> void {
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Sprite2D* sprite = nullptr;
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
                 {
-                    ImGui::InputFloat2("position", &sprite->position.x, "%.3f");
-                    ImGui::InputFloat2("originOffset", &sprite->originOffset.x, "%.3f");
-                    ImGui::InputFloat("depth", &sprite->depth);
+                    ImGui::InputFloat2(("position##" + _conf.name).c_str(), &sprite->position.x, "%.3f");
+                    ImGui::InputFloat2(("originOffset##" + _conf.name).c_str(), &sprite->originOffset.x, "%.3f");
+                    ImGui::InputFloat(("depth##" + _conf.name).c_str(), &sprite->depth);
                     // let user work with degrees
-                    ImGui::InputFloat("rotation", &sprite->rotation);
-                    ImGui::InputFloat2("size", &sprite->size.x, "%.3f");
-                    ImGui::ColorEdit4("color", &sprite->color.r);
-                    ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
+                    ImGui::InputFloat(("rotation##" + _conf.name).c_str(), &sprite->rotation);
+                    ImGui::InputFloat2(("size##" + _conf.name).c_str(), &sprite->size.x, "%.3f");
+                    ImGui::ColorEdit4(("color##" + _conf.name).c_str(), &sprite->color.r);
+                    ImGui::InputFloat4(("uv##" + _conf.name).c_str(), &sprite->uv.x, "%.3f");
                     // textureHandle
                 }
             },
@@ -54,15 +54,15 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
-            .DrawInspector = [this](Editor& _editor, Entity& _entity) -> void {
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera2D* camera = nullptr;
                 if ((camera = _entity.GetScript<Camera2D>()) != nullptr)
                 {
                     Vector2 lastPosition = camera->GetPosition();
                     float lastScale = camera->GetScale();
 
-                    ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
-                    ImGui::InputFloat("scale", &lastScale);
+                    ImGui::InputFloat2(("position##" + _conf.name).c_str(), &lastPosition.x, "%.3f");
+                    ImGui::InputFloat(("scale##" + _conf.name).c_str(), &lastScale);
 
                     if (lastPosition != camera->GetPosition())
                         camera->SetPosition(lastPosition);

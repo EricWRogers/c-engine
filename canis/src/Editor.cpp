@@ -321,7 +321,12 @@ namespace Canis
 
         for (int i = 0; i < entities.size(); i++)
         {
-            ImGui::Text("%s", entities[i]->name.c_str());
+            //ImGui::Text("%s", entities[i]->name.c_str());
+            std::string inputID = "##input" + std::to_string(i);
+            ImGui::InputText(inputID.c_str(), &entities[i]->name);
+
+            if (ImGui::IsItemFocused())
+                m_index = i;
         }
 
         /*for (int i = 0; i < GetSceneManager().hierarchyElements.size(); i++)
@@ -375,22 +380,35 @@ namespace Canis
                 {
                     if (ImGui::CollapsingHeader(conf.name.c_str()))
                     {
-                        conf.DrawInspector(*this, entity);
+                        conf.DrawInspector(*this, entity, conf);
+                    }
+
+                    if (ImGui::BeginPopupContextItem(std::string("Menu##" + conf.name).c_str()))
+                    {
+                        if (ImGui::MenuItem(std::string("Remove##" + conf.name).c_str()))
+                        {
+                            conf.Remove(entity);
+                        }
+
+                        ImGui::EndPopup();
                     }
                 }
             }
 
-            DrawAddComponent();
+            DrawAddComponentDropDown(false);
         }
 
         ImGui::End();
     }
 
-    void Editor::DrawAddComponent()
+    void Editor::DrawAddComponentDropDown(bool _refresh)
     {
         Entity &entity = *m_scene->GetEntities()[m_index];
 
-        int componentToAdd = 0;
+        static int componentToAdd = 0;
+
+        if (_refresh)
+            componentToAdd = 0;
 
         std::vector<const char *> cStringItems = ConvertComponentToCStringVector(*m_app, entity);
 
@@ -407,6 +425,7 @@ namespace Canis
                     if (cStringItems[componentToAdd] == m_app->GetScriptRegistry()[i].name)
                     {
                         m_app->GetScriptRegistry()[i].Add(entity);
+                        componentToAdd = 0;
                         break;
                     }
                 }

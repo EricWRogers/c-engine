@@ -96,13 +96,13 @@ ScriptConf ballMovementConf = {
     .Add = [](Entity& _entity) -> void { _entity.AddScript<BallMovement>(); },
     .Has = [](Entity& _entity) -> bool { return (_entity.GetScript<BallMovement>() != nullptr); },
     .Remove = [](Entity& _entity) -> void { _entity.RemoveScript<BallMovement>(); },
-    .DrawInspector = [](Editor& _editor, Entity& _entity) -> void {
+    .DrawInspector = [](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
         BallMovement* ball = nullptr;
         if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
         {
-            ImGui::InputFloat2("direction", &ball->direction.x, "%.3f");
-            ImGui::InputFloat("speed", &ball->speed);
-            ImGui::InputFloat("randomRotation", &ball->randomRotation);
+            ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
+            ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
+            ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball->randomRotation);
         }
     },
 };

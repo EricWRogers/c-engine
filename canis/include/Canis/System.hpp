@@ -10,7 +10,7 @@ namespace Canis
     //class Time;
     //class Camera;
     class Window;
-    //class InputManager;
+    class InputManager;
 
     class System
     {
@@ -35,7 +35,7 @@ namespace Canis
 
         Scene *scene = nullptr;
         Window *window = nullptr;
-        //InputManager *inputManager = nullptr;
+        InputManager *inputManager = nullptr;
         //Time *time = nullptr;
         //Camera *camera = nullptr;
     };

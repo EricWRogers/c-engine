@@ -36,8 +36,6 @@ namespace Canis
                 Sprite2D* sprite = nullptr;
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
                 {
-                    std::string nameOfType = "Sprite2D";
-                    ImGui::Text("%s", nameOfType.c_str());
                     ImGui::InputFloat2("position", &sprite->position.x, "%.3f");
                     ImGui::InputFloat2("originOffset", &sprite->originOffset.x, "%.3f");
                     ImGui::InputFloat("depth", &sprite->depth);
@@ -60,9 +58,6 @@ namespace Canis
                 Camera2D* camera = nullptr;
                 if ((camera = _entity.GetScript<Camera2D>()) != nullptr)
                 {
-                    std::string nameOfType = "Camera2D";
-                    ImGui::Text("%s", nameOfType.c_str());
-
                     Vector2 lastPosition = camera->GetPosition();
                     float lastScale = camera->GetScale();
 

@@ -100,8 +100,6 @@ ScriptConf ballMovementConf = {
         BallMovement* ball = nullptr;
         if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
         {
-            std::string nameOfType = "BallMovement";
-            ImGui::Text("%s", nameOfType.c_str());
             ImGui::InputFloat2("direction", &ball->direction.x, "%.3f");
             ImGui::InputFloat("speed", &ball->speed);
             ImGui::InputFloat("randomRotation", &ball->randomRotation);

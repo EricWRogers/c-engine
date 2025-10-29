@@ -29,6 +29,7 @@ namespace Canis
         EditorMode GetMode() { return m_mode; }
     private:
         void DrawInspectorPanel();
+        void DrawAddComponent();
         //void DrawSystemPanel();
         void DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);

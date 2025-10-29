@@ -14,6 +14,19 @@
 
 namespace Canis
 {
+    std::vector<const char *> ConvertComponentToCStringVector(App &_app, Entity &_entity)
+    {
+        std::vector<const char *> cStringVector;
+        for (ScriptConf &conf : _app.GetScriptRegistry())
+        {
+            if (conf.Has(_entity))
+                continue;
+
+            cStringVector.push_back(conf.name.c_str());
+        }
+        return cStringVector;
+    }
+
     void Editor::Init(Window *_window)
     {
 #if CANIS_EDITOR
@@ -63,7 +76,7 @@ namespace Canis
 #endif
     }
 
-    void Editor::Draw(Scene *_scene, Window *_window, App* _app /*, Time *_time*/)
+    void Editor::Draw(Scene *_scene, Window *_window, App *_app /*, Time *_time*/)
     {
 #if CANIS_EDITOR
         // if (GetProjectConfig().editor)
@@ -351,26 +364,54 @@ namespace Canis
         {
             Clamp(m_index, 0, entities.size() - 1);
 
-            Entity& entity = *entities[m_index];
+            Entity &entity = *entities[m_index];
 
             ImGui::Text("name: %s", entity.name.c_str());
             ImGui::Text("tag: %s", entity.tag.c_str());
 
-            //for (ScriptableEntity* scriptableEntity : entity.m_scriptComponents)
-            //{
-            //    scriptableEntity->EditorInspectorDraw();
-            //}
-
-            for (ScriptConf& conf : m_app->GetScriptRegistry())
+            for (ScriptConf &conf : m_app->GetScriptRegistry())
             {
                 if (conf.Has(entity))
                 {
-                    conf.DrawInspector(*this, entity);
+                    if (ImGui::CollapsingHeader(conf.name.c_str()))
+                    {
+                        conf.DrawInspector(*this, entity);
+                    }
                 }
             }
+
+            DrawAddComponent();
         }
 
         ImGui::End();
+    }
+
+    void Editor::DrawAddComponent()
+    {
+        Entity &entity = *m_scene->GetEntities()[m_index];
+
+        int componentToAdd = 0;
+
+        std::vector<const char *> cStringItems = ConvertComponentToCStringVector(*m_app, entity);
+
+        if (cStringItems.size() > 0)
+        {
+            ImGui::Combo("##Components", &componentToAdd, cStringItems.data(), static_cast<int>(cStringItems.size()));
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("+##AddComponent"))
+            {
+                for (int i = 0; i < m_app->GetScriptRegistry().size(); i++)
+                {
+                    if (cStringItems[componentToAdd] == m_app->GetScriptRegistry()[i].name)
+                    {
+                        m_app->GetScriptRegistry()[i].Add(entity);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
 }

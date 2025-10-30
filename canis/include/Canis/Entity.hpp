@@ -11,6 +11,7 @@
 
 namespace Canis
 {
+    class App;
     class Scene;
     class Editor;
     class ScriptableEntity;
@@ -101,6 +102,11 @@ namespace Canis
         std::function<void(Entity&)> Remove = nullptr;
         std::function<void(Editor&, Entity&, const ScriptConf&)> DrawInspector = nullptr;
         //std::unordered_map<std::string, std::function<void>> exposedFunctions;
+    };
+
+    struct InspectorItemRightClick {
+        std::string name;
+        std::function<void(App&, Editor&, Entity&, std::vector<ScriptConf>&)> Func = nullptr;
     };
 
     class Sprite2D : public ScriptableEntity

@@ -78,7 +78,12 @@ namespace Canis
     {
         ScriptConf sprite2DConf = {
             .name = "Sprite2D",
-            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Sprite2D>(); },
+            .Add = [this](Entity& _entity) -> void {
+                Sprite2D* sprite = _entity.AddScript<Sprite2D>();
+                sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
+                sprite->size.x = sprite->textureHandle.texture.width;
+                sprite->size.y = sprite->textureHandle.texture.height;
+            },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {

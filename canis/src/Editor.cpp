@@ -95,9 +95,19 @@ namespace Canis
 
         // ImGui::DockSpaceOverViewport();
 
-        DrawInspectorPanel();
+        bool refresh = DrawHierarchyPanel();
+        DrawInspectorPanel(refresh);
         // DrawSystemPanel();
-        DrawHierarchyPanel();
+
+        ImGui::Begin("Environment");
+        Color background = _window->GetClearColor();
+        ImGui::ColorEdit4("Background##", &background.r);
+
+        if (background.r != _window->GetClearColor().r) // need a compare function for this
+            _window->SetClearColor(background);
+
+        ImGui::End();
+        
         // DrawScenePanel(_window, _time);
 
         // rendering
@@ -313,9 +323,10 @@ namespace Canis
 #endif
     }
 
-    void Editor::DrawHierarchyPanel()
+    bool Editor::DrawHierarchyPanel()
     {
         ImGui::Begin("Hierarchy");
+        bool refresh = false;
 
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
@@ -326,8 +337,52 @@ namespace Canis
             ImGui::InputText(inputID.c_str(), &entities[i]->name);
 
             if (ImGui::IsItemFocused())
+            {
                 m_index = i;
+                refresh = true;
+            }
+
+            // TODO: extend from game dll
+            if (ImGui::BeginPopupContextItem(("Menu##" + std::to_string(i)).c_str()))
+            {
+                if (ImGui::MenuItem(std::string("Create##").c_str()))
+                {
+                    m_scene->CreateEntity();
+                }
+
+                if (ImGui::MenuItem(std::string("Duplicate##").c_str()))
+                {
+                    // 1. make this into a function
+                    // 2. once yaml is add encode then decode
+                    Entity* selected = entities[i];
+                    Entity* entity = m_scene->CreateEntity();
+                    entity->name = selected->name; // ++ a number at the end
+                    entity->tag = selected->tag;
+
+                    for (ScriptConf &conf : m_app->GetScriptRegistry())
+                    {
+                        if (conf.Has(*selected))
+                        {
+                            conf.Add(*entity);
+                        }
+                    }
+                }
+
+                // remove
+
+                for (int index = 0; index < m_app->GetInspectorItemRegistry().size(); index++)
+                {
+                    if (ImGui::MenuItem(std::string(m_app->GetInspectorItemRegistry()[index].name + "##").c_str()))
+                    {
+                        m_app->GetInspectorItemRegistry()[index].Func(*m_app, *this, *entities[i], m_app->GetScriptRegistry());
+                    }
+                }
+
+                ImGui::EndPopup();
+            }
         }
+
+        
 
         /*for (int i = 0; i < GetSceneManager().hierarchyElements.size(); i++)
         {
@@ -357,9 +412,10 @@ namespace Canis
         }*/
 
         ImGui::End();
+        return refresh;
     }
 
-    void Editor::DrawInspectorPanel()
+    void Editor::DrawInspectorPanel(bool _refresh)
     {
         ImGui::Begin("Inspector");
 
@@ -378,24 +434,27 @@ namespace Canis
             {
                 if (conf.Has(entity))
                 {
-                    if (ImGui::CollapsingHeader(conf.name.c_str()))
-                    {
-                        conf.DrawInspector(*this, entity, conf);
-                    }
+                    bool open = ImGui::CollapsingHeader(conf.name.c_str());
 
                     if (ImGui::BeginPopupContextItem(std::string("Menu##" + conf.name).c_str()))
                     {
                         if (ImGui::MenuItem(std::string("Remove##" + conf.name).c_str()))
                         {
                             conf.Remove(entity);
+                            open = false;
                         }
 
                         ImGui::EndPopup();
                     }
+
+                    if (open)
+                    {
+                        conf.DrawInspector(*this, entity, conf);
+                    }
                 }
             }
 
-            DrawAddComponentDropDown(false);
+            DrawAddComponentDropDown(_refresh);
         }
 
         ImGui::End();
@@ -414,6 +473,7 @@ namespace Canis
 
         if (cStringItems.size() > 0)
         {
+            Clamp(componentToAdd, 0, cStringItems.size() - 1);
             ImGui::Combo("##Components", &componentToAdd, cStringItems.data(), static_cast<int>(cStringItems.size()));
 
             ImGui::SameLine();

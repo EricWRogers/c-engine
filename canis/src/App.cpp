@@ -12,6 +12,7 @@
 #include <Canis/Window.hpp>
 #include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
+#include <Canis/AssetManager.hpp>
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
@@ -27,6 +28,54 @@ namespace Canis
         const char *sharedObjectPath = "./libGameCode.so";
 #endif
 
+        // init window
+        Window window("Canis Beta", 512, 512);
+        window.SetClearColor(Color(1.0f));
+
+        Editor editor;
+        editor.Init(&window);
+
+        RegisterDefaults(editor);
+
+        InputManager inputManager;
+
+        Time::Init(1200.0f);
+
+        scene.Init(this, &window, &inputManager);
+
+        scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+
+        scene.Load(); // call after all the systems are added
+
+        GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
+        GameCodeObjectInitFunction(&gameCodeObject, this);
+
+        while (inputManager.Update((void *)&window))
+        {
+            window.Clear();
+
+            float deltaTime = Time::StartFrame();
+            scene.Update(deltaTime);
+
+            // call the dynamically loaded function
+            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+            GameCodeObjectWatchFile(&gameCodeObject, this);
+
+            scene.Render(deltaTime);
+            editor.Draw(&scene, &window, this);
+            window.SwapBuffer();
+
+            Time::EndFrame();
+        }
+
+        scene.Unload();
+        Time::Quit();
+        gameCodeObject.GameShutdownFunction((void *)this, gameCodeObject.gameData);
+        SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
+    }
+
+    void App::RegisterDefaults(Editor& _editor)
+    {
         ScriptConf sprite2DConf = {
             .name = "Sprite2D",
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Sprite2D>(); },
@@ -76,47 +125,32 @@ namespace Canis
         RegisterScript(sprite2DConf);
         RegisterScript(camera2DConf);
 
-        // init window
-        Window window("Canis Beta", 512, 512);
+        // register inspector items
+        InspectorItemRightClick inspectorCreateSquare = {
+            .name = "Create Square",
+            .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+                Canis::Entity *entityOne = _app.scene.CreateEntity("Square");
+                Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
-        Editor editor;
-        editor.Init(&window);
+                sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
+                sprite->size = Vector2(64.0f);
+            }
+        };
 
-        InputManager inputManager;
+        RegisterInspectorItem(inspectorCreateSquare);
 
-        Time::Init(1200.0f);
+        InspectorItemRightClick inspectorCreateCircle = {
+            .name = "Create Circle",
+            .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+                Canis::Entity *entityOne = _app.scene.CreateEntity("Circle");
+                Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
-        scene.Init(this, &window, &inputManager);
+                sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
+                sprite->size = Vector2(64.0f);
+            }
+        };
 
-        scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
-
-        scene.Load(); // call after all the systems are added
-
-        GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
-        GameCodeObjectInitFunction(&gameCodeObject, this);
-
-        while (inputManager.Update((void *)&window))
-        {
-            window.Clear(1.0f, 1.0f, 1.0f, 1.0f);
-
-            float deltaTime = Time::StartFrame();
-            scene.Update(deltaTime);
-
-            // call the dynamically loaded function
-            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
-            GameCodeObjectWatchFile(&gameCodeObject, this);
-
-            scene.Render(deltaTime);
-            editor.Draw(&scene, &window, this);
-            window.SwapBuffer();
-
-            Time::EndFrame();
-        }
-
-        scene.Unload();
-        Time::Quit();
-        gameCodeObject.GameShutdownFunction((void *)this, gameCodeObject.gameData);
-        SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
+        RegisterInspectorItem(inspectorCreateCircle);
     }
 
     float App::FPS()
@@ -150,6 +184,27 @@ namespace Canis
             if (_conf.name == m_scriptRegistry[i].name)
             {
                 m_scriptRegistry.erase(m_scriptRegistry.begin() + i);
+                i--;
+            }
+        }
+    }
+
+    void App::RegisterInspectorItem(InspectorItemRightClick& _item)
+    {
+        for (InspectorItemRightClick &item : m_inspectorItemRegistry)
+            if (item.name == _item.name)
+                return;
+
+        m_inspectorItemRegistry.push_back(_item);
+    }
+
+    void App::UnregisterInspectorItem(InspectorItemRightClick& _item)
+    {
+        for (int i = 0; i < m_inspectorItemRegistry.size(); i++)
+        {
+            if (_item.name == m_inspectorItemRegistry[i].name)
+            {
+                m_inspectorItemRegistry.erase(m_inspectorItemRegistry.begin() + i);
                 i--;
             }
         }

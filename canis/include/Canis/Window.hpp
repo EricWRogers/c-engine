@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <Canis/Math.hpp>
 
 namespace Canis
 {
@@ -21,7 +22,9 @@ namespace Canis
         int GetScreenWidth() { return m_screenWidth; }
         int GetScreenHeight() { return m_screenHeight; }
 
-        void Clear(float r, float g, float b, float a) const;
+        void Clear() const;
+        void SetClearColor(Color _color);
+        Color GetClearColor() { return m_clearColor; }
         void SwapBuffer() const;
 
         void SetWindowSize(int _width, int _height);
@@ -37,6 +40,8 @@ namespace Canis
     private:
         SDL_Window *m_window = nullptr;
         SDL_GLContext m_context = nullptr;
+
+        Color m_clearColor;
 
         bool m_shouldClose = false;
         bool m_resized = false;

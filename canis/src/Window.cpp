@@ -62,10 +62,19 @@ namespace Canis
         SDL_Quit();
     }
 
-    void Window::Clear(float r, float g, float b, float a) const
+    void Window::Clear() const
     {
+        float r = m_clearColor.r;
+        float g = m_clearColor.g;
+        float b = m_clearColor.b;
+        float a = m_clearColor.a;
         glClearColor(r, g, b, a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    void Window::SetClearColor(Color _color)
+    {
+        m_clearColor = _color;
     }
 
     void Window::SwapBuffer() const

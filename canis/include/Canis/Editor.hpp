@@ -28,10 +28,10 @@ namespace Canis
 
         EditorMode GetMode() { return m_mode; }
     private:
-        void DrawInspectorPanel();
+        void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);
         //void DrawSystemPanel();
-        void DrawHierarchyPanel();
+        bool DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);
         //void DrawScenePanel(Window* _window, Time *_time);
 

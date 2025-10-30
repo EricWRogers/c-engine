@@ -107,18 +107,26 @@ ScriptConf ballMovementConf = {
     },
 };
 
+
+
 extern "C"
 {
     void SpawnCamera(Canis::App &_app);
     void SpawnAwesome(Canis::App &_app);
     void ReloadScene(Canis::App &_app);
 
+    InspectorItemRightClick inspectorCreateBall = {
+        .name = "Create Ball",
+        .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+            SpawnAwesome(_app);
+        }
+    };
+
     void *GameInit(void *_app)
     {
         Canis::App &app = *(Canis::App *)_app;
-
         
-
+        app.RegisterInspectorItem(inspectorCreateBall);
         app.RegisterScript(ballMovementConf);
 
         Canis::Debug::Log("Game initialized!");
@@ -158,6 +166,7 @@ extern "C"
     {
         Canis::App &app = *(Canis::App *)_app;
 
+        app.UnregisterInspectorItem(inspectorCreateBall);
         app.UnregisterScript(ballMovementConf);
 
         Canis::Debug::Log("Game shutdown!");

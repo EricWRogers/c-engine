@@ -76,9 +76,33 @@ namespace Canis
 
     void App::RegisterDefaults(Editor& _editor)
     {
+        ScriptConf rectTransformConf = {
+            .name = "RectTransform",
+            .Add = [this](Entity& _entity) -> void {
+                _entity.AddScript<RectTransform>();
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<RectTransform>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<RectTransform>(); },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                RectTransform* transform = nullptr;
+                if ((transform = _entity.GetScript<RectTransform>()) != nullptr)
+                {
+                    ImGui::InputFloat2("position", &transform->position.x, "%.3f");
+                    ImGui::InputFloat2("scale", &transform->scale.x, "%.3f");
+                    ImGui::InputFloat2("originOffset", &transform->originOffset.x, "%.3f");
+                    ImGui::InputFloat("depth", &transform->depth);
+                    // let user work with degrees
+                    ImGui::InputFloat("rotation", &transform->rotation);
+                }
+            },
+        };
+
+        RegisterScript(rectTransformConf);
+
         ScriptConf sprite2DConf = {
             .name = "Sprite2D",
             .Add = [this](Entity& _entity) -> void {
+                // TODO: require a RectTransform component
                 Sprite2D* sprite = _entity.AddScript<Sprite2D>();
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 sprite->size.x = sprite->textureHandle.texture.width;
@@ -90,18 +114,15 @@ namespace Canis
                 Sprite2D* sprite = nullptr;
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
                 {
-                    ImGui::InputFloat2(("position##" + _conf.name).c_str(), &sprite->position.x, "%.3f");
-                    ImGui::InputFloat2(("originOffset##" + _conf.name).c_str(), &sprite->originOffset.x, "%.3f");
-                    ImGui::InputFloat(("depth##" + _conf.name).c_str(), &sprite->depth);
-                    // let user work with degrees
-                    ImGui::InputFloat(("rotation##" + _conf.name).c_str(), &sprite->rotation);
-                    ImGui::InputFloat2(("size##" + _conf.name).c_str(), &sprite->size.x, "%.3f");
-                    ImGui::ColorEdit4(("color##" + _conf.name).c_str(), &sprite->color.r);
-                    ImGui::InputFloat4(("uv##" + _conf.name).c_str(), &sprite->uv.x, "%.3f");
                     // textureHandle
+                    ImGui::InputFloat2("size", &sprite->size.x, "%.3f");
+                    ImGui::ColorEdit4("color", &sprite->color.r);
+                    ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
                 }
             },
         };
+
+        RegisterScript(sprite2DConf);
 
         ScriptConf camera2DConf = {
             .name = "Camera2D",
@@ -127,7 +148,6 @@ namespace Canis
             },
         };
 
-        RegisterScript(sprite2DConf);
         RegisterScript(camera2DConf);
 
         // register inspector items
@@ -135,6 +155,7 @@ namespace Canis
             .name = "Create Square",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Square");
+                RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
                 Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
@@ -148,6 +169,7 @@ namespace Canis
             .name = "Create Circle",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Circle");
+                RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
                 Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");

@@ -440,14 +440,15 @@ namespace Canis
 
         for (Entity* entity : entities)
         {
+            RectTransform* transform = entity->GetScript<RectTransform>();
             Sprite2D* sprite = entity->GetScript<Sprite2D>();
 
-            if (sprite == nullptr)
+            if (transform == nullptr || sprite == nullptr)
                 continue;
             
-            p = sprite->position;// + anchorTable[rect_transform.anchor];
-            s.x = sprite->size.x + halfWidth;
-            s.y = sprite->size.y + halfHeight;
+            p = transform->position;// + anchorTable[rect_transform.anchor];
+            s.x = transform->scale.x * sprite->size.x + halfWidth;
+            s.y = transform->scale.y * sprite->size.y + halfHeight;
             if (p.x > camPos.x - s.x &&
                 p.x < camPos.x + s.x &&
                 p.y > camPos.y - s.y &&
@@ -463,13 +464,13 @@ namespace Canis
                     rect_transform.rotation,
                     rect_transform.originOffset);*/
                 Draw(
-                    Vector4(sprite->position.x, sprite->position.y, sprite->size.x, sprite->size.y),
+                    Vector4(transform->position.x, transform->position.y, sprite->size.x * transform->scale.x, sprite->size.y * transform->scale.y),
                     sprite->uv,
                     sprite->textureHandle.texture,
-                    sprite->depth,
+                    transform->depth,
                     sprite->color,
-                    sprite->rotation,
-                    sprite->originOffset);
+                    transform->rotation,
+                    transform->originOffset);
             }
         }
 

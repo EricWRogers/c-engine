@@ -109,6 +109,29 @@ namespace Canis
         std::function<void(App&, Editor&, Entity&, std::vector<ScriptConf>&)> Func = nullptr;
     };
 
+    class RectTransform : public ScriptableEntity
+    {
+    public:
+        RectTransform(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw() {
+            std::string nameOfType = "RectTransform";
+            ImGui::Text("%s", nameOfType.c_str());
+            ImGui::InputFloat2("position", &position.x, "%.3f");
+            ImGui::InputFloat2("scale", &scale.x, "%.3f");
+            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
+            ImGui::InputFloat("depth", &depth);
+            // let user work with degrees
+            ImGui::InputFloat("rotation", &rotation);
+        }
+
+        Vector2 position = Vector2(0.0f);
+        Vector2 scale = Vector2(1.0f);
+        Vector2 originOffset = Vector2(0.0f);
+        float   depth = 0.0f;
+        float   rotation = 0.0f;
+    };
+
     class Sprite2D : public ScriptableEntity
     {
     public:
@@ -117,25 +140,16 @@ namespace Canis
         void EditorInspectorDraw() {
             std::string nameOfType = "Sprite2D";
             ImGui::Text("%s", nameOfType.c_str());
-            ImGui::InputFloat2("position", &position.x, "%.3f");
-            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
-            ImGui::InputFloat("depth", &depth);
-            // let user work with degrees
-            ImGui::InputFloat("rotation", &rotation);
             ImGui::InputFloat2("size", &size.x, "%.3f");
             ImGui::ColorEdit4("color", &color.r);
             ImGui::InputFloat4("uv", &uv.x, "%.3f");
             // textureHandle
         }
 
-        Vector2 position = Vector2(0.0f);
-        Vector2 originOffset = Vector2(0.0f);
-        float   depth = 0.0f;
-        float rotation = 0.0f;
+        TextureHandle textureHandle;
         Vector2 size = Vector2(32.0f);
         Color   color = Color(1.0f);
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-        TextureHandle textureHandle;
     };
 
     class Camera2D : public ScriptableEntity

@@ -25,7 +25,8 @@ public:
     float speed = 100.0f;
     float randomRotation = 0;
 
-    Canis::Sprite2D &sprite = *entity.GetScript<Canis::Sprite2D>();
+    RectTransform &transform = *entity.GetScript<RectTransform>();
+    Sprite2D &sprite = *entity.GetScript<Sprite2D>();
 
     BallMovement(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 
@@ -43,7 +44,7 @@ public:
     void Update(float _dt)
     {
         Vector2 delta = direction * speed * Time::DeltaTime();
-        sprite.position += delta;
+        transform.position += delta;
 
         CheckWalls();
     }
@@ -60,28 +61,28 @@ public:
     {
         Canis::Window &window = entity.scene->GetWindow();
 
-        if (window.GetScreenWidth() * 0.5f <= sprite.position.x + sprite.size.x * 0.5f)
+        if (window.GetScreenWidth() * 0.5f <= transform.position.x + sprite.size.x * 0.5f)
         {
             if (direction.x > 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (-window.GetScreenWidth() * 0.5f >= sprite.position.x - sprite.size.x * 0.5f)
+        else if (-window.GetScreenWidth() * 0.5f >= transform.position.x - sprite.size.x * 0.5f)
         {
             if (direction.x < 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (window.GetScreenHeight() * 0.5f <= sprite.position.y + sprite.size.y * 0.5f)
+        else if (window.GetScreenHeight() * 0.5f <= transform.position.y + sprite.size.y * 0.5f)
         {
             if (direction.y > 0.0f)
             {
                 direction.y *= -1.0f;
             }
         }
-        else if (-window.GetScreenHeight() * 0.5f >= sprite.position.y - sprite.size.y * 0.5f)
+        else if (-window.GetScreenHeight() * 0.5f >= transform.position.y - sprite.size.y * 0.5f)
         {
             if (direction.y < 0.0f)
             {
@@ -93,7 +94,11 @@ public:
 
 ScriptConf ballMovementConf = {
     .name = "BallMovement",
-    .Add = [](Entity& _entity) -> void { _entity.AddScript<BallMovement>(); },
+    .Add = [](Entity& _entity) -> void { 
+        // TODO: require a RectTransform component
+        // TODO: require a Sprite2D component
+        _entity.AddScript<BallMovement>();
+     },
     .Has = [](Entity& _entity) -> bool { return (_entity.GetScript<BallMovement>() != nullptr); },
     .Remove = [](Entity& _entity) -> void { _entity.RemoveScript<BallMovement>(); },
     .DrawInspector = [](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
@@ -176,12 +181,14 @@ extern "C"
     void SpawnCamera(Canis::App &_app)
     {
         Canis::Entity *cEntity = _app.scene.CreateEntity("Camera", "MainCamera");
+        Canis::RectTransform * transform = cEntity->AddScript<Canis::RectTransform>();
         Canis::Camera2D *camera2D = cEntity->AddScript<Canis::Camera2D>();
     }
 
     void SpawnAwesome(Canis::App &_app)
     {
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
+        Canis::RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
         Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
         entityOne->AddScript<BallMovement>();
 

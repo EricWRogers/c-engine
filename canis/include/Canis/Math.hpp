@@ -136,11 +136,19 @@ struct Vector4
         w = _w;
     }
 
-    // hashing / utils
     size_t Hash() const;
     const char *ToCString() const;
 
-    // arithmetic
+    bool operator==(const Vector4 &rhs) const
+    {
+        return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+    }
+
+    bool operator!=(const Vector4 &rhs) const
+    {
+        return !(*this == rhs);
+    }
+
     Vector4 operator+(const Vector4 &rhs) const;
     Vector4 operator-(const Vector4 &rhs) const;
     Vector4 operator*(float scalar) const;

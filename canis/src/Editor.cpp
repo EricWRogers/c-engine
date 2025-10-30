@@ -103,7 +103,7 @@ namespace Canis
         Color background = _window->GetClearColor();
         ImGui::ColorEdit4("Background##", &background.r);
 
-        if (background.r != _window->GetClearColor().r) // need a compare function for this
+        if (background != _window->GetClearColor())
             _window->SetClearColor(background);
 
         ImGui::End();

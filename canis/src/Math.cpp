@@ -332,10 +332,13 @@ namespace Canis
     // Scale is diagonal in column-major
     void Matrix4::Scale(const Vector3 &_scale)
     {
-        m[0] *= _scale.x;  // (0,0)
-        m[5] *= _scale.y;  // (1,1)
-        m[10] *= _scale.z; // (2,2)
-        m[15] = 1.0f;     // (3,3)
+        Matrix4 temp;
+        temp.Identity();
+        temp[0] = _scale.x;  // (0,0)
+        temp[5] = _scale.y;  // (1,1)
+        temp[10] = _scale.z; // (2,2)
+        temp[15] = 1.0f;     // (3,3)
+        *this = *this * temp;
     }
 
     static Matrix4 MakeRotation(float rad, const Vector3& axis) {

@@ -214,7 +214,7 @@ namespace Canis
             Matrix4 model;
             model.Identity();
             model.Translate(Vector3(pos.x, pos.y, 0.0f));
-            model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
+            model.Rotate(-rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
             model.Scale(Vector3(rtc.size * rtc.scale, 1.0f));
 
             ImGuizmo::SetOrthographic(true);
@@ -232,14 +232,14 @@ namespace Canis
                     0.0f
                 )
             );
-            Matrix4 sc;
-            sc.Identity();
-            sc[0] = camera2D->GetScale();
-            sc[5] = camera2D->GetScale();
-            sc[10] = camera2D->GetScale();
-            sc[15] = 1.0f;
-            view = view * sc;
-            //view.Scale(Vector3(Vector2(camera2D->GetScale()), 0.0f));
+            //Matrix4 sc;
+            //sc.Identity();
+            //sc[0] = camera2D->GetScale();
+            //sc[5] = camera2D->GetScale();
+            //sc[10] = camera2D->GetScale();
+            //sc[15] = 1.0f;
+            //view = view * sc;
+            view.Scale(Vector3(camera2D->GetScale()));
 
             ImGuizmo::Manipulate(
                 &view[0],
@@ -247,6 +247,9 @@ namespace Canis
                 operation,
                 ImGuizmo::LOCAL,
                 &model[0]);
+
+            Vector2 cameraPos = camera2D->GetPosition();
+            float cameraRot = camera2D->GetScale();
 
             if (ImGuizmo::IsUsing())
             {

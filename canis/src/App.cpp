@@ -88,6 +88,7 @@ namespace Canis
                 if ((transform = _entity.GetScript<RectTransform>()) != nullptr)
                 {
                     ImGui::InputFloat2("position", &transform->position.x, "%.3f");
+                    ImGui::InputFloat2("size", &transform->size.x, "%.3f");
                     ImGui::InputFloat2("scale", &transform->scale.x, "%.3f");
                     ImGui::InputFloat2("originOffset", &transform->originOffset.x, "%.3f");
                     ImGui::InputFloat("depth", &transform->depth);
@@ -105,8 +106,8 @@ namespace Canis
                 // TODO: require a RectTransform component
                 Sprite2D* sprite = _entity.AddScript<Sprite2D>();
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
-                sprite->size.x = sprite->textureHandle.texture.width;
-                sprite->size.y = sprite->textureHandle.texture.height;
+                //sprite->size.x = sprite->textureHandle.texture.width;
+                //sprite->size.y = sprite->textureHandle.texture.height;
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
@@ -115,7 +116,6 @@ namespace Canis
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
                 {
                     // textureHandle
-                    ImGui::InputFloat2("size", &sprite->size.x, "%.3f");
                     ImGui::ColorEdit4("color", &sprite->color.r);
                     ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
                 }
@@ -159,7 +159,7 @@ namespace Canis
                 Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
-                sprite->size = Vector2(64.0f);
+                transform->size = Vector2(64.0f);
             }
         };
 
@@ -173,7 +173,7 @@ namespace Canis
                 Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
-                sprite->size = Vector2(64.0f);
+                transform->size = Vector2(64.0f);
             }
         };
 

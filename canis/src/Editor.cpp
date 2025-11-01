@@ -6,11 +6,14 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/App.hpp>
+#include <Canis/Shader.hpp>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
+
+#include <ImGuizmo.h>
 
 namespace Canis
 {
@@ -110,7 +113,7 @@ namespace Canis
         
         // DrawScenePanel(_window, _time);
 
-        // rendering
+        /*// rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -127,9 +130,34 @@ namespace Canis
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        }*/
+
+        m_debugDraw = DebugDraw::NONE;
+        Camera2D* camera2D = nullptr;
+        // ADD SIZE BACK TO RECTTRANSFORM
+
+        if (m_index > -1 && m_index < m_scene->GetEntities().size())
+        {
+            Entity& entity = *m_scene->GetEntities()[m_index];
+
+            std::vector<Entity*>& entities = m_scene->GetEntities();
+
+            for (Entity* entity : entities)
+            {
+                Camera2D* camera = entity->GetScript<Camera2D>();
+
+                if (camera == nullptr)
+                    continue;
+
+                camera2D = camera;
+            }
+
+            if (entity.GetScript<RectTransform>() && camera2D) {
+                m_debugDraw = DebugDraw::RECT;
+            }
         }
 
-        /*if (m_debugDraw == DebugDraw::RECT)
+        if (m_debugDraw == DebugDraw::RECT)
         {
             SDL_Window *backup_current_window = SDL_GL_GetCurrentWindow();
             SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
@@ -161,66 +189,62 @@ namespace Canis
             if (ImGui::IsKeyPressed(ImGuiKey_R))
                 operation = ImGuizmo::SCALE;
 
-            Camera2D camera2D;
-            camera2D.Init((int)_window->GetScreenWidth(), (int)_window->GetScreenHeight());
+            Matrix4 projection;
+            projection.Identity();
 
-            bool camFound = false;
-            auto cam = _scene->entityRegistry.view<const Camera2DComponent>();
-            for (auto [entity, camera] : cam.each())
-            {
-                camera2D.SetPosition(camera.position);
-                camera2D.SetScale(camera.scale);
-                camera2D.Update();
-                camFound = true;
-                break;
-            }
+            if (camera2D == nullptr)
+                projection = camera2D->GetProjectionMatrix();
+            else 
+                projection.Orthographic(0.0f, static_cast<float>(_window->GetScreenWidth()), 0.0f, static_cast<float>(_window->GetScreenHeight()), 0.0f, 100.0f);
 
-            glm::mat4 projection = camFound
-                                       ? camera2D.GetProjectionMatrix()
-                                       : glm::ortho(0.0f, static_cast<float>(_window->GetScreenWidth()), 0.0f, static_cast<float>(_window->GetScreenHeight()));
 
-            RectTransform &rtc = debugRectTransformEntity.GetComponent<RectTransform>();
-            glm::vec2 pos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
+            Entity& debugRectTransformEntity = *m_scene->GetEntities()[m_index];
+
+            RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
+            Vector2 pos = rtc.position;// ADD BACK rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
             pos += rtc.originOffset;
 
             // Align to bottom-left
-            pos += rtc.rotationOriginOffset;
+            // ADD BACK pos += rtc.rotationOriginOffset;
 
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(pos, 0.0f));
-            model = glm::rotate(model, -rtc.rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::scale(model, glm::vec3(rtc.size * rtc.scale, 1.0f)); // Scale affects size
+            Matrix4 model;
+            model.Identity();
+            model.Translate(Vector3(pos.x, pos.y, 0.0f));
+            model.Rotate(-rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
+            // ADD BACK model.Scale(Vector3(rtc.size * rtc.scale, 1.0f)); // Scale affects size
+            model.Scale(Vector3(rtc.scale.x * 32.0f, rtc.scale.y * 32.0f, 1.0f));
 
             ImGuizmo::SetOrthographic(true);
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::Enable(true);
 
-            glm::mat4 view = camera2D.GetViewMatrix();
+            Matrix4 view = camera2D->GetViewMatrix();
 
             ImGuizmo::Manipulate(
-                glm::value_ptr(view),
-                glm::value_ptr(projection),
+                (float*)&view,
+                (float*)&projection,
                 operation,
                 ImGuizmo::LOCAL,
-                glm::value_ptr(model));
+                (float*)&model);
 
             if (ImGuizmo::IsUsing())
             {
-                glm::vec3 translation, rotation, scale;
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), glm::value_ptr(translation), glm::value_ptr(rotation), glm::value_ptr(scale));
+                Vector3 translation, rotation, scale;
+                ImGuizmo::DecomposeMatrixToComponents((float*)&model, (float*)&translation, (float*)&rotation, (float*)&scale);
 
                 // update position
-                glm::vec2 newPos = glm::vec2(translation.x, translation.y);
-                glm::vec2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
-                oldPos += rtc.rotationOriginOffset;
+                Vector2 newPos(translation.x, translation.y);
+                Vector2 oldPos = rtc.position + rtc.originOffset;
+                // ADD BACK Vector2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
+                // ADD BACK oldPos += rtc.rotationOriginOffset;
                 rtc.position += newPos - oldPos;
 
                 // update rotation
-                rtc.rotation = -glm::radians(rotation.z);
+                rtc.rotation = -DEG2RAD * rotation.z;
 
                 // update size (scale stays constant, we resize the actual size)
-                rtc.size = glm::vec2(scale.x, scale.y) / rtc.scale;
+                //rtc.size = glm::vec2(scale.x, scale.y) / rtc.scale;
             }
 
             ImGui::End();
@@ -248,31 +272,17 @@ namespace Canis
         // debug draw
         if (m_debugDraw == DebugDraw::RECT)
         {
-            Camera2D camera2D;
-            camera2D.Init((int)_window->GetScreenWidth(), (int)_window->GetScreenHeight());
-            bool camFound = false;
-            auto cam = _scene->entityRegistry.view<const Camera2DComponent>();
-            for (auto [entity, camera] : cam.each())
-            {
-                camera2D.SetPosition(camera.position);
-                camera2D.SetScale(camera.scale);
-                camera2D.Update();
-                camFound = true;
-                continue;
-            }
+            Matrix4 projection;
+            projection.Identity();
 
-            glm::mat4 projection = glm::mat4(1.0f);
-
-            if (camFound)
-                projection = camera2D.GetCameraMatrix();
-            else
-                projection = glm::ortho(0.0f, static_cast<float>(_window->GetScreenWidth()), 0.0f, static_cast<float>(_window->GetScreenHeight()));
+            projection = camera2D->GetCameraMatrix();
 
             static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
-            RectTransform &debugRectTransform = debugRectTransformEntity.GetComponent<RectTransform>();
-            glm::vec2 pos = debugRectTransform.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
-            pos += debugRectTransform.originOffset;
-            glm::vec2 vertices[] = {
+            Entity& debugRectTransformEntity = *m_scene->GetEntities()[m_index];
+            RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
+            Vector2 pos = rtc.position;//rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
+            pos += rtc.originOffset;
+            Vector2 vertices[] = {
                 {pos.x, pos.y},
                 {pos.x + (debugRectTransform.size.x * debugRectTransform.scale), pos.y},
                 {pos.x + (debugRectTransform.size.x * debugRectTransform.scale), pos.y + (debugRectTransform.size.y * debugRectTransform.scale)},
@@ -315,10 +325,10 @@ namespace Canis
         }
 
         // Save
-        if (m_mode == EditorMode::EDIT && GetSceneManager().inputManager->JustPressedKey(SDLK_F5))
-        {
-            GetSceneManager().Save();
-        }*/
+        //if (m_mode == EditorMode::EDIT && GetSceneManager().inputManager->JustPressedKey(SDLK_F5))
+        //{
+        //    GetSceneManager().Save();
+        //}
         //}
 #endif
     }

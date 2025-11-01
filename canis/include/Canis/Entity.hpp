@@ -118,6 +118,7 @@ namespace Canis
             std::string nameOfType = "RectTransform";
             ImGui::Text("%s", nameOfType.c_str());
             ImGui::InputFloat2("position", &position.x, "%.3f");
+            ImGui::InputFloat2("size", &size.x, "%.3f");
             ImGui::InputFloat2("scale", &scale.x, "%.3f");
             ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
             ImGui::InputFloat("depth", &depth);
@@ -126,6 +127,7 @@ namespace Canis
         }
 
         Vector2 position = Vector2(0.0f);
+        Vector2 size = Vector2(32.0f);
         Vector2 scale = Vector2(1.0f);
         Vector2 originOffset = Vector2(0.0f);
         float   depth = 0.0f;
@@ -140,14 +142,12 @@ namespace Canis
         void EditorInspectorDraw() {
             std::string nameOfType = "Sprite2D";
             ImGui::Text("%s", nameOfType.c_str());
-            ImGui::InputFloat2("size", &size.x, "%.3f");
             ImGui::ColorEdit4("color", &color.r);
             ImGui::InputFloat4("uv", &uv.x, "%.3f");
             // textureHandle
         }
 
         TextureHandle textureHandle;
-        Vector2 size = Vector2(32.0f);
         Color   color = Color(1.0f);
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
     };

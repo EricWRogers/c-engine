@@ -6,6 +6,11 @@
 namespace Canis
 {
     // ======================= Vector2 =======================
+    Vector2::Vector2(Vector4 _v)
+    {
+        x = _v.x;
+        y = _v.y;
+    }
     size_t Vector2::Hash() const
     {
         std::hash<float> h;
@@ -327,14 +332,32 @@ namespace Canis
     // Scale is diagonal in column-major
     void Matrix4::Scale(const Vector3 &_scale)
     {
-        m[0] = _scale.x;  // (0,0)
-        m[5] = _scale.y;  // (1,1)
-        m[10] = _scale.z; // (2,2)
+        m[0] *= _scale.x;  // (0,0)
+        m[5] *= _scale.y;  // (1,1)
+        m[10] *= _scale.z; // (2,2)
         m[15] = 1.0f;     // (3,3)
+    }
+
+    static Matrix4 MakeRotation(float rad, const Vector3& axis) {
+        Matrix4 M; M.Identity();
+        // (standard Rodrigues formula, column-major)
+        float len2 = axis.x*axis.x + axis.y*axis.y + axis.z*axis.z;
+        if (len2 < 1e-20f) return M;
+        float invLen = 1.0f / std::sqrt(len2);
+        float x = axis.x * invLen, y = axis.y * invLen, z = axis.z * invLen;
+        float c = std::cos(rad), s = std::sin(rad), t = 1.0f - c;
+
+        // 3x3 submatrix
+        M.m[0] = t*x*x + c;     M.m[4] = t*x*y - s*z; M.m[8]  = t*x*z + s*y;
+        M.m[1] = t*y*x + s*z;   M.m[5] = t*y*y + c;   M.m[9]  = t*y*z - s*x;
+        M.m[2] = t*z*x - s*y;   M.m[6] = t*z*y + s*x; M.m[10] = t*z*z + c;
+        return M;
     }
 
     void Matrix4::Rotate(float _radians, const Vector3 &_axis)
     {
+         *this = (*this) * MakeRotation(_radians, _axis); 
+         return;
         const float len2 = _axis.x * _axis.x + _axis.y * _axis.y + _axis.z * _axis.z;
         if (len2 <= 1e-20f)
         {

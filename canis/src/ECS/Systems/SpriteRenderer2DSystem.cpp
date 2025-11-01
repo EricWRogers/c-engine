@@ -447,8 +447,8 @@ namespace Canis
                 continue;
             
             p = transform->position;// + anchorTable[rect_transform.anchor];
-            s.x = transform->scale.x * transform->size.x + halfWidth;
-            s.y = transform->scale.y * transform->size.y + halfHeight;
+            s.x = transform->scale * transform->size.x + halfWidth;
+            s.y = transform->scale * transform->size.y + halfHeight;
             if (p.x > camPos.x - s.x &&
                 p.x < camPos.x + s.x &&
                 p.y > camPos.y - s.y &&
@@ -464,7 +464,7 @@ namespace Canis
                     rect_transform.rotation,
                     rect_transform.originOffset);*/
                 Draw(
-                    Vector4(transform->position.x, transform->position.y, transform->size.x * transform->scale.x, transform->size.y * transform->scale.y),
+                    Vector4(transform->position.x, transform->position.y, transform->size.x * transform->scale, transform->size.y * transform->scale),
                     sprite->uv,
                     sprite->textureHandle.texture,
                     transform->depth,

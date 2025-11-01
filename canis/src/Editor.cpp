@@ -158,6 +158,11 @@ namespace Canis
         }
 
         if (m_debugDraw == DebugDraw::RECT)
+            Debug::Log("DebugDraw");
+        else
+            Debug::Log("NO NO");
+
+        if (m_debugDraw == DebugDraw::RECT)
         {
             SDL_Window *backup_current_window = SDL_GL_GetCurrentWindow();
             SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
@@ -192,11 +197,10 @@ namespace Canis
             Matrix4 projection;
             projection.Identity();
 
-            if (camera2D == nullptr)
-                projection = camera2D->GetProjectionMatrix();
-            else 
-                projection.Orthographic(0.0f, static_cast<float>(_window->GetScreenWidth()), 0.0f, static_cast<float>(_window->GetScreenHeight()), 0.0f, 100.0f);
+            projection = camera2D->GetProjectionMatrix();
 
+            if (camera2D == nullptr)
+                Debug::Log("NULL");
 
             Entity& debugRectTransformEntity = *m_scene->GetEntities()[m_index];
 
@@ -210,31 +214,36 @@ namespace Canis
             Matrix4 model;
             model.Identity();
             model.Translate(Vector3(pos.x, pos.y, 0.0f));
-            model.Rotate(-rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
-            // ADD BACK model.Scale(Vector3(rtc.size * rtc.scale, 1.0f)); // Scale affects size
-            model.Scale(Vector3(rtc.scale.x * 32.0f, rtc.scale.y * 32.0f, 1.0f));
+            model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
+            model.Scale(Vector3(rtc.size * rtc.scale, 1.0f));
 
             ImGuizmo::SetOrthographic(true);
             ImGuizmo::SetDrawlist();
+            Debug::Log("%f, %f, %f, %f", mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::Enable(true);
 
             Matrix4 view = camera2D->GetViewMatrix();
 
             ImGuizmo::Manipulate(
-                (float*)&view,
-                (float*)&projection,
+                &view[0],
+                &projection[0],
                 operation,
                 ImGuizmo::LOCAL,
-                (float*)&model);
+                &model[0]);
 
             if (ImGuizmo::IsUsing())
             {
-                Vector3 translation, rotation, scale;
-                ImGuizmo::DecomposeMatrixToComponents((float*)&model, (float*)&translation, (float*)&rotation, (float*)&scale);
+                Debug::Log("IsUsing");
+                
+                float t[3], r[3], s[3];
+                ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
+
+                Vector3 translation(t[0], t[1], t[2]), rotation(r[0], r[1], r[2]), scale(s[0], s[1], s[2]);
 
                 // update position
                 Vector2 newPos(translation.x, translation.y);
+                Debug::Log("translation.x: %f translation.y: %f", translation.x, translation.y);
                 Vector2 oldPos = rtc.position + rtc.originOffset;
                 // ADD BACK Vector2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
                 // ADD BACK oldPos += rtc.rotationOriginOffset;
@@ -244,7 +253,7 @@ namespace Canis
                 rtc.rotation = -DEG2RAD * rotation.z;
 
                 // update size (scale stays constant, we resize the actual size)
-                //rtc.size = glm::vec2(scale.x, scale.y) / rtc.scale;
+                rtc.size = rtc.size / rtc.scale;
             }
 
             ImGui::End();
@@ -284,19 +293,19 @@ namespace Canis
             pos += rtc.originOffset;
             Vector2 vertices[] = {
                 {pos.x, pos.y},
-                {pos.x + (debugRectTransform.size.x * debugRectTransform.scale), pos.y},
-                {pos.x + (debugRectTransform.size.x * debugRectTransform.scale), pos.y + (debugRectTransform.size.y * debugRectTransform.scale)},
-                {pos.x, pos.y + (debugRectTransform.size.y * debugRectTransform.scale)}};
+                {pos.x + (rtc.size.x * rtc.scale), pos.y},
+                {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
+                {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
 
-            for (glm::vec2 &v : vertices)
+            for (Vector2 &v : vertices)
                 RotatePointAroundPivot(
                     v,
-                    vertices[0] + debugRectTransform.originOffset + debugRectTransform.rotationOriginOffset,
-                    debugRectTransform.GetGlobalRotation()
+                    vertices[0] + rtc.originOffset/* + rtc.rotationOriginOffset*/,
+                    rtc.rotation//debugRectTransform.GetGlobalRotation()
                 );
 
-            for (glm::vec2 &v : vertices)
-                v = glm::vec2(projection * glm::vec4(v.x, v.y, 0.0f, 1.0f));
+            for (Vector2 &v : vertices)
+                v = Vector2(projection * Vector4(v.x, v.y, 0.0f, 1.0f));
 
             GLuint VAO, VBO;
             glGenVertexArrays(1, &VAO);

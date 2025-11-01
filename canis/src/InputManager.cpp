@@ -2,6 +2,7 @@
 #include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
 #include <imgui_impl_sdl3.h>
+#include <ImGuizmo.h>
 #include <Canis/Window.hpp>
 
 namespace Canis
@@ -40,7 +41,7 @@ namespace Canis
                 //Debug::Log("ProcessEvent");
                 ImGui_ImplSDL3_ProcessEvent(&event);
                 ImGuiIO& io = ImGui::GetIO();
-                //if (!io.WantCaptureMouse || !io.WantCaptureKeyboard) {
+                //if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
                 //    continue;
                 //}
             //}

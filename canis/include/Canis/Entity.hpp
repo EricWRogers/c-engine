@@ -119,7 +119,7 @@ namespace Canis
             ImGui::Text("%s", nameOfType.c_str());
             ImGui::InputFloat2("position", &position.x, "%.3f");
             ImGui::InputFloat2("size", &size.x, "%.3f");
-            ImGui::InputFloat2("scale", &scale.x, "%.3f");
+            ImGui::InputFloat("scale", &scale);
             ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
             ImGui::InputFloat("depth", &depth);
             // let user work with degrees
@@ -128,7 +128,7 @@ namespace Canis
 
         Vector2 position = Vector2(0.0f);
         Vector2 size = Vector2(32.0f);
-        Vector2 scale = Vector2(1.0f);
+        float scale = 1.0f;
         Vector2 originOffset = Vector2(0.0f);
         float   depth = 0.0f;
         float   rotation = 0.0f;

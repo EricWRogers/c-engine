@@ -61,28 +61,28 @@ public:
     {
         Canis::Window &window = entity.scene->GetWindow();
 
-        if (window.GetScreenWidth() * 0.5f <= transform.position.x + sprite.size.x * 0.5f)
+        if (window.GetScreenWidth() * 0.5f <= transform.position.x + transform.size.x * 0.5f)
         {
             if (direction.x > 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (-window.GetScreenWidth() * 0.5f >= transform.position.x - sprite.size.x * 0.5f)
+        else if (-window.GetScreenWidth() * 0.5f >= transform.position.x - transform.size.x * 0.5f)
         {
             if (direction.x < 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (window.GetScreenHeight() * 0.5f <= transform.position.y + sprite.size.y * 0.5f)
+        else if (window.GetScreenHeight() * 0.5f <= transform.position.y + transform.size.y * 0.5f)
         {
             if (direction.y > 0.0f)
             {
                 direction.y *= -1.0f;
             }
         }
-        else if (-window.GetScreenHeight() * 0.5f >= transform.position.y - sprite.size.y * 0.5f)
+        else if (-window.GetScreenHeight() * 0.5f >= transform.position.y - transform.size.y * 0.5f)
         {
             if (direction.y < 0.0f)
             {
@@ -133,6 +133,17 @@ extern "C"
         
         app.RegisterInspectorItem(inspectorCreateBall);
         app.RegisterScript(ballMovementConf);
+
+        SpawnCamera(app);
+
+        app.scene.GetWindow().SetClearColor(Color(0.0f, 1.0f, 1.0f, 1.0f));
+
+        Canis::Entity *entityOne = app.scene.CreateEntity("Circle");
+        RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
+        Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
+
+        sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
+        transform->size = Vector2(64.0f);
 
         Canis::Debug::Log("Game initialized!");
         GameData *gameData = (GameData *)malloc(sizeof(GameData));
@@ -193,7 +204,7 @@ extern "C"
         entityOne->AddScript<BallMovement>();
 
         sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
-        sprite->size = Vector2(32.0f);
+        transform->size = Vector2(32.0f);
     }
 
     void ReloadScene(Canis::App &_app)

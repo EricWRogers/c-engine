@@ -89,7 +89,7 @@ namespace Canis
                 {
                     ImGui::InputFloat2("position", &transform->position.x, "%.3f");
                     ImGui::InputFloat2("size", &transform->size.x, "%.3f");
-                    ImGui::InputFloat2("scale", &transform->scale.x, "%.3f");
+                    ImGui::InputFloat("scale", &transform->scale);
                     ImGui::InputFloat2("originOffset", &transform->originOffset.x, "%.3f");
                     ImGui::InputFloat("depth", &transform->depth);
                     // let user work with degrees

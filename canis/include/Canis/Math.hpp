@@ -9,6 +9,8 @@ namespace Canis
     const float PI = 3.14159265f;
     const float RAD2DEG = 180.0f / PI;
     const float DEG2RAD = PI / 180.0f;
+
+    struct Vector4;
     
     struct Vector2
     {
@@ -29,6 +31,7 @@ namespace Canis
             x = _x;
             y = _y;
         }
+        Vector2(Vector4 _v);
 
         size_t Hash() const;
         float Distance2D(const Vector2 &_other) const;
@@ -82,6 +85,12 @@ namespace Canis
             y = _scalor;
             z = _scalor;
         }
+        Vector3(Vector2 _v, float _z)
+        {
+            x = _v.x;
+            y = _v.y;
+            z = _z;
+        }
         Vector3(float _x, float _y, float _z)
         {
             x = _x;
@@ -117,6 +126,12 @@ namespace Canis
                 float r, g, b, a;
             }; // color
             float v[4]; // array access
+            struct
+            {
+                Vector2 xy;
+                Vector2 zw;
+            };
+            
         };
 
         Vector4()

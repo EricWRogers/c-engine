@@ -223,7 +223,23 @@ namespace Canis
             ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::Enable(true);
 
-            Matrix4 view = camera2D->GetViewMatrix();
+            Matrix4 view;// = camera2D->GetViewMatrix();
+            view.Identity();
+            view.Translate(
+                Vector3(
+                    camera2D->GetPosition().x + _window->GetScreenWidth() / 2.0f,
+                    camera2D->GetPosition().y + _window->GetScreenHeight() / 2.0f,
+                    0.0f
+                )
+            );
+            Matrix4 sc;
+            sc.Identity();
+            sc[0] = camera2D->GetScale();
+            sc[5] = camera2D->GetScale();
+            sc[10] = camera2D->GetScale();
+            sc[15] = 1.0f;
+            view = view * sc;
+            //view.Scale(Vector3(Vector2(camera2D->GetScale()), 0.0f));
 
             ImGuizmo::Manipulate(
                 &view[0],

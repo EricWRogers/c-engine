@@ -214,7 +214,7 @@ namespace Canis
             Matrix4 model;
             model.Identity();
             model.Translate(Vector3(pos.x, pos.y, 0.0f));
-            model.Rotate(-rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
+            model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
             model.Scale(Vector3(rtc.size * rtc.scale, 1.0f));
 
             ImGuizmo::SetOrthographic(true);
@@ -232,13 +232,6 @@ namespace Canis
                     0.0f
                 )
             );
-            //Matrix4 sc;
-            //sc.Identity();
-            //sc[0] = camera2D->GetScale();
-            //sc[5] = camera2D->GetScale();
-            //sc[10] = camera2D->GetScale();
-            //sc[15] = 1.0f;
-            //view = view * sc;
             view.Scale(Vector3(camera2D->GetScale()));
 
             ImGuizmo::Manipulate(
@@ -269,7 +262,7 @@ namespace Canis
                 rtc.position += newPos - oldPos;
 
                 // update rotation
-                rtc.rotation = -DEG2RAD * rotation.z;
+                rtc.rotation = DEG2RAD * rotation.z;
 
                 // update size (scale stays constant, we resize the actual size)
                 rtc.size = rtc.size / rtc.scale;
@@ -310,17 +303,22 @@ namespace Canis
             RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
             Vector2 pos = rtc.position;//rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
             pos += rtc.originOffset;
+            //Vector2 vertices[] = {
+            //    {pos.x, pos.y},
+            //    {pos.x + (rtc.size.x * rtc.scale), pos.y},
+            //    {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
+            //    {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
             Vector2 vertices[] = {
-                {pos.x, pos.y},
-                {pos.x + (rtc.size.x * rtc.scale), pos.y},
-                {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
-                {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
+                {pos.x - (rtc.size.x * rtc.scale * 0.5f), pos.y - (rtc.size.y * rtc.scale * 0.5f)},
+                {pos.x + (rtc.size.x * rtc.scale * 0.5f), pos.y - (rtc.size.y * rtc.scale * 0.5f)},
+                {pos.x + (rtc.size.x * rtc.scale * 0.5f), pos.y + (rtc.size.y * rtc.scale * 0.5f)},
+                {pos.x - (rtc.size.x * rtc.scale * 0.5f), pos.y + (rtc.size.y * rtc.scale * 0.5f)}};
 
             for (Vector2 &v : vertices)
                 RotatePointAroundPivot(
                     v,
-                    vertices[0] + rtc.originOffset/* + rtc.rotationOriginOffset*/,
-                    rtc.rotation//debugRectTransform.GetGlobalRotation()
+                    Vector2(pos.x, pos.y)/*vertices[0] + rtc.originOffset + rtc.rotationOriginOffset*/,
+                    -rtc.rotation//debugRectTransform.GetGlobalRotation()
                 );
 
             for (Vector2 &v : vertices)

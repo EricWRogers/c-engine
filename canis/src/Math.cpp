@@ -6,6 +6,11 @@
 namespace Canis
 {
     // ======================= Vector2 =======================
+    Vector2::Vector2(Vector3 _v)
+    {
+        x = _v.x;
+        y = _v.y;
+    }
     Vector2::Vector2(Vector4 _v)
     {
         x = _v.x;

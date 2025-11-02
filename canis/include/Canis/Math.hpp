@@ -10,6 +10,7 @@ namespace Canis
     const float RAD2DEG = 180.0f / PI;
     const float DEG2RAD = PI / 180.0f;
 
+    struct Vector3;
     struct Vector4;
     
     struct Vector2
@@ -31,6 +32,7 @@ namespace Canis
             x = _x;
             y = _y;
         }
+        Vector2(Vector3 _v);
         Vector2(Vector4 _v);
 
         size_t Hash() const;

@@ -157,10 +157,6 @@ namespace Canis
             }
         }
 
-        if (m_debugDraw == DebugDraw::RECT)
-            Debug::Log("DebugDraw");
-        else
-            Debug::Log("NO NO");
 
         if (m_debugDraw == DebugDraw::RECT)
         {
@@ -215,11 +211,10 @@ namespace Canis
             model.Identity();
             model.Translate(Vector3(pos.x, pos.y, 0.0f));
             model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
-            model.Scale(Vector3(rtc.size * rtc.scale, 1.0f));
+            model.Scale(Vector3(rtc.size.x * rtc.scale.x, rtc.size.y * rtc.scale.y, 1.0f));
 
             ImGuizmo::SetOrthographic(true);
             ImGuizmo::SetDrawlist();
-            Debug::Log("%f, %f, %f, %f", mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::Enable(true);
 
@@ -246,8 +241,6 @@ namespace Canis
 
             if (ImGuizmo::IsUsing())
             {
-                Debug::Log("IsUsing");
-                
                 float t[3], r[3], s[3];
                 ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
 
@@ -255,7 +248,6 @@ namespace Canis
 
                 // update position
                 Vector2 newPos(translation.x, translation.y);
-                Debug::Log("translation.x: %f translation.y: %f", translation.x, translation.y);
                 Vector2 oldPos = rtc.position + rtc.originOffset;
                 // ADD BACK Vector2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
                 // ADD BACK oldPos += rtc.rotationOriginOffset;
@@ -265,7 +257,7 @@ namespace Canis
                 rtc.rotation = DEG2RAD * rotation.z;
 
                 // update size (scale stays constant, we resize the actual size)
-                rtc.size = rtc.size / rtc.scale;
+                rtc.scale = Vector2(scale.x / rtc.size.x, scale.y / rtc.size.y);
             }
 
             ImGui::End();
@@ -309,10 +301,10 @@ namespace Canis
             //    {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
             //    {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
             Vector2 vertices[] = {
-                {pos.x - (rtc.size.x * rtc.scale * 0.5f), pos.y - (rtc.size.y * rtc.scale * 0.5f)},
-                {pos.x + (rtc.size.x * rtc.scale * 0.5f), pos.y - (rtc.size.y * rtc.scale * 0.5f)},
-                {pos.x + (rtc.size.x * rtc.scale * 0.5f), pos.y + (rtc.size.y * rtc.scale * 0.5f)},
-                {pos.x - (rtc.size.x * rtc.scale * 0.5f), pos.y + (rtc.size.y * rtc.scale * 0.5f)}};
+                {pos.x - (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
+                {pos.x + (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
+                {pos.x + (rtc.size.x * rtc.scale.x * 0.5f), pos.y + (rtc.size.y * rtc.scale.y * 0.5f)},
+                {pos.x - (rtc.size.x * rtc.scale.x * 0.5f), pos.y + (rtc.size.y * rtc.scale.y * 0.5f)}};
 
             for (Vector2 &v : vertices)
                 RotatePointAroundPivot(

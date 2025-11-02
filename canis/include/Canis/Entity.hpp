@@ -125,7 +125,9 @@ namespace Canis
             ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
             ImGui::InputFloat("depth", &depth);
             // let user work with degrees
-            ImGui::InputFloat("rotation", &rotation);
+            float degrees = RAD2DEG * rotation;
+            ImGui::InputFloat("rotation", &degrees);
+            rotation = DEG2RAD * degrees;
         }
 
         Vector2 position = Vector2(0.0f);

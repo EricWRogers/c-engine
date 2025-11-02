@@ -136,7 +136,7 @@ namespace Canis
         Camera2D *camera2D = nullptr;
         // ADD SIZE BACK TO RECTTRANSFORM
 
-        if (m_index > -1 && m_index < m_scene->GetEntities().size())
+        if (m_index > -1 && m_index < m_scene->GetEntities().size() && m_scene->GetEntities()[m_index] != nullptr)
         {
             Entity &entity = *m_scene->GetEntities()[m_index];
 
@@ -144,6 +144,9 @@ namespace Canis
 
             for (Entity *entity : entities)
             {
+                if (entity == nullptr)
+                    continue;
+                
                 Camera2D *camera = entity->GetScript<Camera2D>();
 
                 if (camera == nullptr)
@@ -158,7 +161,7 @@ namespace Canis
             }
         }
 
-        if (m_debugDraw == DebugDraw::RECT)
+        if (m_debugDraw == DebugDraw::RECT && m_scene->GetEntities()[m_index] != nullptr)
         {
             SDL_Window *backup_current_window = SDL_GL_GetCurrentWindow();
             SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
@@ -290,7 +293,7 @@ namespace Canis
         }
 
         // debug draw
-        if (m_debugDraw == DebugDraw::RECT)
+        if (m_debugDraw == DebugDraw::RECT && m_scene->GetEntities()[m_index] != nullptr)
         {
             Matrix4 projection;
             projection.Identity();
@@ -367,6 +370,9 @@ namespace Canis
 
         for (int i = 0; i < entities.size(); i++)
         {
+            if (entities[i] == nullptr)
+                continue;
+            
             // ImGui::Text("%s", entities[i]->name.c_str());
             std::string inputID = entities[i]->name + "##input" + std::to_string(i);
             ImGui::Selectable(inputID.c_str(), m_index == i);
@@ -403,7 +409,13 @@ namespace Canis
                     }
                 }
 
-                // remove
+                if (ImGui::MenuItem(std::string("Remove##").c_str()))
+                {
+                    m_scene->Destroy(i);
+                    i--;
+                    ImGui::EndPopup();
+                    continue;
+                }
 
                 for (int index = 0; index < m_app->GetInspectorItemRegistry().size(); index++)
                 {
@@ -454,8 +466,8 @@ namespace Canis
 
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
-        if (entities.size() != 0)
-        {
+        if (entities.size() != 0 && entities[m_index] != nullptr)
+        {            
             Clamp(m_index, 0, entities.size() - 1);
 
             Entity &entity = *entities[m_index];

@@ -402,6 +402,9 @@ namespace Canis
 
         for (Entity* entity : entities)
         {
+            if (entity == nullptr)
+                continue;
+            
             Camera2D* camera = entity->GetScript<Camera2D>();
 
             if (camera == nullptr)
@@ -440,6 +443,9 @@ namespace Canis
 
         for (Entity* entity : entities)
         {
+            if (entity == nullptr)
+                continue;
+            
             RectTransform* transform = entity->GetScript<RectTransform>();
             Sprite2D* sprite = entity->GetScript<Sprite2D>();
 

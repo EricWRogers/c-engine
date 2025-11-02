@@ -16,6 +16,9 @@ namespace Canis
     {
         for (Entity* e : m_entities)
         {
+            if (e == nullptr)
+                continue;
+
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
                 se->Update(_deltaTime);
@@ -37,6 +40,9 @@ namespace Canis
     {
         for (Entity* e : m_entities)
         {
+            if (e == nullptr)
+                continue;
+
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
                 se->Destroy();
@@ -45,6 +51,9 @@ namespace Canis
 
         for (Entity* e : m_entities)
         {
+            if (e == nullptr)
+                continue;
+
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
                 delete se;
@@ -53,6 +62,9 @@ namespace Canis
 
         for (Entity* e : m_entities)
         {
+            if (e == nullptr)
+                continue;
+                
             delete e;
         }
 
@@ -93,6 +105,17 @@ namespace Canis
         entity->scene = this;
         entity->name = _name;
         entity->tag = _tag;
+
+        // TODO : handle better
+        for (int i = 0; i < m_entities.size(); i++)
+        {
+            if (m_entities[i] == nullptr)
+            {
+                m_entities[i] = entity;
+                return entity;
+            }
+        }
+        
         m_entities.push_back(entity);
         return entity;
     }
@@ -106,9 +129,32 @@ namespace Canis
         return nullptr; 
     }
 
-    void Destroy(int _id)
+    void Scene::Destroy(int _id)
     {
+        if (_id < 0 || m_entities.size() <= _id)
+            return;
+        
+        Destroy(*m_entities[_id]);
+    }
 
+    void Scene::Destroy(Entity& _entity)
+    {
+        
+        for (ScriptableEntity* se : _entity.m_scriptComponents)
+        {
+            se->Destroy();
+        }
+
+        
+        for (ScriptableEntity* se : _entity.m_scriptComponents)
+        {
+            delete se;
+        }
+
+        _entity.m_scriptComponents.clear();
+
+        delete m_entities[_entity.id];
+        m_entities[_entity.id] = nullptr;
     }
 
     void Scene::ReadySystem(System *_system)

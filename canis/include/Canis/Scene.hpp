@@ -30,6 +30,7 @@ namespace Canis
         Entity* GetEntity(int _id);
 
         void Destroy(int _id);
+        void Destroy(Entity& _entity);
 
         template <typename T>
         T *GetSystem()

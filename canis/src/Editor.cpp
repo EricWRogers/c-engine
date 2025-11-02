@@ -110,7 +110,7 @@ namespace Canis
             _window->SetClearColor(background);
 
         ImGui::End();
-        
+
         // DrawScenePanel(_window, _time);
 
         /*// rendering
@@ -133,18 +133,18 @@ namespace Canis
         }*/
 
         m_debugDraw = DebugDraw::NONE;
-        Camera2D* camera2D = nullptr;
+        Camera2D *camera2D = nullptr;
         // ADD SIZE BACK TO RECTTRANSFORM
 
         if (m_index > -1 && m_index < m_scene->GetEntities().size())
         {
-            Entity& entity = *m_scene->GetEntities()[m_index];
+            Entity &entity = *m_scene->GetEntities()[m_index];
 
-            std::vector<Entity*>& entities = m_scene->GetEntities();
+            std::vector<Entity *> &entities = m_scene->GetEntities();
 
-            for (Entity* entity : entities)
+            for (Entity *entity : entities)
             {
-                Camera2D* camera = entity->GetScript<Camera2D>();
+                Camera2D *camera = entity->GetScript<Camera2D>();
 
                 if (camera == nullptr)
                     continue;
@@ -152,11 +152,11 @@ namespace Canis
                 camera2D = camera;
             }
 
-            if (entity.GetScript<RectTransform>() && camera2D) {
+            if (entity.GetScript<RectTransform>() && camera2D)
+            {
                 m_debugDraw = DebugDraw::RECT;
             }
         }
-
 
         if (m_debugDraw == DebugDraw::RECT)
         {
@@ -181,14 +181,23 @@ namespace Canis
             // === Gizmo operation selector ===
             static ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
 
-            if (ImGui::IsKeyPressed(ImGuiKey_W))
-                operation = ImGuizmo::TRANSLATE;
+            if (ImGui::GetIO().WantTextInput)
+            {
+                // user is focused on an InputText or InputTextMultiline
+                // Debug::Log("User is typing in an input field.");
+            }
+            else
+            {
+                // safe to use keyboard shortcuts
+                if (ImGui::IsKeyPressed(ImGuiKey_W))
+                    operation = ImGuizmo::TRANSLATE;
 
-            if (ImGui::IsKeyPressed(ImGuiKey_E))
-                operation = ImGuizmo::ROTATE;
+                if (ImGui::IsKeyPressed(ImGuiKey_E))
+                    operation = ImGuizmo::ROTATE;
 
-            if (ImGui::IsKeyPressed(ImGuiKey_R))
-                operation = ImGuizmo::SCALE;
+                if (ImGui::IsKeyPressed(ImGuiKey_R))
+                    operation = ImGuizmo::SCALE;
+            }
 
             Matrix4 projection;
             projection.Identity();
@@ -198,10 +207,10 @@ namespace Canis
             if (camera2D == nullptr)
                 Debug::Log("NULL");
 
-            Entity& debugRectTransformEntity = *m_scene->GetEntities()[m_index];
+            Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
 
             RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
-            Vector2 pos = rtc.position;// ADD BACK rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
+            Vector2 pos = rtc.position; // ADD BACK rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
             pos += rtc.originOffset;
 
             // Align to bottom-left
@@ -218,15 +227,13 @@ namespace Canis
             ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
             ImGuizmo::Enable(true);
 
-            Matrix4 view;// = camera2D->GetViewMatrix();
+            Matrix4 view; // = camera2D->GetViewMatrix();
             view.Identity();
             view.Translate(
                 Vector3(
                     camera2D->GetPosition().x + _window->GetScreenWidth() / 2.0f,
                     camera2D->GetPosition().y + _window->GetScreenHeight() / 2.0f,
-                    0.0f
-                )
-            );
+                    0.0f));
             view.Scale(Vector3(camera2D->GetScale()));
 
             ImGuizmo::Manipulate(
@@ -291,15 +298,15 @@ namespace Canis
             projection = camera2D->GetCameraMatrix();
 
             static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
-            Entity& debugRectTransformEntity = *m_scene->GetEntities()[m_index];
+            Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
             RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
-            Vector2 pos = rtc.position;//rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
+            Vector2 pos = rtc.position; // rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
             pos += rtc.originOffset;
-            //Vector2 vertices[] = {
-            //    {pos.x, pos.y},
-            //    {pos.x + (rtc.size.x * rtc.scale), pos.y},
-            //    {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
-            //    {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
+            // Vector2 vertices[] = {
+            //     {pos.x, pos.y},
+            //     {pos.x + (rtc.size.x * rtc.scale), pos.y},
+            //     {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
+            //     {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
             Vector2 vertices[] = {
                 {pos.x - (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
                 {pos.x + (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
@@ -309,8 +316,8 @@ namespace Canis
             for (Vector2 &v : vertices)
                 RotatePointAroundPivot(
                     v,
-                    Vector2(pos.x, pos.y)/*vertices[0] + rtc.originOffset + rtc.rotationOriginOffset*/,
-                    -rtc.rotation//debugRectTransform.GetGlobalRotation()
+                    Vector2(pos.x, pos.y) /*vertices[0] + rtc.originOffset + rtc.rotationOriginOffset*/,
+                    -rtc.rotation // debugRectTransform.GetGlobalRotation()
                 );
 
             for (Vector2 &v : vertices)
@@ -343,7 +350,7 @@ namespace Canis
         }
 
         // Save
-        //if (m_mode == EditorMode::EDIT && GetSceneManager().inputManager->JustPressedKey(SDLK_F5))
+        // if (m_mode == EditorMode::EDIT && GetSceneManager().inputManager->JustPressedKey(SDLK_F5))
         //{
         //    GetSceneManager().Save();
         //}
@@ -360,9 +367,9 @@ namespace Canis
 
         for (int i = 0; i < entities.size(); i++)
         {
-            //ImGui::Text("%s", entities[i]->name.c_str());
-            std::string inputID = "##input" + std::to_string(i);
-            ImGui::InputText(inputID.c_str(), &entities[i]->name);
+            // ImGui::Text("%s", entities[i]->name.c_str());
+            std::string inputID = entities[i]->name + "##input" + std::to_string(i);
+            ImGui::Selectable(inputID.c_str(), m_index == i);
 
             if (ImGui::IsItemFocused())
             {
@@ -382,8 +389,8 @@ namespace Canis
                 {
                     // 1. make this into a function
                     // 2. once yaml is add encode then decode
-                    Entity* selected = entities[i];
-                    Entity* entity = m_scene->CreateEntity();
+                    Entity *selected = entities[i];
+                    Entity *entity = m_scene->CreateEntity();
                     entity->name = selected->name; // ++ a number at the end
                     entity->tag = selected->tag;
 
@@ -409,8 +416,6 @@ namespace Canis
                 ImGui::EndPopup();
             }
         }
-
-        
 
         /*for (int i = 0; i < GetSceneManager().hierarchyElements.size(); i++)
         {
@@ -455,8 +460,12 @@ namespace Canis
 
             Entity &entity = *entities[m_index];
 
-            ImGui::Text("name: %s", entity.name.c_str());
-            ImGui::Text("tag: %s", entity.tag.c_str());
+            ImGui::Text("name: ");
+            ImGui::SameLine();
+            ImGui::InputText("##name", &entity.name);
+            ImGui::Text("tag:  ");
+            ImGui::SameLine();
+            ImGui::InputText("##tag", &entity.tag);
 
             for (ScriptConf &conf : m_app->GetScriptRegistry())
             {

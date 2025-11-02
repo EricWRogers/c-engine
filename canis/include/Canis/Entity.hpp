@@ -77,6 +77,8 @@ namespace Canis
                 }
             }
         }
+
+        void Destroy();
     };
 
     class ScriptableEntity

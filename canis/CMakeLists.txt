@@ -13,8 +13,8 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
 )
 
 
-target_include_directories(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb ${CMAKE_CURRENT_SOURCE_DIR}/include imgui imguizmo libglew_static)
-target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb imgui imguizmo libglew_static)
+target_include_directories(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb ${CMAKE_CURRENT_SOURCE_DIR}/include imgui imguizmo yaml-cpp libglew_static)
+target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC SDL3::SDL3 stb imgui imguizmo yaml-cpp libglew_static)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -22,6 +22,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
     stb
+    yaml-cpp
     libglew_static
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     imgui
@@ -32,6 +33,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
     SDL3::SDL3
     stb
+    yaml-cpp
     libglew_static
     ${CANIS_ENGINE_LIB}
     imgui

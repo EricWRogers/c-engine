@@ -128,12 +128,6 @@ namespace Canis
                 float r, g, b, a;
             }; // color
             float v[4]; // array access
-            struct
-            {
-                Vector2 xy;
-                Vector2 zw;
-            };
-            
         };
 
         Vector4()

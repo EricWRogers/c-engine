@@ -51,5 +51,11 @@ add_library("imguizmo" STATIC ${IMGUIZMO_SOURCES})
 target_include_directories("imguizmo" PUBLIC ${IMGUIZMO_PATH})
 target_link_libraries("imguizmo" PRIVATE "imgui" SDL3::SDL3)
 
+# yaml-cpp
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable yaml-cpp tools" FORCE)
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "Disable yaml-cpp tests" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Disable shared libs" FORCE)
+add_subdirectory(external/yaml-cpp)
+
 add_subdirectory(canis)
 add_subdirectory(game)

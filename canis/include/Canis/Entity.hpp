@@ -130,12 +130,16 @@ namespace Canis
             rotation = DEG2RAD * degrees;
         }
 
+        bool active = true;
         Vector2 position = Vector2(0.0f);
         Vector2 size = Vector2(32.0f);
         Vector2 scale = Vector2(1.0f);
         Vector2 originOffset = Vector2(0.0f);
         float   depth = 0.0f;
         float   rotation = 0.0f;
+        Vector2 rotationOriginOffset = Vector2(0.0f);
+        Entity  parent;
+		std::vector<Entity> children;
     };
 
     class Sprite2D : public ScriptableEntity

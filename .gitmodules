@@ -16,3 +16,6 @@
 [submodule "external/GL"]
 	path = external/GL
 	url = https://github.com/Perlmint/glew-cmake
+[submodule "external/yaml-cpp"]
+	path = external/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp

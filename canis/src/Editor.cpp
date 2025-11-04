@@ -100,6 +100,7 @@ namespace Canis
 
         bool refresh = DrawHierarchyPanel();
         DrawInspectorPanel(refresh);
+        DrawScenePanel();
         // DrawSystemPanel();
 
         ImGui::Begin("Environment");
@@ -540,6 +541,14 @@ namespace Canis
                 }
             }
         }
+    }
+
+
+    void Editor::DrawScenePanel()
+    {
+        ImGui::Begin("Scene");
+        ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
+        ImGui::End();
     }
 
 }

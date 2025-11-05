@@ -104,9 +104,11 @@ namespace Canis
         Debug::Log("Save Scene");
         YAML::Emitter out;
         out << YAML::BeginMap;
-        out << YAML::Key << "Scene" << YAML::Value << m_name;
 
+        out << YAML::Key << "Environment" << YAML::Value;
+        out << YAML::BeginMap;
         out << YAML::Key << "ClearColor" << YAML::Value << m_window->GetClearColor();
+        out << YAML::EndMap;
 
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 

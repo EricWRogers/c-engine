@@ -67,8 +67,8 @@ namespace Canis
 
         std::vector<Entity*>& GetEntities() { return m_entities; }
     private:
-        std::string m_name = "default.scene";
-        std::string m_path = "default-scene-path";
+        std::string m_name = "main";
+        std::string m_path = "assets/scenes/main.scene";
         Window *m_window;
         InputManager *m_inputManager;
         std::vector<Entity*>  m_entities = {};

@@ -83,6 +83,22 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<RectTransform>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<RectTransform>(); },
+            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+                if (_entity.GetScript<RectTransform>())
+                {
+                    RectTransform& transform = *_entity.GetScript<RectTransform>();
+
+                    _out << YAML::Key << "Canis::RectTransform";
+                    _out << YAML::BeginMap;
+
+                    _out << YAML::Key << "active" << YAML::Value << transform.active;
+                    _out << YAML::Key << "position" << YAML::Value << transform.position;
+                    _out << YAML::Key << "rotation" << YAML::Value << transform.rotation * RAD2DEG;
+                    _out << YAML::Key << "scale" << YAML::Value << transform.scale;
+
+                    _out << YAML::EndMap;
+                }
+            },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 RectTransform* transform = nullptr;
                 if ((transform = _entity.GetScript<RectTransform>()) != nullptr)

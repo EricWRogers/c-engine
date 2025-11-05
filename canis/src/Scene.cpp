@@ -6,11 +6,12 @@
 
 namespace Canis
 {
-    void Scene::Init(App *_app, Window *_window, InputManager *_inputManger)
+    void Scene::Init(App *_app, Window *_window, InputManager *_inputManger, std::string _path)
     {
         app = _app;
         m_window = _window;
         m_inputManager = _inputManger;
+        m_path = _path;
     }
 
     void Scene::Update(float _deltaTime)
@@ -86,7 +87,7 @@ namespace Canis
         m_renderSystems.clear();
     }
 
-    void Scene::Load()
+    void Scene::Load(std::vector<ScriptConf>& _scriptRegistry)
     {
         for (System* system : m_systems)
         {
@@ -96,6 +97,51 @@ namespace Canis
         for (System* system : m_systems)
         {
             system->Ready();
+        }
+
+        YAML::Node root = YAML::LoadFile(m_path);
+
+        if (!root)
+        {
+            Debug::FatalError("Scene not found: %s", m_path.c_str());
+        }
+        
+        auto environment = root["Environment"]; 
+
+        if (environment)
+        {
+            m_window->SetClearColor(
+                environment["ClearColor"].as<Vector4>(Vector4(0.05f, 0.05f, 0.05f, 1.0f))
+            );
+        }
+
+        auto entities = root["Entities"];
+
+        if (entities)
+        {
+            for (auto e : entities)
+            {
+                Entity& entity = *CreateEntity();
+                entity.uuid = e["Entity"].as<uint64_t>(0);
+                entity.name = e["Name"].as<std::string>("");
+                entity.tag = e["Tag"].as<std::string>("");
+
+                for (int i = 0; i < _scriptRegistry.size(); i++)
+                {
+                    if (_scriptRegistry[i].Decode)
+                    {
+                        Debug::Log("sc: %s", _scriptRegistry[i].name.c_str());
+                        _scriptRegistry[i].Decode(e, entity);
+                    }
+                }
+            }
+
+            Debug::Log("sc: %i", _scriptRegistry.size());
+
+            for (int i = 0; i < _scriptRegistry.size(); i++)
+            {
+                Debug::Log("sc: %s", _scriptRegistry[i].name.c_str());
+            }
         }
     }
 

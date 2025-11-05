@@ -17,11 +17,11 @@ namespace Canis
     public:
         App* app = nullptr;
         
-        void Init(App *_app, Window *_window, InputManager *_inputManger);
+        void Init(App *_app, Window *_window, InputManager *_inputManger, std::string _path);
         void Update(float _deltaTime);
         void Render(float _deltaTime);
         void Unload();
-        void Load();
+        void Load(std::vector<ScriptConf>& _scriptRegistry);
         void Save(std::vector<ScriptConf>& _scriptRegistry);
 
         Window& GetWindow() { return *m_window; }

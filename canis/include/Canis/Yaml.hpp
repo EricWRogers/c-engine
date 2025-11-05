@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 // #include <Canis/UUID.hpp>
 #include <Canis/Math.hpp>
+#include <Canis/AssetHandle.hpp>
 
 #include <map>
 #include <variant>
@@ -10,6 +11,9 @@
 #include <type_traits>
 #include <functional>
 #include <string>
+
+extern std::string YAMLEncodeTexture(const Canis::TextureHandle &_textureHandle);
+extern Canis::TextureHandle YAMLDecodeTexture(std::string &_path);
 
 namespace YAML
 {
@@ -93,4 +97,22 @@ namespace YAML
             return true;
         }
     };
+
+    template <>
+	struct convert<Canis::TextureHandle>
+	{
+		static Node encode(const Canis::TextureHandle &_textureHandle)
+		{
+			Node node;
+			node = YAMLEncodeTexture(_textureHandle);
+			return node;
+		}
+
+		static bool decode(const Node &_node, Canis::TextureHandle &_textureHandle)
+		{
+			std::string path = _node.as<std::string>("");
+			_textureHandle = YAMLDecodeTexture(path);
+			return true;
+		}
+	};
 }

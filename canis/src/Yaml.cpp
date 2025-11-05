@@ -1,4 +1,15 @@
 #include <Canis/Yaml.hpp>
+#include <Canis/AssetManager.hpp>
+
+std::string YAMLEncodeTexture(const Canis::TextureHandle &_textureHandle)
+{
+    return Canis::AssetManager::GetTexture(_textureHandle.id)->GetPath();
+}
+
+Canis::TextureHandle YAMLDecodeTexture(std::string &_path)
+{
+    return Canis::AssetManager::GetTextureHandle(_path);
+}
 
 namespace YAML
 {

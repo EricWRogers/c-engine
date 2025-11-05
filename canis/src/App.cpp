@@ -42,14 +42,16 @@ namespace Canis
 
         Time::Init(1200.0f);
 
-        scene.Init(this, &window, &inputManager);
+        scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
 
         scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
 
-        scene.Load(); // call after all the systems are added
+        //scene.Load(m_scriptRegistry); // call after all the systems are added
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
+
+        scene.Load(m_scriptRegistry); // call after all the systems are added
 
         while (inputManager.Update((void *)&window))
         {
@@ -78,7 +80,7 @@ namespace Canis
     void App::RegisterDefaults(Editor& _editor)
     {
         ScriptConf rectTransformConf = {
-            .name = "RectTransform",
+            .name = "Canis::RectTransform",
             .Add = [this](Entity& _entity) -> void {
                 _entity.AddScript<RectTransform>();
             },
@@ -104,6 +106,21 @@ namespace Canis
                     _out << YAML::EndMap;
                 }
             },
+            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (auto rectTransform = _node["Canis::RectTransform"])
+                {
+                    auto &rt = *_entity.AddScript<Canis::RectTransform>();
+                    rt.active = rectTransform["active"].as<bool>();
+                    //rt.anchor = (Canis::RectAnchor)rectTransform["anchor"].as<int>();
+                    rt.position = rectTransform["position"].as<Vector2>();
+                    rt.size = rectTransform["size"].as<Vector2>();
+                    rt.scale = rectTransform["scale"].as<Vector2>();
+                    rt.originOffset = rectTransform["originOffset"].as<Vector2>();
+                    rt.depth = rectTransform["depth"].as<float>();
+                    rt.rotation = rectTransform["rotation"].as<float>();
+                    //rt.scaleWithScreen = (ScaleWithScreen)rectTransform["scaleWithScreen"].as<int>(0);
+                }
+            },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 RectTransform* transform = nullptr;
                 if ((transform = _entity.GetScript<RectTransform>()) != nullptr)
@@ -124,7 +141,7 @@ namespace Canis
         RegisterScript(rectTransformConf);
 
         ScriptConf sprite2DConf = {
-            .name = "Sprite2D",
+            .name = "Canis::Sprite2D",
             .Add = [this](Entity& _entity) -> void {
                 // TODO: require a RectTransform component
                 Sprite2D* sprite = _entity.AddScript<Sprite2D>();
@@ -153,6 +170,19 @@ namespace Canis
                     _out << YAML::EndMap;
                 }
             },
+            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (auto sprite2DComponent = _node["Canis::Sprite2D"])
+                {
+                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>();
+                    sprite.color = sprite2DComponent["color"].as<Vector4>();
+                    sprite.uv = sprite2DComponent["uv"].as<Vector4>();
+                    if (auto textureAsset = sprite2DComponent["TextureAsset"])
+                    {
+                        sprite.textureHandle = AssetManager::GetTextureHandle(textureAsset["path"].as<std::string>());
+                    }
+                    //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
+                }
+            },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Sprite2D* sprite = nullptr;
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
@@ -167,7 +197,7 @@ namespace Canis
         RegisterScript(sprite2DConf);
 
         ScriptConf camera2DConf = {
-            .name = "Camera2D",
+            .name = "Canis::Camera2D",
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
@@ -186,7 +216,14 @@ namespace Canis
                     _out << YAML::EndMap;
                 }
             },
-
+            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (auto camera2DComponent = _node["Canis::Camera2D"])
+                {
+                    auto &camera = *_entity.AddScript<Canis::Camera2D>();
+                    camera.SetPosition(camera2DComponent["position"].as<Vector2>(camera.GetPosition()));
+                    camera.SetScale(camera2DComponent["scale"].as<float>(camera.GetScale()));
+                }
+            },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera2D* camera = nullptr;
                 if ((camera = _entity.GetScript<Camera2D>()) != nullptr)

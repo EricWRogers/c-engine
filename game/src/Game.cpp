@@ -117,6 +117,17 @@ ScriptConf ballMovementConf = {
             _out << YAML::EndMap;
         }
     },
+    .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+        Debug::Log("Check Add Ball");
+        if (auto ballComponent = _node["BallMovement"])
+        {
+            Debug::Log("Add Ball");
+            auto &ball = *_entity.AddScript<BallMovement>();
+            ball.direction = ballComponent["direction"].as<Vector2>();
+            ball.speed = ballComponent["speed"].as<float>();
+            ball.randomRotation = ballComponent["randomRotation"].as<float>();
+        }
+    },
     .DrawInspector = [](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
         BallMovement* ball = nullptr;
         if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
@@ -149,17 +160,6 @@ extern "C"
         
         app.RegisterInspectorItem(inspectorCreateBall);
         app.RegisterScript(ballMovementConf);
-
-        SpawnCamera(app);
-
-        app.scene.GetWindow().SetClearColor(Color(0.0f, 1.0f, 1.0f, 1.0f));
-
-        Canis::Entity *entityOne = app.scene.CreateEntity("Circle");
-        RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
-        Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
-
-        sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
-        transform->size = Vector2(64.0f);
 
         Canis::Debug::Log("Game initialized!");
         GameData *gameData = (GameData *)malloc(sizeof(GameData));
@@ -227,7 +227,7 @@ extern "C"
     {
         _app.scene.Unload();
         _app.scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
-        _app.scene.Load(); // call after all the systems are added
+        _app.scene.Load(_app.GetScriptRegistry()); // call after all the systems are added
 
         SpawnAwesome(_app);
         SpawnCamera(_app);

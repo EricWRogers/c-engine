@@ -2,6 +2,7 @@
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/System.hpp>
+#include <Canis/Window.hpp>
 
 namespace Canis
 {
@@ -95,6 +96,59 @@ namespace Canis
         for (System* system : m_systems)
         {
             system->Ready();
+        }
+    }
+
+    void Scene::Save(std::vector<ScriptConf>& _scriptRegistry)
+    {
+        Debug::Log("Save Scene");
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Scene" << YAML::Value << m_name;
+
+        out << YAML::Key << "ClearColor" << YAML::Value << m_window->GetClearColor();
+
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+
+        for(Entity* entity : m_entities)
+        {
+            if (!entity)
+                continue;
+
+            /*Entity entity = info.entity;
+            
+			if (!entity)
+				return;
+
+            if (!entity.HasComponent<IDComponent>())
+                return;*/
+            
+            out << YAML::BeginMap;
+
+            //out << YAML::Key << "Entity" << YAML::Key << std::to_string(entity.GetUUID());
+
+            out << YAML::Key << "Name" << YAML::Key << entity->name;
+            out << YAML::Key << "Tag" << YAML::Key << entity->tag;
+
+            for (int i = 0; i < _scriptRegistry.size(); i++)
+                if (_scriptRegistry[i].Encode)
+                    _scriptRegistry[i].Encode(out, *entity);
+
+            out << YAML::EndMap;
+        }
+
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+
+        if (m_path.size() > 0)
+        {
+            std::ofstream fout(m_path);
+            fout << out.c_str();
+        }
+        else
+        {
+            std::ofstream fout(m_name);
+            fout << out.c_str();
         }
     }
 

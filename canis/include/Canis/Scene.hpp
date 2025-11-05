@@ -10,6 +10,7 @@ namespace Canis
     class InputManager;
     class Entity;
     class System;
+    struct ScriptConf;
 
     class Scene
     {
@@ -21,6 +22,7 @@ namespace Canis
         void Render(float _deltaTime);
         void Unload();
         void Load();
+        void Save(std::vector<ScriptConf>& _scriptRegistry);
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }
@@ -65,6 +67,8 @@ namespace Canis
 
         std::vector<Entity*>& GetEntities() { return m_entities; }
     private:
+        std::string m_name = "default.scene";
+        std::string m_path = "default-scene-path";
         Window *m_window;
         InputManager *m_inputManager;
         std::vector<Entity*>  m_entities = {};

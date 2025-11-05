@@ -547,6 +547,10 @@ namespace Canis
     void Editor::DrawScenePanel()
     {
         ImGui::Begin("Scene");
+        if (ImGui::Button("Save##ScenePanel")) {
+            m_scene->Save(m_app->GetScriptRegistry());
+        }
+        ImGui::SameLine();
         ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
         ImGui::End();
     }

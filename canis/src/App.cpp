@@ -90,6 +90,7 @@ namespace Canis
                     RectTransform& transform = *_entity.GetScript<RectTransform>();
 
                     _out << YAML::Key << "Canis::RectTransform";
+
                     _out << YAML::BeginMap;
 
                     _out << YAML::Key << "active" << YAML::Value << transform.active;
@@ -139,16 +140,14 @@ namespace Canis
                     Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
 
                     _out << YAML::Key << "Canis::Sprite2D";
+
                     _out << YAML::BeginMap;
 
                     _out << YAML::Key << "color" << YAML::Value << sprite.color;
                     _out << YAML::Key << "uv" << YAML::Value << sprite.uv;
-                    
                     _out << YAML::Key << "TextureAsset";
                     _out << YAML::BeginMap;
-
 			        _out << YAML::Key << "path" << YAML::Value << AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath();
-
 			        _out << YAML::EndMap;
 
                     _out << YAML::EndMap;
@@ -178,6 +177,7 @@ namespace Canis
                     Camera2D& camera = *_entity.GetScript<Camera2D>();
 
                     _out << YAML::Key << "Canis::Camera2D";
+
                     _out << YAML::BeginMap;
 
                     _out << YAML::Key << "position" << YAML::Value << camera.GetPosition();

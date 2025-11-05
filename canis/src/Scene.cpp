@@ -125,8 +125,7 @@ namespace Canis
             
             out << YAML::BeginMap;
 
-            //out << YAML::Key << "Entity" << YAML::Key << std::to_string(entity.GetUUID());
-
+            out << YAML::Key << "Entity" << YAML::Key << std::to_string(entity->uuid);
             out << YAML::Key << "Name" << YAML::Key << entity->name;
             out << YAML::Key << "Tag" << YAML::Key << entity->tag;
 

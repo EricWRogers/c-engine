@@ -10,6 +10,7 @@
 #include <imgui_stdlib.h>
 
 #include <Canis/Yaml.hpp>
+#include <Canis/UUID.hpp>
 
 namespace Canis
 {
@@ -31,6 +32,7 @@ namespace Canis
         bool active = true;
         std::string name = "";
         std::string tag = "";
+        UUID uuid;
         
         Entity() = default;
 

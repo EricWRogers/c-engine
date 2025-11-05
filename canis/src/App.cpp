@@ -1,3 +1,4 @@
+#include "yaml-cpp/emittermanip.h"
 #include <Canis/App.hpp>
 
 #include <SDL3/SDL.h>
@@ -93,8 +94,11 @@ namespace Canis
 
                     _out << YAML::Key << "active" << YAML::Value << transform.active;
                     _out << YAML::Key << "position" << YAML::Value << transform.position;
-                    _out << YAML::Key << "rotation" << YAML::Value << transform.rotation * RAD2DEG;
+                    _out << YAML::Key << "size" << YAML::Value << transform.size;
                     _out << YAML::Key << "scale" << YAML::Value << transform.scale;
+                    _out << YAML::Key << "originOffset" << YAML::Value << transform.originOffset;
+                    _out << YAML::Key << "depth" << YAML::Value << transform.depth;
+                    _out << YAML::Key << "rotation" << YAML::Value << transform.rotation * RAD2DEG;
 
                     _out << YAML::EndMap;
                 }
@@ -129,6 +133,27 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
+            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Sprite2D>())
+                {
+                    Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
+
+                    _out << YAML::Key << "Canis::Sprite2D";
+                    _out << YAML::BeginMap;
+
+                    _out << YAML::Key << "color" << YAML::Value << sprite.color;
+                    _out << YAML::Key << "uv" << YAML::Value << sprite.uv;
+                    
+                    _out << YAML::Key << "TextureAsset";
+                    _out << YAML::BeginMap;
+
+			        _out << YAML::Key << "path" << YAML::Value << AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath();
+
+			        _out << YAML::EndMap;
+
+                    _out << YAML::EndMap;
+                }
+            },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Sprite2D* sprite = nullptr;
                 if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
@@ -147,6 +172,21 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
+            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Camera2D>())
+                {
+                    Camera2D& camera = *_entity.GetScript<Camera2D>();
+
+                    _out << YAML::Key << "Canis::Camera2D";
+                    _out << YAML::BeginMap;
+
+                    _out << YAML::Key << "position" << YAML::Value << camera.GetPosition();
+                    _out << YAML::Key << "scale" << YAML::Value << camera.GetScale();
+                    
+                    _out << YAML::EndMap;
+                }
+            },
+
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera2D* camera = nullptr;
                 if ((camera = _entity.GetScript<Camera2D>()) != nullptr)

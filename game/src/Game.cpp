@@ -4,7 +4,6 @@
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
-//#include <Canis/GameCodeObject.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
@@ -21,6 +20,7 @@ public:
     Vector2 direction = Vector2(1.0f, 0.5f);
     float speed = 100.0f;
     float randomRotation = 0;
+    float test = 1.0f;
 
     RectTransform &transform = *entity.GetScript<RectTransform>();
     Sprite2D &sprite = *entity.GetScript<Sprite2D>();

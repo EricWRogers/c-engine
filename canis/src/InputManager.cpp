@@ -1,4 +1,6 @@
 #include <Canis/InputManager.hpp>
+#include <SDL3/SDL_keyboard.h>
+#include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
 #include <imgui_impl_sdl3.h>
@@ -167,7 +169,7 @@ namespace Canis
         // reorder controller order
         for (int i = 0; i < m_gameControllers.size(); i++)
         {
-            SDL_SetGamepadPlayerIndex(m_gameControllers[i].controller, i);
+            SDL_SetGamepadPlayerIndex((SDL_Gamepad*)m_gameControllers[i].controller, i);
         }
 
         // update controllers
@@ -436,7 +438,7 @@ namespace Canis
                 gameController.lastButtonsPressed = ControllerButton::DPAD_UP;
                 m_lastControllerID = m_gameControllers.size();
 
-                std::string controllerName = std::string(SDL_GetGamepadName(gameController.controller));
+                std::string controllerName = std::string(SDL_GetGamepadName((SDL_Gamepad*)gameController.controller));
 
                 if (controllerName[0] == 'P')
                 {
@@ -501,7 +503,7 @@ namespace Canis
         // reorder controller order
         for (int i = 0; i < m_gameControllers.size(); i++)
         {
-            SDL_SetGamepadPlayerIndex(m_gameControllers[i].controller, i);
+            SDL_SetGamepadPlayerIndex((SDL_Gamepad*)m_gameControllers[i].controller, i);
         }
     }
 

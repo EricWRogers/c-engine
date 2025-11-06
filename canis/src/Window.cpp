@@ -1,6 +1,6 @@
-#include "SDL3/SDL_video.h"
 #include <Canis/Window.hpp>
 #include <Canis/OpenGL.hpp>
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_log.h>
 #include <cstdlib>
 
@@ -42,7 +42,7 @@ namespace Canis
             std::exit(1);
         }
 
-        m_context = SDL_GL_CreateContext(m_window);
+        m_context = (void*)SDL_GL_CreateContext((SDL_Window*)m_window);
         if (!m_context)
         {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create GL context: %s", SDL_GetError());
@@ -57,9 +57,9 @@ namespace Canis
     Window::~Window()
     {
         if (m_context)
-            SDL_GL_DestroyContext(m_context);
+            SDL_GL_DestroyContext((SDL_GLContext)m_context);
         if (m_window)
-            SDL_DestroyWindow(m_window);
+            SDL_DestroyWindow((SDL_Window*)m_window);
         SDL_Quit();
     }
 
@@ -80,7 +80,7 @@ namespace Canis
 
     void Window::SwapBuffer() const
     {
-        SDL_GL_SwapWindow(m_window);
+        SDL_GL_SwapWindow((SDL_Window*)m_window);
     }
 
     void Window::InitGL()

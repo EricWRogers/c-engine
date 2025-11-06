@@ -1,6 +1,4 @@
 #pragma once
-
-#include <SDL3/SDL.h>
 #include <Canis/Math.hpp>
 
 namespace Canis
@@ -38,8 +36,8 @@ namespace Canis
         void SetSync(Sync _type);
 
     private:
-        SDL_Window *m_window = nullptr;
-        SDL_GLContext m_context = nullptr;
+        void* m_window = nullptr;
+        void* m_context = nullptr;
 
         Color m_clearColor;
 

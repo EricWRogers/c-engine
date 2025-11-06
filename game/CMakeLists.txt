@@ -18,7 +18,6 @@ target_include_directories(GameCode PRIVATE
 
 # Link to SDL3 (for logging or future rendering use)
 target_link_libraries(GameCode
-    SDL3::SDL3
     CanisEngine
 )
 

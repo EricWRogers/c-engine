@@ -1,8 +1,6 @@
 #pragma once
 #include <Canis/Math.hpp>
 #include <vector>
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_gamepad.h>
 #include <Canis/Data/Key.hpp>
 
 
@@ -51,10 +49,10 @@ namespace Canis
     };
     struct GameController
     {
-        SDL_Gamepad *controller = nullptr;
+        void* controller = nullptr;
         GameControllerType gameControllerType = GameControllerType::XBOX;
         unsigned int index = 0;
-        SDL_JoystickID joyId;
+        unsigned int joyId;
         GameControllerData currentData = {};
         GameControllerData oldData = {};
         float deadZone = 0.2f;

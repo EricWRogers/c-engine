@@ -10,6 +10,8 @@
 #include <Canis/Shader.hpp>
 #include <Canis/GameCodeObject.hpp>
 
+#include <SDL3/SDL.h>
+
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <imgui_impl_sdl3.h>

@@ -1,13 +1,10 @@
 #include "../include/Game.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <Canis/App.hpp>
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
-#include <Canis/GameCodeObject.hpp>
+//#include <Canis/GameCodeObject.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
@@ -44,7 +41,7 @@ public:
     {
         Vector2 delta = direction * speed * Time::DeltaTime();
         transform.position += delta;
-        transform.rotation += DEG2RAD * 100.0f * Time::DeltaTime();
+        transform.rotation += DEG2RAD * 50.0f * Time::DeltaTime();
 
         CheckWalls();
     }
@@ -137,8 +134,6 @@ ScriptConf ballMovementConf = {
     },
 };
 
-
-
 extern "C"
 {
     void SpawnCamera(Canis::App &_app);
@@ -186,8 +181,6 @@ extern "C"
         {
             ReloadScene(app);
         }
-
-        //Canis::Debug::Log("Update FPS: %f", Canis::Time::FPS());
     }
 
     void GameShutdown(void *_app, void *_data)
@@ -227,6 +220,5 @@ extern "C"
 
         SpawnAwesome(_app);
         SpawnCamera(_app);
-        
     }
 }

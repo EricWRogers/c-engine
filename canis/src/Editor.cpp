@@ -397,17 +397,15 @@ namespace Canis
                     // 1. make this into a function
                     // 2. once yaml is add encode then decode
                     Entity *selected = entities[i];
-                    Entity *entity = m_scene->CreateEntity();
-                    entity->name = selected->name; // ++ a number at the end
-                    entity->tag = selected->tag;
+                    //Entity *entity = m_scene->CreateEntity();
+                    //entity->name = selected->name; // ++ a number at the end
+                    //entity->tag = selected->tag;
 
-                    for (ScriptConf &conf : m_app->GetScriptRegistry())
-                    {
-                        if (conf.Has(*selected))
-                        {
-                            conf.Add(*entity);
-                        }
-                    }
+                    // encode
+                    YAML::Node node = m_scene->EncodeEntity(m_app->GetScriptRegistry(), *selected);
+
+                    // decode
+                    Entity& entity = m_scene->DecodeEntity(m_app->GetScriptRegistry(), node, false);
                 }
 
                 if (ImGui::MenuItem(std::string("Remove##").c_str()))

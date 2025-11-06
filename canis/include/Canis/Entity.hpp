@@ -106,7 +106,7 @@ namespace Canis
         std::function<void(Entity&)> Add = nullptr;
         std::function<bool(Entity&)> Has = nullptr;
         std::function<void(Entity&)> Remove = nullptr;
-        std::function<void(YAML::Emitter &_out, Entity &_entity)> Encode = nullptr;
+        std::function<void(YAML::Node &_node, Entity &_entity)> Encode = nullptr;
         std::function<void(YAML::Node &_node, Entity &_entity)> Decode = nullptr;
         std::function<void(Editor&, Entity&, const ScriptConf&)> DrawInspector = nullptr;
         //std::unordered_map<std::string, std::function<void>> exposedFunctions;

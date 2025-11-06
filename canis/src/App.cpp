@@ -86,24 +86,21 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<RectTransform>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<RectTransform>(); },
-            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<RectTransform>())
                 {
                     RectTransform& transform = *_entity.GetScript<RectTransform>();
 
-                    _out << YAML::Key << "Canis::RectTransform";
+                    YAML::Node comp;
+                    comp["active"] = transform.active;
+                    comp["position"] = transform.position;
+                    comp["size"] = transform.size;
+                    comp["scale"] = transform.scale;
+                    comp["originOffset"] = transform.originOffset;
+                    comp["depth"] = transform.depth;
+                    comp["rotation"] = transform.rotation;
 
-                    _out << YAML::BeginMap;
-
-                    _out << YAML::Key << "active" << YAML::Value << transform.active;
-                    _out << YAML::Key << "position" << YAML::Value << transform.position;
-                    _out << YAML::Key << "size" << YAML::Value << transform.size;
-                    _out << YAML::Key << "scale" << YAML::Value << transform.scale;
-                    _out << YAML::Key << "originOffset" << YAML::Value << transform.originOffset;
-                    _out << YAML::Key << "depth" << YAML::Value << transform.depth;
-                    _out << YAML::Key << "rotation" << YAML::Value << transform.rotation * RAD2DEG;
-
-                    _out << YAML::EndMap;
+                    _node["Canis::RectTransform"] = comp;
                 }
             },
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
@@ -151,23 +148,20 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
-            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::Sprite2D>())
                 {
                     Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
 
-                    _out << YAML::Key << "Canis::Sprite2D";
+                    YAML::Node comp;
+                    comp["color"] = sprite.color;
+                    comp["uv"] = sprite.uv;
 
-                    _out << YAML::BeginMap;
-
-                    _out << YAML::Key << "color" << YAML::Value << sprite.color;
-                    _out << YAML::Key << "uv" << YAML::Value << sprite.uv;
-                    _out << YAML::Key << "TextureAsset";
-                    _out << YAML::BeginMap;
-			        _out << YAML::Key << "path" << YAML::Value << AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath();
-			        _out << YAML::EndMap;
-
-                    _out << YAML::EndMap;
+                    YAML::Node textureAsset;
+                    textureAsset["path"] = AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath();
+                    
+                    comp["TextureAsset"] = textureAsset;
+                    _node["Canis::Sprite2D"] = comp;
                 }
             },
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
@@ -201,19 +195,16 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
-            .Encode = [](YAML::Emitter &_out, Entity &_entity) -> void {
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::Camera2D>())
                 {
                     Camera2D& camera = *_entity.GetScript<Camera2D>();
 
-                    _out << YAML::Key << "Canis::Camera2D";
+                    YAML::Node comp;
+                    comp["position"] = camera.GetPosition();
+                    comp["scale"] = camera.GetScale();
 
-                    _out << YAML::BeginMap;
-
-                    _out << YAML::Key << "position" << YAML::Value << camera.GetPosition();
-                    _out << YAML::Key << "scale" << YAML::Value << camera.GetScale();
-                    
-                    _out << YAML::EndMap;
+                    _node["Canis::Camera2D"] = comp;
                 }
             },
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {

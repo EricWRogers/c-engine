@@ -101,20 +101,18 @@ ScriptConf ballMovementConf = {
      },
     .Has = [](Entity& _entity) -> bool { return (_entity.GetScript<BallMovement>() != nullptr); },
     .Remove = [](Entity& _entity) -> void { _entity.RemoveScript<BallMovement>(); },
-    .Encode = [](YAML::Emitter &_out, Entity& _entity) -> void {
+    .Encode = [](YAML::Node &_node, Entity& _entity) -> void {
         if (_entity.GetScript<BallMovement>())
         {
             BallMovement& ball = *_entity.GetScript<BallMovement>();
 
-            _out << YAML::Key << ballMovementConf.name;
+            YAML::Node comp;
 
-            _out << YAML::BeginMap;
+            comp["direction"] = ball.direction;
+            comp["speed"] = ball.speed;
+            comp["randomRotation"] = ball.randomRotation;
 
-            _out << YAML::Key << "direction" << YAML::Value << ball.direction;
-            _out << YAML::Key << "speed" << YAML::Value << ball.speed;
-            _out << YAML::Key << "randomRotation" << YAML::Value << ball.randomRotation;
-
-            _out << YAML::EndMap;
+            _node[ballMovementConf.name] = comp;
         }
     },
     .Decode = [](YAML::Node &_node, Entity &_entity) -> void {

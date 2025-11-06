@@ -36,7 +36,7 @@ Entities:
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [-84.107445, 139.56537]
+      position: [-64.85695, 27.362997]
       size: [32, 32]
       scale: [1, 1]
       originOffset: [0, 0]
@@ -48,6 +48,26 @@ Entities:
       TextureAsset:
         path: assets/textures/awesome_face.png
     BallMovement:
-      direction: [-0.89442724, -0.44721362]
+      direction: [0.89442724, 0.44721362]
+      speed: 100
+      randomRotation: 0
+  - Entity: 1887228533441049087
+    Name: Ball
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [-64.85695, -64.88043]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        path: assets/textures/awesome_face.png
+    BallMovement:
+      direction: [0.89442724, 0.44721362]
       speed: 100
       randomRotation: 0

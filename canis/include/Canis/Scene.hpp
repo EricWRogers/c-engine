@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <Canis/Debug.hpp>
+#include <Canis/Yaml.hpp>
 
 namespace Canis
 {
@@ -23,6 +24,8 @@ namespace Canis
         void Unload();
         void Load(std::vector<ScriptConf>& _scriptRegistry);
         void Save(std::vector<ScriptConf>& _scriptRegistry);
+        Canis::Entity& DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID = true);
+        YAML::Node EncodeEntity(std::vector<ScriptConf>& _scriptRegistry, Entity &_entity);
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }

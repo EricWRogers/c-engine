@@ -121,28 +121,30 @@ namespace Canis
         {
             for (auto e : entities)
             {
-                Entity& entity = *CreateEntity();
-                entity.uuid = e["Entity"].as<uint64_t>(0);
-                entity.name = e["Name"].as<std::string>("");
-                entity.tag = e["Tag"].as<std::string>("");
-
-                for (int i = 0; i < _scriptRegistry.size(); i++)
-                {
-                    if (_scriptRegistry[i].Decode)
-                    {
-                        Debug::Log("sc: %s", _scriptRegistry[i].name.c_str());
-                        _scriptRegistry[i].Decode(e, entity);
-                    }
-                }
-            }
-
-            Debug::Log("sc: %i", _scriptRegistry.size());
-
-            for (int i = 0; i < _scriptRegistry.size(); i++)
-            {
-                Debug::Log("sc: %s", _scriptRegistry[i].name.c_str());
+                Entity& entity = DecodeEntity(_scriptRegistry, e);
             }
         }
+    }
+
+    Canis::Entity& Scene::DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID)
+    {
+        Entity& entity = *CreateEntity();
+        
+        if (_copyUUID)
+            entity.uuid = _node["Entity"].as<uint64_t>(0);
+        
+        entity.name = _node["Name"].as<std::string>("");
+        entity.tag = _node["Tag"].as<std::string>("");
+
+        for (int i = 0; i < _scriptRegistry.size(); i++)
+        {
+            if (_scriptRegistry[i].Decode)
+            {
+                _scriptRegistry[i].Decode(_node, entity);
+            }
+        }
+
+        return entity;
     }
 
     void Scene::Save(std::vector<ScriptConf>& _scriptRegistry)
@@ -163,25 +165,7 @@ namespace Canis
             if (!entity)
                 continue;
 
-            /*Entity entity = info.entity;
-            
-			if (!entity)
-				return;
-
-            if (!entity.HasComponent<IDComponent>())
-                return;*/
-            
-            out << YAML::BeginMap;
-
-            out << YAML::Key << "Entity" << YAML::Key << std::to_string(entity->uuid);
-            out << YAML::Key << "Name" << YAML::Key << entity->name;
-            out << YAML::Key << "Tag" << YAML::Key << entity->tag;
-
-            for (int i = 0; i < _scriptRegistry.size(); i++)
-                if (_scriptRegistry[i].Encode)
-                    _scriptRegistry[i].Encode(out, *entity);
-
-            out << YAML::EndMap;
+            out << EncodeEntity(_scriptRegistry, *entity);
         }
 
         out << YAML::EndSeq;
@@ -197,6 +181,20 @@ namespace Canis
             std::ofstream fout(m_name);
             fout << out.c_str();
         }
+    }
+
+    YAML::Node Scene::EncodeEntity(std::vector<ScriptConf>& _scriptRegistry, Entity &_entity)
+    {
+        YAML::Node node;
+        node["Entity"] = std::to_string(_entity.uuid);
+        node["Name"] = _entity.name;
+        node["Tag"] = _entity.tag;
+
+        for (int i = 0; i < _scriptRegistry.size(); i++)
+            if (_scriptRegistry[i].Encode)
+                _scriptRegistry[i].Encode(node, _entity);
+        
+        return node;
     }
 
     Entity* Scene::CreateEntity(std::string _name, std::string _tag)

@@ -179,12 +179,12 @@ namespace Canis
         void SetPosition(const Vector2 &newPosition)
         {
             m_position = newPosition;
-            m_needsMatrixUpdate = true;
+            UpdateMatrix();
         }
         void SetScale(float newScale)
         {
             m_scale = newScale;
-            m_needsMatrixUpdate = true;
+            UpdateMatrix();
         }
 
         void EditorInspectorDraw() {
@@ -209,6 +209,8 @@ namespace Canis
         Matrix4 GetViewMatrix() { return m_view; }
         Matrix4 GetProjectionMatrix() { return m_projection; }
         float GetScale() { return m_scale; }
+        void UpdateMatrix();
+
 
     private:
         int m_screenWidth, m_screenHeight;

@@ -541,13 +541,34 @@ namespace Canis
         }
     }
 
-
     void Editor::DrawScenePanel()
     {
+        static YAML::Node lastSceneNode;
+
         ImGui::Begin("Scene");
-        if (ImGui::Button("Save##ScenePanel")) {
-            m_scene->Save(m_app->GetScriptRegistry());
+        if (m_mode == EditorMode::EDIT)
+        {
+            if (ImGui::Button("Save##ScenePanel")) {
+                m_scene->Save(m_app->GetScriptRegistry());
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Play##ScenePanel")) {
+                // save copy of scene
+                lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
+
+                m_mode = EditorMode::PLAY;
+            }
         }
+        else if (m_mode == EditorMode::PLAY)
+        {
+            if (ImGui::Button("Stop##ScenePanel")) {
+                m_mode = EditorMode::EDIT;
+                // restore from copy
+                m_scene->Unload();
+                m_scene->LoadSceneNode(m_app->GetScriptRegistry(), lastSceneNode);                
+            }
+        }
+
         ImGui::SameLine();
         ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
         ImGui::End();

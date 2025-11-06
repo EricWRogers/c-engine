@@ -58,10 +58,14 @@ namespace Canis
             window.Clear();
 
             float deltaTime = Time::StartFrame();
-            scene.Update(deltaTime);
+
+            if (editor.m_mode == EditorMode::PLAY)
+                scene.Update(deltaTime);
 
             // call the dynamically loaded function
-            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+            if (editor.m_mode == EditorMode::PLAY)
+                GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+            
             GameCodeObjectWatchFile(&gameCodeObject, this);
 
             scene.Render(deltaTime);

@@ -22,10 +22,15 @@ namespace Canis
         void Update(float _deltaTime);
         void Render(float _deltaTime);
         void Unload();
-        void Load(std::vector<ScriptConf>& _scriptRegistry);
+        
         void Save(std::vector<ScriptConf>& _scriptRegistry);
-        Canis::Entity& DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID = true);
+        YAML::Node EncodeScene(std::vector<ScriptConf>& _scriptRegistry);
         YAML::Node EncodeEntity(std::vector<ScriptConf>& _scriptRegistry, Entity &_entity);
+
+        void Load(std::vector<ScriptConf>& _scriptRegistry);
+        void LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root);
+        Canis::Entity& DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID = true);
+        
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }

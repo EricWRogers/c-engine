@@ -89,6 +89,18 @@ namespace Canis
 
     void Scene::Load(std::vector<ScriptConf>& _scriptRegistry)
     {
+        YAML::Node root = YAML::LoadFile(m_path);
+
+        if (!root)
+        {
+            Debug::FatalError("Scene not found: %s", m_path.c_str());
+        }
+        
+        LoadSceneNode(_scriptRegistry, root);
+    }
+
+    void Scene::LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root)
+    {
         for (System* system : m_systems)
         {
             system->Create();
@@ -99,14 +111,7 @@ namespace Canis
             system->Ready();
         }
 
-        YAML::Node root = YAML::LoadFile(m_path);
-
-        if (!root)
-        {
-            Debug::FatalError("Scene not found: %s", m_path.c_str());
-        }
-        
-        auto environment = root["Environment"]; 
+        auto environment = _root["Environment"]; 
 
         if (environment)
         {
@@ -115,7 +120,7 @@ namespace Canis
             );
         }
 
-        auto entities = root["Entities"];
+        auto entities = _root["Entities"];
 
         if (entities)
         {
@@ -150,26 +155,10 @@ namespace Canis
     void Scene::Save(std::vector<ScriptConf>& _scriptRegistry)
     {
         Debug::Log("Save Scene");
+        
         YAML::Emitter out;
-        out << YAML::BeginMap;
 
-        out << YAML::Key << "Environment" << YAML::Value;
-        out << YAML::BeginMap;
-        out << YAML::Key << "ClearColor" << YAML::Value << m_window->GetClearColor();
-        out << YAML::EndMap;
-
-        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-
-        for(Entity* entity : m_entities)
-        {
-            if (!entity)
-                continue;
-
-            out << EncodeEntity(_scriptRegistry, *entity);
-        }
-
-        out << YAML::EndSeq;
-        out << YAML::EndMap;
+        out << EncodeScene(_scriptRegistry);
 
         if (m_path.size() > 0)
         {
@@ -181,6 +170,29 @@ namespace Canis
             std::ofstream fout(m_name);
             fout << out.c_str();
         }
+    }
+
+    YAML::Node Scene::EncodeScene(std::vector<ScriptConf>& _scriptRegistry)
+    {
+        YAML::Node node;
+
+        YAML::Node environment;
+        environment["ClearColor"] = m_window->GetClearColor();
+        node["Environment"] = environment;
+
+        YAML::Node entities = YAML::Node(YAML::NodeType::Sequence);
+
+        for(Entity* entity : m_entities)
+        {
+            if (!entity)
+                continue;
+
+            entities.push_back(EncodeEntity(_scriptRegistry, *entity));
+        }
+
+        node["Entities"] = entities;
+
+        return node;
     }
 
     YAML::Node Scene::EncodeEntity(std::vector<ScriptConf>& _scriptRegistry, Entity &_entity)

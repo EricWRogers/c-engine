@@ -29,16 +29,17 @@ void Camera2D::Create() {
     SetScale(1.0f);
 }
 
-void Camera2D::Update(float _dt) {
-    if (m_needsMatrixUpdate) {
-        m_view.Identity();
-        m_view.Translate(Vector3(-m_position.x + m_screenWidth / 2,
-                                 -m_position.y + m_screenHeight / 2, 0.0f));
-        m_view.Scale(Vector3(m_scale, m_scale, 0.0f));
+void Camera2D::Update(float _dt) {}
 
-        m_cameraMatrix = m_projection * m_view;
+void Camera2D::UpdateMatrix()
+{
+    m_view.Identity();
+    m_view.Translate(Vector3(-m_position.x + m_screenWidth / 2,
+                                -m_position.y + m_screenHeight / 2, 0.0f));
+    m_view.Scale(Vector3(m_scale, m_scale, 0.0f));
 
-        m_needsMatrixUpdate = false;
-    }
+    m_cameraMatrix = m_projection * m_view;
+
+    m_needsMatrixUpdate = false;
 }
 } // namespace Canis

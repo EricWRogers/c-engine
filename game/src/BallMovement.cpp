@@ -1,0 +1,129 @@
+#include "../include/BallMovement.hpp"
+
+#include <Canis/App.hpp>
+#include <Canis/Time.hpp>
+#include <Canis/Window.hpp>
+#include <Canis/InputManager.hpp>
+
+using namespace Canis;
+
+ScriptConf ballMovementConf = {
+    .name = "BallMovement",
+    .Add = [](Entity &_entity) -> void
+    {
+        // TODO: require a RectTransform component
+        // TODO: require a Sprite2D component
+        _entity.AddScript<BallMovement>();
+    },
+    .Has = [](Entity &_entity) -> bool
+    { return (_entity.GetScript<BallMovement>() != nullptr); },
+    .Remove = [](Entity &_entity) -> void
+    { _entity.RemoveScript<BallMovement>(); },
+    .Encode = [](YAML::Node &_node, Entity &_entity) -> void
+    {
+        if (_entity.GetScript<BallMovement>())
+        {
+            BallMovement &ball = *_entity.GetScript<BallMovement>();
+
+            YAML::Node comp;
+
+            comp["direction"] = ball.direction;
+            comp["speed"] = ball.speed;
+            comp["randomRotation"] = ball.randomRotation;
+
+            _node[ballMovementConf.name] = comp;
+        }
+    },
+    .Decode = [](YAML::Node &_node, Entity &_entity) -> void
+    {
+        if (auto ballComponent = _node["BallMovement"])
+        {
+            auto &ball = *_entity.AddScript<BallMovement>();
+            ball.direction = ballComponent["direction"].as<Vector2>();
+            ball.speed = ballComponent["speed"].as<float>();
+            ball.randomRotation = ballComponent["randomRotation"].as<float>();
+        }
+    },
+    .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
+    {
+        BallMovement *ball = nullptr;
+        if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
+        {
+            ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
+            ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
+            ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball->randomRotation);
+        }
+    },
+};
+
+void RegisterBallMovementScript(Canis::App &_app)
+{
+    _app.RegisterScript(ballMovementConf);
+}
+
+void UnRegisterBallMovementScript(Canis::App &_app)
+{
+    _app.UnregisterScript(ballMovementConf);
+}
+
+void BallMovement::Create()
+{
+    direction = Vector2(1.0f, 0.5f).Normalize();
+    direction = Vector2::Normalize(direction);
+}
+
+void BallMovement::Ready() { Canis::Debug::Log("OnReady"); }
+
+void BallMovement::Destroy() { Canis::Debug::Log("OnDestroy"); }
+
+void BallMovement::Update(float _dt)
+{
+    Vector2 delta = direction * speed * Time::DeltaTime();
+    transform.position += delta;
+    transform.rotation += DEG2RAD * 500.0f * Time::DeltaTime();
+
+    CheckWalls();
+}
+
+void BallMovement::EditorInspectorDraw()
+{
+    std::string nameOfType = "BallMovement";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputFloat2("direction", &direction.x, "%.3f");
+    ImGui::InputFloat("speed", &speed);
+    ImGui::InputFloat("randomRotation", &randomRotation);
+}
+
+void BallMovement::CheckWalls()
+{
+    Canis::Window &window = entity.scene->GetWindow();
+
+    if (window.GetScreenWidth() * 0.5f <= transform.position.x + transform.size.x * 0.5f)
+    {
+        if (direction.x > 0.0f)
+        {
+            direction.x *= -1.0f;
+        }
+    }
+    else if (-window.GetScreenWidth() * 0.5f >= transform.position.x - transform.size.x * 0.5f)
+    {
+        if (direction.x < 0.0f)
+        {
+            direction.x *= -1.0f;
+        }
+    }
+    else if (window.GetScreenHeight() * 0.5f <= transform.position.y + transform.size.y * 0.5f)
+    {
+        if (direction.y > 0.0f)
+        {
+            direction.y *= -1.0f;
+        }
+    }
+    else if (-window.GetScreenHeight() * 0.5f >= transform.position.y - transform.size.y * 0.5f)
+    {
+        if (direction.y < 0.0f)
+        {
+            direction.y *= -1.0f;
+        }
+    }
+}

@@ -9,11 +9,20 @@ add_definitions(-DCANIS_EDITOR)
 
 find_program(CCACHE_PROGRAM ccache)
 if (CCACHE_PROGRAM)
-    message(STATUS "Found ccache at ${CCACHE_PROGRAM}")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+  message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+  set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+  set(CMAKE_C_COMPILER_LAUNCHER  "${CCACHE_PROGRAM}")
 else()
     message(STATUS "ccache not found")
 endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  add_link_options(-fuse-ld=lld -Wl,--gc-sections)
+  add_compile_options(-ffunction-sections -fdata-sections)
+endif()
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -gsplit-dwarf")
+
+set_property(GLOBAL PROPERTY CMAKE_CONFIGURE_DEPENDS ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

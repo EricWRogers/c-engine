@@ -49,7 +49,7 @@ namespace Canis
     };
     struct GameController
     {
-        void* controller = nullptr;
+        void *controller = nullptr;
         GameControllerType gameControllerType = GameControllerType::XBOX;
         unsigned int index = 0;
         unsigned int joyId;

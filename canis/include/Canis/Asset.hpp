@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 
-#include <map>
-
 #include <Canis/Shader.hpp>
 #include <Canis/Data/GLTexture.hpp>
 

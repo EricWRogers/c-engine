@@ -14,7 +14,6 @@
 #include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/AssetManager.hpp>
-#include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
 {
@@ -32,6 +31,7 @@ namespace Canis
         // init window
         Window window("Canis Beta", 512, 512);
         window.SetClearColor(Color(1.0f));
+        window.SetSync(Window::Sync::IMMEDIATE);
 
         Editor editor;
         editor.Init(&window);
@@ -40,11 +40,9 @@ namespace Canis
 
         InputManager inputManager;
 
-        Time::Init(1200.0f);
+        Time::Init(30.0f);
 
         scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
-
-        scene.CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
 
         //scene.Load(m_scriptRegistry); // call after all the systems are added
 

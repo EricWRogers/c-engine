@@ -3,6 +3,7 @@
 #include <Canis/Entity.hpp>
 #include <Canis/System.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
 {
@@ -101,6 +102,8 @@ namespace Canis
 
     void Scene::LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root)
     {
+        CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+        
         for (System* system : m_systems)
         {
             system->Create();

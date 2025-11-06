@@ -32,7 +32,6 @@ public:
 
     void Create()
     {
-        Canis::Time::SetTargetFPS(30.0f);
         direction = Vector2(1.0f, 0.5f).Normalize();
         direction = Vector2::Normalize(direction);
     }
@@ -170,8 +169,6 @@ extern "C"
     {
         Canis::App &app = *(Canis::App *)_app;
         GameData &gameData = *(GameData *)_data;
-
-        app.SetTargetFPS(100000);
 
         if (app.scene.GetInputManager().JustPressedKey(Canis::Key::C))
         {

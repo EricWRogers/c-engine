@@ -6,6 +6,7 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/App.hpp>
+#include <Canis/Time.hpp>
 #include <Canis/Shader.hpp>
 
 #include <imgui.h>
@@ -546,6 +547,7 @@ namespace Canis
         static YAML::Node lastSceneNode;
 
         ImGui::Begin("Scene");
+
         if (m_mode == EditorMode::EDIT)
         {
             if (ImGui::Button("Save##ScenePanel")) {
@@ -553,6 +555,7 @@ namespace Canis
             }
             ImGui::SameLine();
             if (ImGui::Button("Play##ScenePanel")) {
+                Time::SetTargetFPS(10000.0f);
                 // save copy of scene
                 lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
 
@@ -562,6 +565,7 @@ namespace Canis
         else if (m_mode == EditorMode::PLAY)
         {
             if (ImGui::Button("Stop##ScenePanel")) {
+                Time::SetTargetFPS(30.0f);
                 m_mode = EditorMode::EDIT;
                 // restore from copy
                 m_scene->Unload();

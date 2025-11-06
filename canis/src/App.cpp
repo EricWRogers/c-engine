@@ -64,10 +64,10 @@ namespace Canis
             if (editor.m_mode == EditorMode::PLAY)
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             
-            GameCodeObjectWatchFile(&gameCodeObject, this);
+            // GameCodeObjectWatchFile(&gameCodeObject, this);
 
             scene.Render(deltaTime);
-            editor.Draw(&scene, &window, this);
+            editor.Draw(&scene, &window, this, &gameCodeObject);
             window.SwapBuffer();
 
             Time::EndFrame();

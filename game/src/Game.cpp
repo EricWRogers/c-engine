@@ -44,6 +44,7 @@ public:
     {
         Vector2 delta = direction * speed * Time::DeltaTime();
         transform.position += delta;
+        transform.rotation += DEG2RAD * 100.0f * Time::DeltaTime();
 
         CheckWalls();
     }

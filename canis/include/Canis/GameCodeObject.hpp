@@ -22,7 +22,7 @@ namespace Canis
         Uint64 _lastFileCheck;
     };
 
-    GameCodeObject GameCodeObjectInit(const char *_path)
+    static GameCodeObject GameCodeObjectInit(const char *_path)
     {
         GameCodeObject gco = {};
         gco.path = _path;
@@ -75,17 +75,17 @@ namespace Canis
         return gco;
     }
 
-    void GameCodeObjectInitFunction(GameCodeObject *_gameCodeObject, Canis::App *_app)
+    static void GameCodeObjectInitFunction(GameCodeObject *_gameCodeObject, Canis::App *_app)
     {
         _gameCodeObject->gameData = _gameCodeObject->GameInitFunction((void *)_app);
     }
 
-    void GameCodeObjectUpdateFunction(GameCodeObject *_gameCodeObject, Canis::App *_app, float _deltaTime)
+    static void GameCodeObjectUpdateFunction(GameCodeObject *_gameCodeObject, Canis::App *_app, float _deltaTime)
     {
         _gameCodeObject->GameUpdateFunction((void *)_app, _deltaTime, _gameCodeObject->gameData);
     }
 
-    void GameCodeObjectWatchFile(GameCodeObject *_gameCodeObject, Canis::App *_app)
+    static void GameCodeObjectWatchFile(GameCodeObject *_gameCodeObject, Canis::App *_app)
     {
         if (SDL_GetTicksNS() - _gameCodeObject->_lastFileCheck > 1.e9)
         {

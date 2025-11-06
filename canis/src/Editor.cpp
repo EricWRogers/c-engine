@@ -8,6 +8,7 @@
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Shader.hpp>
+#include <Canis/GameCodeObject.hpp>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -80,7 +81,7 @@ namespace Canis
 #endif
     }
 
-    void Editor::Draw(Scene *_scene, Window *_window, App *_app /*, Time *_time*/)
+    void Editor::Draw(Scene *_scene, Window *_window, App *_app /*, Time *_time*/, GameCodeObject* _gameSharedLib)
     {
 #if CANIS_EDITOR
         // if (GetProjectConfig().editor)
@@ -91,6 +92,7 @@ namespace Canis
         }
         m_app = _app;
         m_scene = _scene;
+        m_gameSharedLib = _gameSharedLib;
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -560,6 +562,18 @@ namespace Canis
                 lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
 
                 m_mode = EditorMode::PLAY;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reload##ScenePanel")) {
+                // save copy of scene
+                lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
+
+                // unload data
+                m_scene->Unload();
+
+                GameCodeObjectWatchFile(m_gameSharedLib, m_app);
+
+                m_scene->LoadSceneNode(m_app->GetScriptRegistry(), lastSceneNode);
             }
         }
         else if (m_mode == EditorMode::PLAY)

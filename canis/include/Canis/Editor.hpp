@@ -7,6 +7,7 @@ namespace Canis
     //class SceneManager;
     //class Time;
     class Window;
+    struct GameCodeObject;
 
     enum EditorMode
     {
@@ -24,7 +25,7 @@ namespace Canis
         Editor() = default;
         ~Editor() = default;
         void Init(Window* _window);
-        void Draw(Scene* _scene, Window* _window, App* _app/*, Time *_time*/);
+        void Draw(Scene* _scene, Window* _window, App* _app/*, Time *_time*/, GameCodeObject* _gameSharedLib);
 
         EditorMode GetMode() { return m_mode; }
     private:
@@ -49,6 +50,7 @@ namespace Canis
 
         Scene *m_scene;
         App *m_app;
+        GameCodeObject* m_gameSharedLib;
         int m_index = 0;
         bool m_forceRefresh = false;
         EditorMode m_mode = EditorMode::EDIT;

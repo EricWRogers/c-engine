@@ -66,7 +66,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_MOTION:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse)
+                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                     mouse.x = event.motion.x;
@@ -78,7 +78,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
             #if CANIS_EDITOR
-                if (io.WantCaptureMouse)
+                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                 m_scrollVertical = event.wheel.y;
@@ -87,14 +87,14 @@ namespace Canis
                 break;
             case SDL_EVENT_KEY_UP:
                 #if CANIS_EDITOR
-                if (io.WantCaptureKeyboard)
+                if (io.WantCaptureKeyboard && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                 ReleasedKey(event.key.scancode);
                 break;
             case SDL_EVENT_KEY_DOWN:
                 #if CANIS_EDITOR
-                if (io.WantCaptureKeyboard)
+                if (io.WantCaptureKeyboard && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                 Debug::Log("Key Down: %i", event.key.scancode);
@@ -103,7 +103,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse)
+                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                 if (event.button.button == SDL_BUTTON_LEFT)
@@ -113,7 +113,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse)
+                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
                     continue;
                 #endif
                 if (event.button.button == SDL_BUTTON_LEFT)

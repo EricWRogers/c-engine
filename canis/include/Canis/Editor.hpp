@@ -4,8 +4,6 @@ namespace Canis
 {
     class Scene;
     class App;
-    //class SceneManager;
-    //class Time;
     class Window;
     class Camera2D;
     struct GameCodeObject;
@@ -38,6 +36,8 @@ namespace Canis
         bool DrawHierarchyElement(int _index);
         void DrawEnvironment();
         void DrawScenePanel();
+
+        void SelectGameUI();
 
         void DrawGizmo(Camera2D *_camera2D);
         void DrawBoundingBox(Camera2D *_camera2D);

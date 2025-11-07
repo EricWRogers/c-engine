@@ -40,7 +40,7 @@ namespace Canis
 
         InputManager inputManager;
 
-        Time::Init(30.0f);
+        Time::Init(120.0f);
 
         scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
 

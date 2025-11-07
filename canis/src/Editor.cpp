@@ -8,6 +8,7 @@
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Shader.hpp>
+#include <Canis/InputManager.hpp>
 #include <Canis/GameCodeObject.hpp>
 
 #include <SDL3/SDL.h>
@@ -107,6 +108,8 @@ namespace Canis
         DrawEnvironment();
         // DrawSystemPanel();
         DrawScenePanel(); // draw last
+
+        SelectGameUI();
 
         // find camera and verfy target entity
         m_debugDraw = DebugDraw::NONE;
@@ -426,7 +429,7 @@ namespace Canis
             if (ImGui::Button("Stop##ScenePanel") || (ImGui::IsKeyDown(ImGuiKey_Q) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && hotKeyCoolDown < 0.0f))
             {
                 hotKeyCoolDown = HOTKEYRESET;
-                Time::SetTargetFPS(30.0f);
+                Time::SetTargetFPS(120.0f);
                 m_mode = EditorMode::EDIT;
                 // restore from copy
                 m_scene->Unload();
@@ -439,6 +442,57 @@ namespace Canis
         ImGui::SameLine();
         ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
         ImGui::End();
+    }
+
+    void Editor::SelectGameUI()
+    {
+        // TODO: this will only be true when the mouse is over the game window
+        if (m_scene->GetInputManager().GetLeftClick() == false)
+            return;
+
+        // TODO: this will need to be adjested when I add canvas
+        Vector2 mouse = m_scene->GetInputManager().mouse - (Vector2(m_window->GetScreenWidth(), m_window->GetScreenHeight()) / 2.0f);
+
+        bool mouseLock = false;
+
+        for (int i = 0; i < m_scene->GetEntities().size(); i++)
+        {
+            if (m_scene->GetEntities()[i] == nullptr)
+                continue;
+
+            RectTransform* transform = m_scene->GetEntities()[i]->GetScript<RectTransform>();
+
+            if (transform == nullptr)
+                continue;
+            
+            Vector2 globalPos = transform->position;//rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
+            float globalRotation = transform->rotation;//rect_transform.GetGlobalRotation();
+
+            if (globalRotation != 0.0f)
+            {
+                RotatePointAroundPivot(
+                    mouse,
+                    globalPos/* + rect_transform.originOffset + rect_transform.rotationOriginOffset*/,
+                    -globalRotation);
+            }
+
+            // TODO: should add depth sort
+            if (mouse.x > globalPos.x + transform->originOffset.x &&
+                mouse.x < globalPos.x + transform->originOffset.x + (transform->size.x * transform->scale.x) &&
+                mouse.y > globalPos.y + transform->originOffset.y &&
+                mouse.y < globalPos.y + transform->originOffset.y + (transform->size.y * transform->scale.y) &&
+                !mouseLock)
+            {
+                m_index = i;
+                //Debug::Log("Found {%f, %f}", globalPos.x, globalPos.y);
+            }
+            //else
+            //{
+            //    Debug::Log("Missed {%f, %f}", globalPos.x, globalPos.y);
+            //}
+        }
+
+        //Debug::Log("Mouse {%f, %f}", mouse.x, mouse.y);
     }
 
     void Editor::DrawGizmo(Camera2D *_camera2D)

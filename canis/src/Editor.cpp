@@ -447,7 +447,7 @@ namespace Canis
     void Editor::SelectGameUI()
     {
         // TODO: this will only be true when the mouse is over the game window
-        if (m_scene->GetInputManager().GetLeftClick() == false)
+        if (m_scene->GetInputManager().JustLeftClicked() == false)
             return;
 
         // TODO: this will need to be adjested when I add canvas

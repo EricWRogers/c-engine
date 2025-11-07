@@ -36,7 +36,7 @@ Entities:
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [-64.85695, 27.362997]
+      position: [-71.85695, 146.36299]
       size: [32, 32]
       scale: [1, 1]
       originOffset: [0, 0]

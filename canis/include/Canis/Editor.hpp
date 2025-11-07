@@ -7,12 +7,14 @@ namespace Canis
     //class SceneManager;
     //class Time;
     class Window;
+    class Camera2D;
     struct GameCodeObject;
 
     enum EditorMode
     {
         EDIT,
         PLAY,
+        PAUSE,
         HIDDEN
     };
 
@@ -25,7 +27,7 @@ namespace Canis
         Editor() = default;
         ~Editor() = default;
         void Init(Window* _window);
-        void Draw(Scene* _scene, Window* _window, App* _app/*, Time *_time*/, GameCodeObject* _gameSharedLib);
+        void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib);
 
         EditorMode GetMode() { return m_mode; }
     private:
@@ -34,7 +36,11 @@ namespace Canis
         //void DrawSystemPanel();
         bool DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);
+        void DrawEnvironment();
         void DrawScenePanel();
+
+        void DrawGizmo(Camera2D *_camera2D);
+        void DrawBoundingBox(Camera2D *_camera2D);
 
         //bool IsDescendantOf(Entity _potentialAncestor, Entity _entity);
 
@@ -50,11 +56,11 @@ namespace Canis
 
         Scene *m_scene;
         App *m_app;
+        Window* m_window;
         GameCodeObject* m_gameSharedLib;
         int m_index = 0;
         bool m_forceRefresh = false;
         EditorMode m_mode = EditorMode::EDIT;
         DebugDraw m_debugDraw = DebugDraw::NONE;
-        //Entity debugRectTransformEntity;
     };
 }

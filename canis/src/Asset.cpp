@@ -103,8 +103,6 @@ namespace Canis
     {
         if (FileExists((_path + ".meta").c_str()))
         {
-            Debug::Log("File Found");
-
             YAML::Node root = YAML::LoadFile(_path+".meta");
             uuid = root["UUID"].as<uint64_t>(0);
             path = root["path"].as<std::string>();
@@ -115,7 +113,6 @@ namespace Canis
         }
         else
         {
-            Debug::Log("File Not Found");
             CreateMetaFile(_path);
         }
 

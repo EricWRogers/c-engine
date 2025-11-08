@@ -478,6 +478,24 @@ namespace Canis
 
         ImGui::SameLine();
         ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
+
+        ImGui::SameLine();
+
+        if (m_guizmoMode == GuizmoMode::LOCAL)
+        {
+            if (ImGui::Button("Local##ScenePanel"))
+            {
+                m_guizmoMode = GuizmoMode::WORLD;
+            }
+        }
+        else
+        {
+            if (ImGui::Button("World##ScenePanel"))
+            {
+                m_guizmoMode = GuizmoMode::LOCAL;
+            }
+        }
+
         ImGui::End();
     }
 
@@ -614,7 +632,7 @@ namespace Canis
             &view[0],
             &projection[0],
             operation,
-            ImGuizmo::LOCAL,
+            (ImGuizmo::MODE)m_guizmoMode,
             &model[0]);
 
         Vector2 cameraPos = _camera2D->GetPosition();

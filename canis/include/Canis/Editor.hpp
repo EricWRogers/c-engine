@@ -16,6 +16,12 @@ namespace Canis
         HIDDEN
     };
 
+    enum GuizmoMode
+    {
+        LOCAL = 0,
+        WORLD = 1,
+    };
+
     class Editor
     {
     friend class Scene;
@@ -63,5 +69,6 @@ namespace Canis
         bool m_forceRefresh = false;
         EditorMode m_mode = EditorMode::EDIT;
         DebugDraw m_debugDraw = DebugDraw::NONE;
+        GuizmoMode m_guizmoMode = GuizmoMode::WORLD;
     };
 }

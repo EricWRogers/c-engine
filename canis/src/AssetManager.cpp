@@ -101,6 +101,50 @@ namespace Canis
 
             return id;
         }
+
+        int LoadMetaFile(const std::string &_path)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+
+            std::map<std::string, int>::iterator it;
+            it = assetLibrary.assetPath.find(_path+".meta");
+
+            // check if meta file already exist
+            if (it != assetLibrary.assetPath.end()) // found
+            {
+                return it->second;
+            }
+
+            // create texture
+            Asset *metaFile = new MetaFileAsset();
+            metaFile->Load(_path);
+            int id = assetLibrary.nextId;
+
+            // cache texture
+            assetLibrary.assets[id] = metaFile;
+
+            // cache id
+            assetLibrary.assetPath[_path+".meta"] = id;
+
+            // uuid
+            assetLibrary.uuidAssetPath[((MetaFileAsset*)metaFile)->uuid] = _path;
+
+            // increment id
+            assetLibrary.nextId++;
+
+            return id;
+        }
+
+        MetaFileAsset* GetMetaFile(const std::string &_path)
+        {
+            return GetMetaFile(LoadMetaFile(_path));
+        }
+
+        MetaFileAsset* GetMetaFile(const int _metaID)
+        {
+            return (MetaFileAsset *)GetAssetLibrary().assets[_metaID];
+        }
+
     } // end of AssetManager namespace
 
 } // end of Canis namespace

@@ -10,6 +10,7 @@
 #include <Canis/Shader.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/GameCodeObject.hpp>
+#include <Canis/AssetManager.hpp>
 
 #include <SDL3/SDL.h>
 
@@ -20,8 +21,27 @@
 
 #include <ImGuizmo.h>
 
+#include <filesystem>
+
 namespace Canis
 {
+    std::vector<std::string> FindFilesInFolder(const std::string &_folder, const std::string &_extension)
+    {
+        namespace fs = std::filesystem;
+
+        std::vector<std::string> files;
+
+        for (const auto &entry : fs::recursive_directory_iterator(_folder))
+        {
+            if (entry.is_regular_file() && entry.path().extension() != ".meta")// && entry.path().extension() == _extension)
+            {
+                files.push_back(entry.path().generic_string());
+            }
+        }
+
+        return files;
+    }
+
     std::vector<const char *> ConvertComponentToCStringVector(App &_app, Entity &_entity)
     {
         std::vector<const char *> cStringVector;
@@ -107,6 +127,7 @@ namespace Canis
         DrawInspectorPanel(refresh);
         DrawEnvironment();
         // DrawSystemPanel();
+        DrawAssetsPanel();
         DrawScenePanel(); // draw last
 
         SelectGameUI();
@@ -364,6 +385,22 @@ namespace Canis
         ImGui::End();
     }
 
+    void Editor::DrawAssetsPanel()
+    {
+        ImGui::Begin("Assets");
+
+        std::vector<std::string> paths = FindFilesInFolder("assets","");
+
+        for (std::string path : paths)
+        {
+            ImGui::Text("%s", path.c_str());
+            MetaFileAsset& metaAsset = *AssetManager::GetMetaFile(path);
+            Debug::Log("UUID: %ld Path: %s Name: %s Extension: %s", metaAsset.uuid, metaAsset.path.c_str(), metaAsset.name.c_str(), metaAsset.extension.c_str());
+        }
+        
+        ImGui::End();
+    }
+    
     void Editor::DrawScenePanel()
     {
         static YAML::Node lastSceneNode;

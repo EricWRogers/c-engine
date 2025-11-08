@@ -4,6 +4,9 @@
 #include <Canis/Shader.hpp>
 #include <Canis/Data/GLTexture.hpp>
 
+#include <Canis/UUID.hpp>
+#include <Canis/Data/Types.hpp>
+
 namespace Canis
 {
     class Asset
@@ -45,5 +48,35 @@ namespace Canis
         bool Free() override;
 
         Canis::Shader *GetShader() { return m_shader; }
+    };
+
+    class MetaFileAsset : public Asset
+    {
+    private:
+    public:
+        enum FileType {
+            FILE_UNKNOWN,
+            FRAGMENT,
+            VERTEX,
+            TEXTURE,
+            SCENE,
+        };
+
+        MetaFileAsset() {}
+
+        void CreateMetaFile(std::string _path);
+
+        bool Load(std::string _path) override;
+        bool Free() override { return true; }
+
+        FileType type = FILE_UNKNOWN;
+        UUID uuid;
+        std::string path = "";
+        std::string name = "";
+        std::string extension = "";
+        u64 size = 0;
+        // i64 created
+        i64 modified = 0; // nanoseconds since the Unix epoch (Jan 1, 1970).
+        // i64 accessed
     };
 } // end of Canis namespace

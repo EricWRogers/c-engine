@@ -1,10 +1,14 @@
 #include <Canis/Asset.hpp>
+#include <Canis/Yaml.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/OpenGL.hpp>
 #include <Canis/IOManager.hpp>
 #include <memory>
 #include <string.h>
 #include <unordered_map>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_filesystem.h>
 
 namespace Canis
 {
@@ -38,5 +42,83 @@ namespace Canis
     {
         delete m_shader;
         return true;
+    }
+
+    std::string FileTypeToString(MetaFileAsset::FileType _type)
+    {
+        switch (_type)
+        {
+            case MetaFileAsset::FileType::FRAGMENT:
+                return "FRAGMENT";
+            case MetaFileAsset::FileType::VERTEX:
+                return "VERTEX";
+            case MetaFileAsset::FileType::TEXTURE:
+                return "TEXTURE";
+            case MetaFileAsset::FileType::SCENE:
+                return "SCENE";
+            default:
+                return "FILE_UNKNOWN";
+        }
+    }
+    
+    void MetaFileAsset::CreateMetaFile(std::string _path)
+    {
+        SDL_PathInfo info;
+
+        if (SDL_GetPathInfo(_path.c_str(), &info))
+        {
+            path = _path;
+            name = GetFileName(_path);
+            extension = GetFileExtension(_path);
+
+            if (extension == "png")
+                type = FileType::TEXTURE;
+            else if (extension == "scene")
+                type = FileType::SCENE;
+            else if (extension == "fs")
+                type = FileType::FRAGMENT;
+            else if (extension == "vs")
+                type = FileType::VERTEX;
+            else
+                type = FileType::FILE_UNKNOWN;
+
+            size = info.size;
+            modified = info.modify_time;
+
+            YAML::Node node;
+            node["FileType"] = FileTypeToString(type);
+            node["UUID"] = std::to_string(uuid);
+            node["path"] = path;
+            node["name"] = name;
+            node["extension"] = extension;
+            node["size"] = size;
+            node["modified"] = modified;
+
+            std::ofstream fout(_path + ".meta");
+            fout << node;
+        }
+    }
+
+    bool MetaFileAsset::Load(std::string _path)
+    {
+        if (FileExists((_path + ".meta").c_str()))
+        {
+            Debug::Log("File Found");
+
+            YAML::Node root = YAML::LoadFile(_path+".meta");
+            uuid = root["UUID"].as<uint64_t>(0);
+            path = root["path"].as<std::string>();
+            name = root["name"].as<std::string>();
+            extension = root["extension"].as<std::string>();
+            size = root["size"].as<u64>();
+            modified = root["modified"].as<i64>();
+        }
+        else
+        {
+            Debug::Log("File Not Found");
+            CreateMetaFile(_path);
+        }
+
+        return false;
     }
 }

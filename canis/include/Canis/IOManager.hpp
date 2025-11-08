@@ -13,6 +13,12 @@ namespace Canis
 
 	extern GLTexture LoadImageToGLTexture(std::string filePath, int sourceFormat, int format);
 
+    extern std::string GetFileName(std::string _path);
+
+    extern std::string GetFileExtension(std::string _path);
+
+	extern bool FileExists(const char *_path);
+
 	/*extern unsigned int LoadImageToCubemap(std::vector<std::string> faces, GLint sourceFormat);
 
 	extern bool LoadOBJ(std::string path,

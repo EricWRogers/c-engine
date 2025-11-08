@@ -35,6 +35,7 @@ namespace Canis
         bool DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);
         void DrawEnvironment();
+        void DrawAssetsPanel();
         void DrawScenePanel();
 
         void SelectGameUI();

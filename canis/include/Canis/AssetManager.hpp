@@ -15,6 +15,7 @@ namespace Canis
             int nextId{0};
             std::map<int, void *> assets{};
             std::map<std::string, int> assetPath{};
+            std::map<UUID, std::string> uuidAssetPath{};
         };
 
         AssetLibrary &GetAssetLibrary();
@@ -77,5 +78,9 @@ namespace Canis
         TextureHandle GetTextureHandle(const int _textureID);
 
         int LoadShader(const std::string &_pathWithOutExtension);
+
+        int LoadMetaFile(const std::string &_path);
+        MetaFileAsset* GetMetaFile(const std::string &_path);
+        MetaFileAsset* GetMetaFile(const int _metaID);
     } // end of AssetManager namespace
 } // end of Canis namespace

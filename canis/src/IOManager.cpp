@@ -91,6 +91,58 @@ namespace Canis
 		return texture;
 	}
 
+	// TODO : Add ERROR Check
+    std::string GetFileName(std::string _path)
+    {
+        for (int i = _path.size(); i > -1; i--)
+        {
+            if (_path[i] == '.')
+            {
+                _path.erase(_path.begin() + i, _path.end());
+            }
+
+            if (_path[i] == '/')
+            {
+                _path.erase(_path.begin(), _path.begin() + i + 1);
+                break;
+            }
+
+            if (_path[i] == '\\') // check on windows
+            {
+                _path.erase(_path.begin(), _path.begin() + i + 1);
+                break;
+            }
+        }
+
+        return _path;
+    }
+
+    // TODO : Add ERROR Check
+    std::string GetFileExtension(std::string _path)
+    {
+        for (int i = _path.size(); i > -1; i--)
+        {
+            if (_path[i] == '.')
+            {
+                _path.erase(_path.begin(), _path.begin() + i + 1);
+                break;
+            }
+        }
+
+        return _path;
+    }
+
+	bool FileExists(const char *_path)
+    {
+        FILE *file = fopen(_path, "r");
+        if (file)
+        {
+            fclose(file);
+            return true;
+        }
+        return false;
+    }
+
     /*
 	// loads a cubemap texture from 6 individual texture faces
 	// order:

@@ -23,7 +23,7 @@ namespace Canis
 #ifdef Win32
         const char *sharedObjectPath = "./libGameCode.dll";
 #elif __APPLE__
-        const char *sharedOpbjectPath = "./libGameCode.dylib";
+        const char *sharedObjectPath = "./libGameCode.dylib";
 #else
         const char *sharedObjectPath = "./libGameCode.so";
 #endif

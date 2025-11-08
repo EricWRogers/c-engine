@@ -16,11 +16,11 @@ else()
     message(STATUS "ccache not found")
 endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-  add_link_options(-fuse-ld=lld -Wl,--gc-sections)
-  add_compile_options(-ffunction-sections -fdata-sections)
-endif()
-string(APPEND CMAKE_CXX_FLAGS_DEBUG " -gsplit-dwarf")
+#if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+#  add_link_options(-fuse-ld=lld -Wl,--gc-sections)
+#  add_compile_options(-ffunction-sections -fdata-sections)
+#endif()
+#string(APPEND CMAKE_CXX_FLAGS_DEBUG " -gsplit-dwarf")
 
 set_property(GLOBAL PROPERTY CMAKE_CONFIGURE_DEPENDS ON)
 

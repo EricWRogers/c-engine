@@ -54,8 +54,8 @@ namespace Canis
         Vector2 &operator*=(float scalar);
         Vector2 &operator/=(float scalar);
 
-        bool operator==(const Vector2 &_other) { return x == _other.x && y == _other.y; }
-        bool operator!=(const Vector2 &_other) { return x != _other.x || y != _other.y; }
+        bool operator==(const Vector2 &_other) const { return x == _other.x && y == _other.y; }
+        bool operator!=(const Vector2 &_other) const { return x != _other.x || y != _other.y; }
     };
 
     const Vector2 VECTOR2_ZERO;

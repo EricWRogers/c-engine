@@ -1,6 +1,7 @@
 #include <Canis/Math.hpp>
 #include <functional>
 #include <math.h>
+#include <cmath>
 #include <string>
 
 namespace Canis

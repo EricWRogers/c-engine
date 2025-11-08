@@ -28,7 +28,7 @@ namespace Canis
         gco.path = _path;
 
         // load gameplay shared library
-        gco.sharedObjectHandle = SDL_LoadObject("./libGameCode.so");
+        gco.sharedObjectHandle = SDL_LoadObject(_path);
         if (gco.sharedObjectHandle == NULL)
         {
             Debug::Log("Error loading shared object: %s", SDL_GetError());

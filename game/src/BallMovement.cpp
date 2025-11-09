@@ -68,11 +68,15 @@ void UnRegisterBallMovementScript(Canis::App &_app)
 
 void BallMovement::Create()
 {
-    direction = Vector2(1.0f, 0.5f).Normalize();
+    direction = Vector2(-1.0f, -1.0f).Normalize();
     direction = Vector2::Normalize(direction);
 }
 
-void BallMovement::Ready() { Canis::Debug::Log("OnReady"); }
+void BallMovement::Ready()
+{
+    direction = Vector2(-1.0f, -1.0f).Normalize();
+    direction = Vector2::Normalize(direction);
+}
 
 void BallMovement::Destroy() { Canis::Debug::Log("OnDestroy"); }
 
@@ -80,7 +84,7 @@ void BallMovement::Update(float _dt)
 {
     Vector2 delta = direction * speed * Time::DeltaTime();
     transform.position += delta;
-    transform.rotation += DEG2RAD * 500.0f * Time::DeltaTime();
+    transform.rotation += DEG2RAD * 5000.0f * Time::DeltaTime();
 
     CheckWalls();
 }

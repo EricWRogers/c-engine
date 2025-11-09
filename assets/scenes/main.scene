@@ -66,7 +66,7 @@ Entities:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]
       TextureAsset:
-        path: assets/textures/awesome_face.png
+        path: assets/textures/arrow_decorative_n.png
     BallMovement:
       direction: [0.89442724, 0.44721362]
       speed: 100

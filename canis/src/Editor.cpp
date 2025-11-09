@@ -33,7 +33,7 @@ namespace Canis
 
         for (const auto &entry : fs::recursive_directory_iterator(_folder))
         {
-            if (entry.is_regular_file() && entry.path().extension() != ".meta")// && entry.path().extension() == _extension)
+            if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string() != ".DS_Store") // && entry.path().extension() == _extension)
             {
                 files.push_back(entry.path().generic_string());
             }
@@ -101,6 +101,8 @@ namespace Canis
         // Setup Platform/Renderer backends
         ImGui_ImplSDL3_InitForOpenGL((SDL_Window *)_window->GetSDLWindow(), (SDL_GLContext)_window->GetGLContext());
         ImGui_ImplOpenGL3_Init(OPENGLVERSION);
+
+        m_assetPaths = FindFilesInFolder("assets", "");
 #endif
     }
 
@@ -389,18 +391,27 @@ namespace Canis
     {
         ImGui::Begin("Assets");
 
-        std::vector<std::string> paths = FindFilesInFolder("assets","");
-
-        for (std::string path : paths)
+        for (const std::string &path : m_assetPaths)
         {
-            ImGui::Text("%s", path.c_str());
-            MetaFileAsset& metaAsset = *AssetManager::GetMetaFile(path);
-            Debug::Log("UUID: %ld Path: %s Name: %s Extension: %s", metaAsset.uuid, metaAsset.path.c_str(), metaAsset.name.c_str(), metaAsset.extension.c_str());
+            MetaFileAsset &metaAsset = *AssetManager::GetMetaFile(path);
+            UUID uuid = metaAsset.uuid;
+
+            ImGui::Text("%s", metaAsset.name.c_str());
+
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            {
+                ImGui::SetDragDropPayload("ASSET_UUID", &uuid, sizeof(UUID));
+
+                // TODO: Change Asset to File Type
+                ImGui::Text("Asset: %s", metaAsset.name.c_str());
+
+                ImGui::EndDragDropSource();
+            }
         }
-        
+
         ImGui::End();
     }
-    
+
     void Editor::DrawScenePanel()
     {
         static YAML::Node lastSceneNode;
@@ -430,6 +441,8 @@ namespace Canis
             if (ImGui::Button("Reload##ScenePanel") || (ImGui::IsKeyDown(ImGuiKey_R) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && hotKeyCoolDown < 0.0f))
             {
                 hotKeyCoolDown = HOTKEYRESET;
+
+                m_assetPaths = FindFilesInFolder("assets", "");
 
                 // save copy of scene
                 lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
@@ -515,19 +528,19 @@ namespace Canis
             if (m_scene->GetEntities()[i] == nullptr)
                 continue;
 
-            RectTransform* transform = m_scene->GetEntities()[i]->GetScript<RectTransform>();
+            RectTransform *transform = m_scene->GetEntities()[i]->GetScript<RectTransform>();
 
             if (transform == nullptr)
                 continue;
-            
-            Vector2 globalPos = transform->position;//rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
-            float globalRotation = transform->rotation;//rect_transform.GetGlobalRotation();
+
+            Vector2 globalPos = transform->position;    // rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
+            float globalRotation = transform->rotation; // rect_transform.GetGlobalRotation();
 
             if (globalRotation != 0.0f)
             {
                 RotatePointAroundPivot(
                     mouse,
-                    globalPos/* + rect_transform.originOffset + rect_transform.rotationOriginOffset*/,
+                    globalPos /* + rect_transform.originOffset + rect_transform.rotationOriginOffset*/,
                     -globalRotation);
             }
 
@@ -539,15 +552,15 @@ namespace Canis
                 !mouseLock)
             {
                 m_index = i;
-                //Debug::Log("Found {%f, %f}", globalPos.x, globalPos.y);
+                // Debug::Log("Found {%f, %f}", globalPos.x, globalPos.y);
             }
-            //else
+            // else
             //{
-            //    Debug::Log("Missed {%f, %f}", globalPos.x, globalPos.y);
-            //}
+            //     Debug::Log("Missed {%f, %f}", globalPos.x, globalPos.y);
+            // }
         }
 
-        //Debug::Log("Mouse {%f, %f}", mouse.x, mouse.y);
+        // Debug::Log("Mouse {%f, %f}", mouse.x, mouse.y);
     }
 
     void Editor::DrawGizmo(Camera2D *_camera2D)

@@ -44,12 +44,12 @@ namespace Canis
 
         scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
 
-        //scene.Load(m_scriptRegistry); // call after all the systems are added
-
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
 
-        scene.Load(m_scriptRegistry); // call after all the systems are added
+        // call after all the systems are added
+        // and after script from the game lib have been registered
+        scene.Load(m_scriptRegistry);
 
         while (inputManager.Update((void *)&window))
         {
@@ -186,6 +186,24 @@ namespace Canis
                     // textureHandle
                     ImGui::ColorEdit4("color", &sprite->color.r);
                     ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
+
+                    ImGui::Button("Drop Asset Here", ImVec2(150, 0));
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_UUID"))
+                        {
+                            const UUID dropped = *static_cast<const UUID*>(payload->Data);
+                            std::string path = AssetManager::GetPath(dropped);
+                            TextureAsset* asset = AssetManager::GetTexture(path);
+
+                            if (asset)
+                            {
+                                sprite->textureHandle = AssetManager::GetTextureHandle(path);
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
                 }
             },
         };

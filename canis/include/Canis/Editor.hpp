@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace Canis
 {
     class Scene;
@@ -70,5 +73,6 @@ namespace Canis
         EditorMode m_mode = EditorMode::EDIT;
         DebugDraw m_debugDraw = DebugDraw::NONE;
         GuizmoMode m_guizmoMode = GuizmoMode::WORLD;
+        std::vector<std::string> m_assetPaths = {};
     };
 }

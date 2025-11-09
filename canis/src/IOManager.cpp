@@ -1,6 +1,9 @@
 #include <Canis/IOManager.hpp>
 #include <string>
 #include <fstream>
+#include <cstdlib>
+#include <filesystem>
+
 
 #include <Canis/Math.hpp>
 #include <Canis/Debug.hpp>
@@ -142,6 +145,20 @@ namespace Canis
         }
         return false;
     }
+
+	void OpenInVSCode(const std::string& _filePath)
+	{
+	#if defined(_WIN32)
+		std::string cmd = "code \"" + _filePath + "\"";
+	#elif defined(__APPLE__)
+		// macOS: assume VS Code installed via Homebrew or standard path
+		std::string cmd = "open -a \"Visual Studio Code\" \"" + _filePath + "\"";
+	#else
+		// Linux: assumes "code" is in PATH
+		std::string cmd = "code \"" + _filePath + "\"";
+	#endif
+		std::system(cmd.c_str());
+	}
 
     /*
 	// loads a cubemap texture from 6 individual texture faces

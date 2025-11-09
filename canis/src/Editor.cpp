@@ -8,6 +8,7 @@
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Shader.hpp>
+#include <Canis/IOManager.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/GameCodeObject.hpp>
 #include <Canis/AssetManager.hpp>
@@ -33,7 +34,7 @@ namespace Canis
 
         for (const auto &entry : fs::recursive_directory_iterator(_folder))
         {
-            if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string() != ".DS_Store") // && entry.path().extension() == _extension)
+            if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string()[0] != '.') // && entry.path().extension() == _extension)
             {
                 files.push_back(entry.path().generic_string());
             }
@@ -387,27 +388,72 @@ namespace Canis
         ImGui::End();
     }
 
-    void Editor::DrawAssetsPanel()
+    void Editor::DrawDirectoryRecursive(const std::string &_dirPath)
     {
-        ImGui::Begin("Assets");
+        namespace fs = std::filesystem;
 
-        for (const std::string &path : m_assetPaths)
+        fs::path path = _dirPath;
+
+        for (const auto &entry : fs::directory_iterator(path))
         {
-            MetaFileAsset &metaAsset = *AssetManager::GetMetaFile(path);
-            UUID uuid = metaAsset.uuid;
+            const std::string name = entry.path().filename().string();
 
-            ImGui::Text("%s", metaAsset.name.c_str());
+            if (name == ".DS_Store" || entry.path().extension() == ".meta")
+                continue;
 
-            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            if (entry.is_directory())
             {
-                ImGui::SetDragDropPayload("ASSET_UUID", &uuid, sizeof(UUID));
+                ImGuiTreeNodeFlags nodeFlags =
+                    ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+                bool open = ImGui::TreeNodeEx(name.c_str(), nodeFlags);
 
-                // TODO: Change Asset to File Type
-                ImGui::Text("Asset: %s", metaAsset.name.c_str());
+                if (open)
+                {
+                    DrawDirectoryRecursive(entry.path().string()); // recursive call
+                    ImGui::TreePop();
+                }
+            }
+            else if (entry.is_regular_file())
+            {
+                ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
 
-                ImGui::EndDragDropSource();
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+                {
+                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
+                    if (meta)
+                    {
+                        UUID uuid = meta->uuid;
+                        ImGui::SetDragDropPayload("ASSET_UUID", &uuid, sizeof(UUID));
+                        ImGui::Text("Asset: %s", meta->name.c_str());
+                    }
+                    ImGui::EndDragDropSource();
+                }
+
+                // double-click
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
+
+                    if (meta && meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
+                    {
+                        //OpenInVSCode(std::string(SDL_GetBasePath()) + "/" + meta->path);
+
+                        m_scene->Unload();
+                        m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
+                        m_scene->Load(m_app->GetScriptRegistry());
+                    }
+                }
             }
         }
+    }
+
+    void Editor::DrawAssetsPanel()
+    {
+        namespace fs = std::filesystem;
+
+        ImGui::Begin("Assets");
+
+        DrawDirectoryRecursive("assets");
 
         ImGui::End();
     }

@@ -19,6 +19,8 @@ namespace Canis
 
 	extern bool FileExists(const char *_path);
 
+	extern void OpenInVSCode(const std::string& _filePath);
+
 	/*extern unsigned int LoadImageToCubemap(std::vector<std::string> faces, GLint sourceFormat);
 
 	extern bool LoadOBJ(std::string path,

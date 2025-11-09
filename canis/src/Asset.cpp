@@ -60,6 +60,20 @@ namespace Canis
                 return "FILE_UNKNOWN";
         }
     }
+
+    MetaFileAsset::FileType StringToFileType(std::string _type)
+    {
+        if (_type == "FRAGMENT")
+            return MetaFileAsset::FileType::FRAGMENT;
+        else if (_type == "VERTEX")
+            return MetaFileAsset::FileType::VERTEX;
+        else if (_type == "TEXTURE")
+            return MetaFileAsset::FileType::TEXTURE;
+        else if (_type == "SCENE")
+            return MetaFileAsset::FileType::SCENE;
+        else
+            return MetaFileAsset::FileType::FILE_UNKNOWN;
+    }
     
     void MetaFileAsset::CreateMetaFile(std::string _path)
     {
@@ -104,6 +118,7 @@ namespace Canis
         if (FileExists((_path + ".meta").c_str()))
         {
             YAML::Node root = YAML::LoadFile(_path+".meta");
+            type = StringToFileType(root["FileType"].as<std::string>());
             uuid = root["UUID"].as<uint64_t>(0);
             path = root["path"].as<std::string>();
             name = root["name"].as<std::string>();

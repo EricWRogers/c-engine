@@ -45,6 +45,7 @@ namespace Canis
         bool DrawHierarchyElement(int _index);
         void DrawEnvironment();
         void DrawAssetsPanel();
+        void DrawDirectoryRecursive(const std::string &_dirPath);
         void DrawScenePanel();
 
         void SelectGameUI();

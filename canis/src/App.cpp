@@ -187,7 +187,11 @@ namespace Canis
                     ImGui::ColorEdit4("color", &sprite->color.r);
                     ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
 
-                    ImGui::Button("Drop Asset Here", ImVec2(150, 0));
+                    ImGui::Text("texture");
+
+                    ImGui::SameLine();
+
+                    ImGui::Button(AssetManager::GetMetaFile(AssetManager::GetPath(sprite->textureHandle.id))->name.c_str(), ImVec2(150, 0));
 
                     if (ImGui::BeginDragDropTarget())
                     {

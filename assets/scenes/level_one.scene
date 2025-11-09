@@ -1,0 +1,53 @@
+Environment:
+  ClearColor: [1, 0.32352936, 0, 1]
+Entities:
+  - Entity: 752832027556229489
+    Name: Camera
+    Tag: MainCamera
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Camera2D:
+      position: [0, 0]
+      scale: 1
+  - Entity: 4565708369290017478
+    Name: Circle
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [64, 64]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        path: assets/defaults/textures/circle.png
+  - Entity: 8958296995334191509
+    Name: Ball
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [-218.85695, 105.36299]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        path: assets/textures/awesome_face.png
+    BallMovement:
+      direction: [0.89442724, 0.44721362]
+      speed: 100
+      randomRotation: 0

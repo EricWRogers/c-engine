@@ -54,6 +54,25 @@ namespace Canis
             return std::string("Path was not found in AssetLibrary");
         }
 
+        inline void MoveAsset(std::string &_source, std::string _target)
+        {
+            // update meta
+
+            // name
+            
+            // path
+
+            // assetPath
+
+            // uuidAssetPath
+
+            // move asset
+
+            // move asset meta
+
+            // save updated meta
+        }
+
         template <typename T>
         void Free(std::string _name)
         {

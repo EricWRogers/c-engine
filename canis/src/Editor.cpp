@@ -388,69 +388,108 @@ namespace Canis
         ImGui::End();
     }
 
-    void Editor::DrawDirectoryRecursive(const std::string &_dirPath)
+    struct AssetDragData
+{
+    UUID uuid;
+    char path[512]; // full path to file
+};
+
+
+    void Editor::DrawDirectoryRecursive(const std::string& _dirPath)
+{
+    namespace fs = std::filesystem;
+    fs::path path = _dirPath;
+
+    for (const auto& entry : fs::directory_iterator(path))
     {
-        namespace fs = std::filesystem;
+        const std::string name = entry.path().filename().string();
+        if (name == ".DS_Store" || entry.path().extension() == ".meta")
+            continue;
 
-        fs::path path = _dirPath;
-
-        for (const auto &entry : fs::directory_iterator(path))
+        if (entry.is_directory())
         {
-            const std::string name = entry.path().filename().string();
+            ImGuiTreeNodeFlags nodeFlags =
+                ImGuiTreeNodeFlags_OpenOnArrow |
+                ImGuiTreeNodeFlags_SpanAvailWidth;
+            bool open = ImGui::TreeNodeEx(entry.path().string().c_str(), nodeFlags, "%s", name.c_str());
 
-            if (name == ".DS_Store" || entry.path().extension() == ".meta")
-                continue;
-
-            if (entry.is_directory())
+            if (ImGui::BeginDragDropTarget())
             {
-                ImGuiTreeNodeFlags nodeFlags =
-                    ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-                bool open = ImGui::TreeNodeEx(name.c_str(), nodeFlags);
-
-                if (open)
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
                 {
-                    DrawDirectoryRecursive(entry.path().string()); // recursive call
-                    ImGui::TreePop();
+                    const AssetDragData* data = static_cast<const AssetDragData*>(payload->Data);
+
+                    fs::path src = data->path;
+                    fs::path dst = entry.path() / src.filename();
+
+                    std::error_code ec;
+                    fs::rename(src, dst, ec); // move file on disk
+
+                    if (!ec)
+                    {
+                        // update your asset database if needed
+                        //AssetManager::OnAssetMoved(src.string(), dst.string());
+                        // optionally: refresh m_assetPaths here
+                    }
+                    else
+                    {
+                        // TODO: log / show error
+                    }
                 }
+                ImGui::EndDragDropTarget();
             }
-            else if (entry.is_regular_file())
+
+            if (open)
             {
-                ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
+                DrawDirectoryRecursive(entry.path().string());
+                ImGui::TreePop();
+            }
+        }
+        else if (entry.is_regular_file())
+        {
+            ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
 
-                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            // Drag source (for moving + using UUID elsewhere)
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            {
+                MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
+                if (meta)
                 {
-                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
-                    if (meta)
-                    {
-                        UUID uuid = meta->uuid;
-                        ImGui::SetDragDropPayload("ASSET_UUID", &uuid, sizeof(UUID));
-                        ImGui::Text("Asset: %s", meta->name.c_str());
-                    }
-                    ImGui::EndDragDropSource();
+                    AssetDragData data{};
+                    data.uuid = meta->uuid;
+
+                    std::string full = entry.path().string();
+                    std::snprintf(data.path, sizeof(data.path), "%s", full.c_str());
+
+                    ImGui::SetDragDropPayload("ASSET_DRAG", &data, sizeof(data));
+                    ImGui::Text("Asset: %s", meta->name.c_str());
                 }
+                ImGui::EndDragDropSource();
+            }
 
-                // double-click
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            // double-click handling (open scene / shader)
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
+                if (!meta) continue;
+
+                if (meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
                 {
-                    MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
-
-                    if (meta && meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
-                    {
-                        //OpenInVSCode(std::string(SDL_GetBasePath()) + "/" + meta->path);
-
-                        m_scene->Unload();
-                        m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
-                        m_scene->Load(m_app->GetScriptRegistry());
-                    }
-
-                    if (meta && ( meta->type == MetaFileAsset::FileType::FRAGMENT || meta->type == MetaFileAsset::FileType::VERTEX) && m_mode == EditorMode::EDIT)
-                    {
-                        OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
-                    }
+                    m_scene->Unload();
+                    m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
+                    m_scene->Load(m_app->GetScriptRegistry());
+                }
+                else if ((meta->type == MetaFileAsset::FileType::FRAGMENT ||
+                          meta->type == MetaFileAsset::FileType::VERTEX) &&
+                         m_mode == EditorMode::EDIT)
+                {
+                    OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
                 }
             }
         }
     }
+}
+
 
     void Editor::DrawAssetsPanel()
     {

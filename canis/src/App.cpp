@@ -29,16 +29,17 @@ namespace Canis
         const char *sharedObjectPath = "./libGameCode.so";
 #endif
 
-        // init window
-        Window window("Canis Beta", 512, 512);
-        window.SetClearColor(Color(1.0f));
-        window.SetSync(Window::Sync::IMMEDIATE);
-
         // find all the meta files and load to asset manager
         std::vector<std::string> paths = FindFilesInFolder("assets", "");
 
         for (std::string path : paths)
             MetaFileAsset *meta = AssetManager::GetMetaFile(path);
+
+        // init window
+        Window window("Canis Beta", 512, 512);
+        window.SetClearColor(Color(1.0f));
+        window.SetSync(Window::Sync::IMMEDIATE);
+        window.SetWindowIcon("assets/defaults/engine_icon.png");
 
         Editor editor;
         editor.Init(&window);
@@ -64,11 +65,15 @@ namespace Canis
 
             float deltaTime = Time::StartFrame();
 
+            #if CANIS_EDITOR
             if (editor.m_mode == EditorMode::PLAY)
+            #endif
                 scene.Update(deltaTime);
 
+            #if CANIS_EDITOR
             // call the dynamically loaded function
             if (editor.m_mode == EditorMode::PLAY)
+            #endif
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);

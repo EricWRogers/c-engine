@@ -25,6 +25,8 @@ namespace Canis
         Color GetClearColor() { return m_clearColor; }
         void SwapBuffer() const;
 
+        void SetWindowIcon(std::string _path);
+
         void SetWindowSize(int _width, int _height);
         void SetResized(bool _resized);
         bool IsResized();

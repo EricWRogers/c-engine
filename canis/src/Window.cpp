@@ -1,8 +1,11 @@
 #include <Canis/Window.hpp>
 #include <Canis/OpenGL.hpp>
+#include <Canis/Debug.hpp>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_log.h>
 #include <cstdlib>
+
+#include <stb_image.h>
 
 namespace Canis
 {
@@ -81,6 +84,38 @@ namespace Canis
     void Window::SwapBuffer() const
     {
         SDL_GL_SwapWindow((SDL_Window*)m_window);
+    }
+
+    void Window::SetWindowIcon(std::string _path)
+    {
+        int w, h, channels;
+        // force RGBA
+        unsigned char* pixels = stbi_load(_path.c_str(), &w, &h, &channels, 4);
+        if (!pixels)
+        {
+            Debug::Log("Failed to load icon '%s': %s", _path.c_str(), stbi_failure_reason());
+            return;
+        }
+
+        SDL_Surface* surface = SDL_CreateSurfaceFrom(
+            w,
+            h,
+            SDL_PIXELFORMAT_RGBA32,
+            pixels,
+            w * 4
+        );
+
+        if (!surface)
+        {
+            SDL_Log("Failed to create icon surface: %s", SDL_GetError());
+            stbi_image_free(pixels);
+            return;
+        }
+        
+        SDL_SetWindowIcon((SDL_Window*)m_window, surface);
+
+        SDL_DestroySurface(surface);
+        stbi_image_free(pixels);
     }
 
     void Window::InitGL()

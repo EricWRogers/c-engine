@@ -30,7 +30,7 @@ Entities:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]
       TextureAsset:
-        path: assets/defaults/textures/circle.png
+        uuid: 14778330599421933417
   - Entity: 8958296995334191509
     Name: Ball
     Tag: ""
@@ -46,7 +46,7 @@ Entities:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]
       TextureAsset:
-        path: assets/textures/awesome_face.png
+        uuid: 10819762428735356505
     BallMovement:
       direction: [0.89442724, 0.44721362]
       speed: 100

@@ -65,6 +65,7 @@ namespace Canis
         MetaFileAsset() {}
 
         void CreateMetaFile(std::string _path);
+        void Save();
 
         bool Load(std::string _path) override;
         bool Free() override { return true; }

@@ -135,6 +135,23 @@ namespace Canis
         return _path;
     }
 
+	std::vector<std::string> FindFilesInFolder(const std::string &_folder, const std::string &_extension)
+    {
+        namespace fs = std::filesystem;
+
+        std::vector<std::string> files;
+
+        for (const auto &entry : fs::recursive_directory_iterator(_folder))
+        {
+            if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string()[0] != '.') // && entry.path().extension() == _extension)
+            {
+                files.push_back(entry.path().generic_string());
+            }
+        }
+
+        return files;
+    }
+
 	bool FileExists(const char *_path)
     {
         FILE *file = fopen(_path, "r");

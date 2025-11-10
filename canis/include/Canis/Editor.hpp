@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <Canis/UUID.hpp>
+
 namespace Canis
 {
     class Scene;
@@ -23,6 +25,12 @@ namespace Canis
     {
         LOCAL = 0,
         WORLD = 1,
+    };
+
+    struct AssetDragData
+    {
+        UUID uuid;
+        char path[1024]; // full path to file
     };
 
     class Editor

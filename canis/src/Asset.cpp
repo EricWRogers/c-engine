@@ -98,19 +98,22 @@ namespace Canis
 
             size = info.size;
             modified = info.modify_time;
-
-            YAML::Node node;
-            node["FileType"] = FileTypeToString(type);
-            node["UUID"] = std::to_string(uuid);
-            node["path"] = path;
-            node["name"] = name;
-            node["extension"] = extension;
-            node["size"] = size;
-            node["modified"] = modified;
-
-            std::ofstream fout(_path + ".meta");
-            fout << node;
         }
+    }
+
+    void MetaFileAsset::Save()
+    {
+        YAML::Node node;
+        node["FileType"] = FileTypeToString(type);
+        node["UUID"] = std::to_string(uuid);
+        node["path"] = path;
+        node["name"] = name;
+        node["extension"] = extension;
+        node["size"] = size;
+        node["modified"] = modified;
+
+        std::ofstream fout(path + ".meta");
+        fout << node;
     }
 
     bool MetaFileAsset::Load(std::string _path)

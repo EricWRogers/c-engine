@@ -17,6 +17,8 @@ namespace Canis
 
     extern std::string GetFileExtension(std::string _path);
 
+	extern std::vector<std::string> FindFilesInFolder(const std::string &_folder, const std::string &_extension);
+
 	extern bool FileExists(const char *_path);
 
 	extern void OpenInVSCode(const std::string& _filePath);

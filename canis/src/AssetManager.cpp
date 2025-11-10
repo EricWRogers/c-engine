@@ -1,6 +1,8 @@
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
 
+#include <filesystem>
+
 namespace Canis
 {
     namespace AssetManager
@@ -15,6 +17,48 @@ namespace Canis
         {
             auto &assetLibrary = GetAssetLibrary();
             return assetLibrary.assetPath.contains(_name);
+        }
+
+        void MoveAsset(std::string _source, std::string _target)
+        {
+            namespace fs = std::filesystem;
+            fs::path src = _source;
+            fs::path dst = _target;
+
+            auto &assetLibrary = GetAssetLibrary();
+
+            // update meta
+            MetaFileAsset* meta = GetMetaFile(_source);
+
+            // name 
+            meta->name = dst.filename().string();
+            
+            // path
+            meta->path = _target;
+
+            // assetPath
+            int id = assetLibrary.assetPath[_source];
+            assetLibrary.assetPath.erase(_source);
+            assetLibrary.assetPath[_target] = id;
+
+            // uuidAssetPath
+            assetLibrary.uuidAssetPath[meta->uuid] = _target;
+
+            // move asset
+            std::error_code ec;
+            fs::rename(src, dst, ec);
+            // TODO: check error
+
+            // move asset meta
+            fs::path srcMeta = _source + ".meta";
+            fs::path dstMeta = _target + ".meta";
+
+            std::error_code ec2;
+            fs::rename(srcMeta, dstMeta, ec2);
+            // TODO: check error
+
+            // save updated meta
+            meta->Save();
         }
 
         int LoadTexture(const std::string &_path)

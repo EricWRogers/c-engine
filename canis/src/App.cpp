@@ -12,6 +12,7 @@
 #include <Canis/Debug.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/Editor.hpp>
+#include <Canis/IOManager.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/AssetManager.hpp>
 
@@ -32,6 +33,12 @@ namespace Canis
         Window window("Canis Beta", 512, 512);
         window.SetClearColor(Color(1.0f));
         window.SetSync(Window::Sync::IMMEDIATE);
+
+        // find all the meta files
+        std::vector<std::string> paths = FindFilesInFolder("assets", "");
+
+        for (std::string path : paths)
+            MetaFileAsset *meta = AssetManager::GetMetaFile(path);
 
         Editor editor;
         editor.Init(&window);
@@ -160,7 +167,7 @@ namespace Canis
                     comp["uv"] = sprite.uv;
 
                     YAML::Node textureAsset;
-                    textureAsset["path"] = AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath();
+                    textureAsset["uuid"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath())->uuid;
                     
                     comp["TextureAsset"] = textureAsset;
                     _node["Canis::Sprite2D"] = comp;
@@ -174,7 +181,10 @@ namespace Canis
                     sprite.uv = sprite2DComponent["uv"].as<Vector4>();
                     if (auto textureAsset = sprite2DComponent["TextureAsset"])
                     {
-                        sprite.textureHandle = AssetManager::GetTextureHandle(textureAsset["path"].as<std::string>());
+                        UUID uuid = textureAsset["uuid"].as<uint64_t>();
+                        std::string path = AssetManager::GetPath(uuid);
+                        Debug::Log("Path: %s", path.c_str());
+                        sprite.textureHandle = AssetManager::GetTextureHandle(path);
                     }
                     //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
                 }
@@ -195,10 +205,10 @@ namespace Canis
 
                     if (ImGui::BeginDragDropTarget())
                     {
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_UUID"))
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
                         {
-                            const UUID dropped = *static_cast<const UUID*>(payload->Data);
-                            std::string path = AssetManager::GetPath(dropped);
+                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                            std::string path = AssetManager::GetPath(dropped.uuid);
                             TextureAsset* asset = AssetManager::GetTexture(path);
 
                             if (asset)

@@ -26,23 +26,6 @@
 
 namespace Canis
 {
-    std::vector<std::string> FindFilesInFolder(const std::string &_folder, const std::string &_extension)
-    {
-        namespace fs = std::filesystem;
-
-        std::vector<std::string> files;
-
-        for (const auto &entry : fs::recursive_directory_iterator(_folder))
-        {
-            if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string()[0] != '.') // && entry.path().extension() == _extension)
-            {
-                files.push_back(entry.path().generic_string());
-            }
-        }
-
-        return files;
-    }
-
     std::vector<const char *> ConvertComponentToCStringVector(App &_app, Entity &_entity)
     {
         std::vector<const char *> cStringVector;
@@ -388,108 +371,88 @@ namespace Canis
         ImGui::End();
     }
 
-    struct AssetDragData
-{
-    UUID uuid;
-    char path[512]; // full path to file
-};
-
-
-    void Editor::DrawDirectoryRecursive(const std::string& _dirPath)
-{
-    namespace fs = std::filesystem;
-    fs::path path = _dirPath;
-
-    for (const auto& entry : fs::directory_iterator(path))
+    void Editor::DrawDirectoryRecursive(const std::string &_dirPath)
     {
-        const std::string name = entry.path().filename().string();
-        if (name == ".DS_Store" || entry.path().extension() == ".meta")
-            continue;
+        namespace fs = std::filesystem;
+        fs::path path = _dirPath;
 
-        if (entry.is_directory())
+        for (const auto &entry : fs::directory_iterator(path))
         {
-            ImGuiTreeNodeFlags nodeFlags =
-                ImGuiTreeNodeFlags_OpenOnArrow |
-                ImGuiTreeNodeFlags_SpanAvailWidth;
-            bool open = ImGui::TreeNodeEx(entry.path().string().c_str(), nodeFlags, "%s", name.c_str());
+            const std::string name = entry.path().filename().string();
+            if (name == ".DS_Store" || entry.path().extension() == ".meta")
+                continue;
 
-            if (ImGui::BeginDragDropTarget())
+            if (entry.is_directory())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                ImGuiTreeNodeFlags nodeFlags =
+                    ImGuiTreeNodeFlags_OpenOnArrow |
+                    ImGuiTreeNodeFlags_SpanAvailWidth;
+                bool open = ImGui::TreeNodeEx(entry.path().string().c_str(), nodeFlags, "%s", name.c_str());
+
+                if (ImGui::BeginDragDropTarget())
                 {
-                    const AssetDragData* data = static_cast<const AssetDragData*>(payload->Data);
-
-                    fs::path src = data->path;
-                    fs::path dst = entry.path() / src.filename();
-
-                    std::error_code ec;
-                    fs::rename(src, dst, ec); // move file on disk
-
-                    if (!ec)
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
                     {
-                        // update your asset database if needed
-                        //AssetManager::OnAssetMoved(src.string(), dst.string());
-                        // optionally: refresh m_assetPaths here
+                        const AssetDragData *data = static_cast<const AssetDragData *>(payload->Data);
+
+                        fs::path src = data->path;
+
+                        AssetManager::MoveAsset(src.string(), entry.path().string() + "/" + src.filename().string());
                     }
-                    else
+                    ImGui::EndDragDropTarget();
+                }
+
+                if (open)
+                {
+                    DrawDirectoryRecursive(entry.path().string());
+                    ImGui::TreePop();
+                }
+            }
+            else if (entry.is_regular_file())
+            {
+                ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
+
+                // Drag source (for moving + using UUID elsewhere)
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+                {
+                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
+                    if (meta)
                     {
-                        // TODO: log / show error
+                        AssetDragData data{};
+                        data.uuid = meta->uuid;
+
+                        std::string full = entry.path().string();
+                        std::snprintf(data.path, sizeof(data.path), "%s", full.c_str());
+
+                        ImGui::SetDragDropPayload("ASSET_DRAG", &data, sizeof(data));
+                        ImGui::Text("Asset: %s", meta->name.c_str());
                     }
+                    ImGui::EndDragDropSource();
                 }
-                ImGui::EndDragDropTarget();
-            }
 
-            if (open)
-            {
-                DrawDirectoryRecursive(entry.path().string());
-                ImGui::TreePop();
-            }
-        }
-        else if (entry.is_regular_file())
-        {
-            ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
-
-            // Drag source (for moving + using UUID elsewhere)
-            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-            {
-                MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
-                if (meta)
+                // double-click handling (open scene / shader)
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
-                    AssetDragData data{};
-                    data.uuid = meta->uuid;
+                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
+                    if (!meta)
+                        continue;
 
-                    std::string full = entry.path().string();
-                    std::snprintf(data.path, sizeof(data.path), "%s", full.c_str());
-
-                    ImGui::SetDragDropPayload("ASSET_DRAG", &data, sizeof(data));
-                    ImGui::Text("Asset: %s", meta->name.c_str());
-                }
-                ImGui::EndDragDropSource();
-            }
-
-            // double-click handling (open scene / shader)
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-            {
-                MetaFileAsset* meta = AssetManager::GetMetaFile(entry.path().string());
-                if (!meta) continue;
-
-                if (meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
-                {
-                    m_scene->Unload();
-                    m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
-                    m_scene->Load(m_app->GetScriptRegistry());
-                }
-                else if ((meta->type == MetaFileAsset::FileType::FRAGMENT ||
-                          meta->type == MetaFileAsset::FileType::VERTEX) &&
-                         m_mode == EditorMode::EDIT)
-                {
-                    OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
+                    if (meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
+                    {
+                        m_scene->Unload();
+                        m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
+                        m_scene->Load(m_app->GetScriptRegistry());
+                    }
+                    else if ((meta->type == MetaFileAsset::FileType::FRAGMENT ||
+                              meta->type == MetaFileAsset::FileType::VERTEX) &&
+                             m_mode == EditorMode::EDIT)
+                    {
+                        OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
+                    }
                 }
             }
         }
     }
-}
-
 
     void Editor::DrawAssetsPanel()
     {

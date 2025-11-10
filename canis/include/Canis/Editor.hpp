@@ -89,6 +89,5 @@ namespace Canis
         bool m_isRenamingAsset = false;
         std::string m_renamingPath;
         char m_renameBuffer[256] = {};
-    
     };
 }

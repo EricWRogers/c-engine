@@ -1,6 +1,5 @@
 FileType: VERTEX
 UUID: 4754261367607006676
-path: assets/shaders/debug_line.vs
 name: debug_line
 extension: vs
 size: 160

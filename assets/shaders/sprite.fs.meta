@@ -1,6 +1,5 @@
 FileType: FRAGMENT
 UUID: 488752813633082284
-path: assets/shaders/sprite.fs
 name: sprite
 extension: fs
 size: 457

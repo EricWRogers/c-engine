@@ -108,7 +108,6 @@ namespace Canis
         YAML::Node node;
         node["FileType"] = FileTypeToString(type);
         node["UUID"] = std::to_string(uuid);
-        node["path"] = path;
         node["name"] = name;
         node["extension"] = extension;
         node["size"] = size;
@@ -125,7 +124,7 @@ namespace Canis
             YAML::Node root = YAML::LoadFile(_path+".meta");
             type = StringToFileType(root["FileType"].as<std::string>());
             uuid = root["UUID"].as<uint64_t>(0);
-            path = root["path"].as<std::string>();
+            path = _path;
             name = root["name"].as<std::string>();
             extension = root["extension"].as<std::string>();
             size = root["size"].as<u64>();

@@ -1,6 +1,5 @@
 FileType: FRAGMENT
 UUID: 1445723842046296418
-path: assets/shaders/debug_line.fs
 name: debug_line
 extension: fs
 size: 156

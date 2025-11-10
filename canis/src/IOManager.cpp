@@ -149,14 +149,15 @@ namespace Canis
 	void OpenInVSCode(const std::string& _filePath)
 	{
 	#if defined(_WIN32)
-		std::string cmd = "code \"" + _filePath + "\"";
+		std::string cmd = "code --reuse-window \"" + _filePath + "\"";
 	#elif defined(__APPLE__)
 		// macOS: assume VS Code installed via Homebrew or standard path
-		std::string cmd = "open -a \"Visual Studio Code\" \"" + _filePath + "\"";
+		std::string cmd = "code --reuse-window \"" + _filePath + "\"";
 	#else
 		// Linux: assumes "code" is in PATH
-		std::string cmd = "code \"" + _filePath + "\"";
+		std::string cmd = "code --reuse-window \"" + _filePath + "\"";
 	#endif
+		Debug::Log("%s", cmd.c_str());
 		std::system(cmd.c_str());
 	}
 

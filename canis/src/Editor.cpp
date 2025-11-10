@@ -442,6 +442,11 @@ namespace Canis
                         m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
                         m_scene->Load(m_app->GetScriptRegistry());
                     }
+
+                    if (meta && ( meta->type == MetaFileAsset::FileType::FRAGMENT || meta->type == MetaFileAsset::FileType::VERTEX) && m_mode == EditorMode::EDIT)
+                    {
+                        OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
+                    }
                 }
             }
         }

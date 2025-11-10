@@ -371,6 +371,40 @@ namespace Canis
         ImGui::End();
     }
 
+    void Editor::CommitAssetRename()
+    {
+        using namespace std;
+        namespace fs = std::filesystem;
+
+        if (!m_isRenamingAsset || m_renamingPath.empty())
+            return;
+
+        string newName = m_renameBuffer;
+
+        // nothing entered, cancel
+        if (newName.empty())
+        {
+            m_isRenamingAsset = false;
+            return;
+        }
+
+        fs::path oldPath = m_renamingPath;
+        fs::path newPath = oldPath;
+        newPath.replace_filename(newName);
+
+        // handle no change
+        if (newPath == oldPath)
+        {
+            m_isRenamingAsset = false;
+            return;
+        }
+
+        AssetManager::MoveAsset(oldPath.string(), newPath.string());
+
+        m_isRenamingAsset = false;
+        m_renamingPath.clear();
+    }
+
     void Editor::DrawDirectoryRecursive(const std::string &_dirPath)
     {
         namespace fs = std::filesystem;
@@ -415,7 +449,7 @@ namespace Canis
 
                         // add it to asset manager meta
                         if (!ec)
-                            MetaFileAsset* meta = AssetManager::GetMetaFile(to);
+                            MetaFileAsset *meta = AssetManager::GetMetaFile(to);
                     }
 
                     ImGui::EndPopup();
@@ -429,61 +463,92 @@ namespace Canis
             }
             else if (entry.is_regular_file())
             {
-                ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
+                const std::string fullPath = entry.path().string();
+                const bool isRenamingThis = m_isRenamingAsset && (m_renamingPath == fullPath);
 
-                // right click
-                if (ImGui::BeginPopupContextItem())
+                if (isRenamingThis)
                 {
-                    /*if (ImGui::MenuItem("Rename"))
+                    // rename input
+                    ImGui::PushID(fullPath.c_str());
+                    ImGui::SetNextItemWidth(-1.0f);
+
+                    ImGuiInputTextFlags flags =
+                        ImGuiInputTextFlags_EnterReturnsTrue |
+                        ImGuiInputTextFlags_AutoSelectAll |
+                        ImGuiInputTextFlags_CharsNoBlank;
+
+                    if (ImGui::InputText("##rename", m_renameBuffer, sizeof(m_renameBuffer), flags))
                     {
-                        m_isRenamingAsset = true;
-                        m_renamingPath = fullPath;
-
-                        std::strncpy(m_renameBuffer, name.c_str(), sizeof(m_renameBuffer));
-                        m_renameBuffer[sizeof(m_renameBuffer) - 1] = '\0';
-                    }*/
-
-                    // TODO: Delete, Reveal in Finder, etc.
-
-                    ImGui::EndPopup();
-                }
-
-                // drag source (for moving + using UUID elsewhere)
-                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-                {
-                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
-                    if (meta)
-                    {
-                        AssetDragData data{};
-                        data.uuid = meta->uuid;
-
-                        std::string full = entry.path().string();
-                        std::snprintf(data.path, sizeof(data.path), "%s", full.c_str());
-
-                        ImGui::SetDragDropPayload("ASSET_DRAG", &data, sizeof(data));
-                        ImGui::Text("Asset: %s", meta->name.c_str());
+                        CommitAssetRename();
                     }
-                    ImGui::EndDragDropSource();
-                }
 
-                // double-click handling (open scene / shader)
-                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                {
-                    MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
-                    if (!meta)
-                        continue;
-
-                    if (meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
+                    // click elsewhere or escape will cancel
+                    if (!ImGui::IsItemActive() &&
+                        (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
                     {
-                        m_scene->Unload();
-                        m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
-                        m_scene->Load(m_app->GetScriptRegistry());
+                        m_isRenamingAsset = false;
                     }
-                    else if ((meta->type == MetaFileAsset::FileType::FRAGMENT ||
-                              meta->type == MetaFileAsset::FileType::VERTEX) &&
-                             m_mode == EditorMode::EDIT)
+
+                    ImGui::PopID();
+                }
+                else
+                {
+                    ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
+
+                    // right click
+                    if (ImGui::BeginPopupContextItem())
                     {
-                        OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
+                        if (ImGui::MenuItem("Rename"))
+                        {
+                            m_isRenamingAsset = true;
+                            m_renamingPath = fullPath;
+
+                            std::strncpy(m_renameBuffer, name.c_str(), sizeof(m_renameBuffer));
+                            m_renameBuffer[sizeof(m_renameBuffer) - 1] = '\0';
+                        }
+
+                        // TODO: Delete, Reveal in Finder, etc.
+
+                        ImGui::EndPopup();
+                    }
+
+                    // drag source (for moving + using UUID elsewhere)
+                    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+                    {
+                        MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
+                        if (meta)
+                        {
+                            AssetDragData data{};
+                            data.uuid = meta->uuid;
+
+                            std::string full = entry.path().string();
+                            std::snprintf(data.path, sizeof(data.path), "%s", full.c_str());
+
+                            ImGui::SetDragDropPayload("ASSET_DRAG", &data, sizeof(data));
+                            ImGui::Text("Asset: %s", meta->name.c_str());
+                        }
+                        ImGui::EndDragDropSource();
+                    }
+
+                    // double-click handling (open scene / shader)
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    {
+                        MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());
+                        if (!meta)
+                            continue;
+
+                        if (meta->type == MetaFileAsset::FileType::SCENE && m_mode == EditorMode::EDIT)
+                        {
+                            m_scene->Unload();
+                            m_scene->Init(m_app, m_window, &m_scene->GetInputManager(), meta->path);
+                            m_scene->Load(m_app->GetScriptRegistry());
+                        }
+                        else if ((meta->type == MetaFileAsset::FileType::FRAGMENT ||
+                                  meta->type == MetaFileAsset::FileType::VERTEX) &&
+                                 m_mode == EditorMode::EDIT)
+                        {
+                            OpenInVSCode(std::string(SDL_GetBasePath()) + meta->path);
+                        }
                     }
                 }
             }

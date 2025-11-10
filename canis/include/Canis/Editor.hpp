@@ -54,6 +54,7 @@ namespace Canis
         void DrawEnvironment();
         void DrawAssetsPanel();
         void DrawDirectoryRecursive(const std::string &_dirPath);
+        void CommitAssetRename();
         void DrawScenePanel();
 
         void SelectGameUI();
@@ -83,5 +84,11 @@ namespace Canis
         DebugDraw m_debugDraw = DebugDraw::NONE;
         GuizmoMode m_guizmoMode = GuizmoMode::WORLD;
         std::vector<std::string> m_assetPaths = {};
+
+        // asset panel
+        bool m_isRenamingAsset = false;
+        std::string m_renamingPath;
+        char m_renameBuffer[256] = {};
+    
     };
 }

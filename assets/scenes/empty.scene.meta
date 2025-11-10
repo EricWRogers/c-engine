@@ -1,7 +1,7 @@
 FileType: SCENE
 UUID: 5362006847456716613
-path: assets/scenes/new_2d_scene.scene
-name: new_2d_scene
+path: assets/scenes/empty.scene
+name: empty.scene
 extension: scene
 size: 371
 modified: 1762748229231543025

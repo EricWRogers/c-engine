@@ -98,6 +98,8 @@ namespace Canis
 
             size = info.size;
             modified = info.modify_time;
+
+            Save();
         }
     }
 

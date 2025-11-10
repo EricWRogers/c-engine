@@ -402,6 +402,25 @@ namespace Canis
                     ImGui::EndDragDropTarget();
                 }
 
+                // right click
+                if (ImGui::BeginPopupContextItem())
+                {
+                    if (ImGui::MenuItem("Create 2D Scene"))
+                    {
+                        // copy scene template
+                        std::string from = "assets/defaults/templates/scenes/2d_scene.scene";
+                        std::string to = entry.path().string() + "/new_2d_scene.scene";
+                        std::error_code ec;
+                        fs::copy_file(from, to, ec);
+
+                        // add it to asset manager meta
+                        if (!ec)
+                            MetaFileAsset* meta = AssetManager::GetMetaFile(to);
+                    }
+
+                    ImGui::EndPopup();
+                }
+
                 if (open)
                 {
                     DrawDirectoryRecursive(entry.path().string());
@@ -412,7 +431,24 @@ namespace Canis
             {
                 ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
 
-                // Drag source (for moving + using UUID elsewhere)
+                // right click
+                if (ImGui::BeginPopupContextItem())
+                {
+                    /*if (ImGui::MenuItem("Rename"))
+                    {
+                        m_isRenamingAsset = true;
+                        m_renamingPath = fullPath;
+
+                        std::strncpy(m_renameBuffer, name.c_str(), sizeof(m_renameBuffer));
+                        m_renameBuffer[sizeof(m_renameBuffer) - 1] = '\0';
+                    }*/
+
+                    // TODO: Delete, Reveal in Finder, etc.
+
+                    ImGui::EndPopup();
+                }
+
+                // drag source (for moving + using UUID elsewhere)
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
                 {
                     MetaFileAsset *meta = AssetManager::GetMetaFile(entry.path().string());

@@ -34,7 +34,7 @@ namespace Canis
         window.SetClearColor(Color(1.0f));
         window.SetSync(Window::Sync::IMMEDIATE);
 
-        // find all the meta files
+        // find all the meta files and load to asset manager
         std::vector<std::string> paths = FindFilesInFolder("assets", "");
 
         for (std::string path : paths)

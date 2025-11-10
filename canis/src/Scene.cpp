@@ -17,6 +17,23 @@ namespace Canis
 
     void Scene::Update(float _deltaTime)
     {
+        // TODO: when an extity is created add its id to a list
+        // call ready just on that list then clear it for better performance
+        for (Entity* e : m_entities)
+        {
+            if (e == nullptr)
+                continue;
+
+            for (ScriptableEntity* se : e->m_scriptComponents)
+            {
+                if (se->m_onReadyCalled)
+                    continue;
+
+                se->Ready();
+                se->m_onReadyCalled = true;
+            }
+        }
+
         for (Entity* e : m_entities)
         {
             if (e == nullptr)

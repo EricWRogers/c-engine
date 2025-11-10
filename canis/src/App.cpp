@@ -115,7 +115,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (auto rectTransform = _node["Canis::RectTransform"])
                 {
-                    auto &rt = *_entity.AddScript<Canis::RectTransform>();
+                    auto &rt = *_entity.AddScript<Canis::RectTransform>(false);
                     rt.active = rectTransform["active"].as<bool>();
                     //rt.anchor = (Canis::RectAnchor)rectTransform["anchor"].as<int>();
                     rt.position = rectTransform["position"].as<Vector2>();
@@ -125,6 +125,7 @@ namespace Canis
                     rt.depth = rectTransform["depth"].as<float>();
                     rt.rotation = rectTransform["rotation"].as<float>();
                     //rt.scaleWithScreen = (ScaleWithScreen)rectTransform["scaleWithScreen"].as<int>(0);
+                    rt.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
@@ -176,7 +177,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (auto sprite2DComponent = _node["Canis::Sprite2D"])
                 {
-                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>();
+                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
                     sprite.color = sprite2DComponent["color"].as<Vector4>();
                     sprite.uv = sprite2DComponent["uv"].as<Vector4>();
                     if (auto textureAsset = sprite2DComponent["TextureAsset"])
@@ -187,6 +188,7 @@ namespace Canis
                         sprite.textureHandle = AssetManager::GetTextureHandle(path);
                     }
                     //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
+                    sprite.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
@@ -244,9 +246,10 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (auto camera2DComponent = _node["Canis::Camera2D"])
                 {
-                    auto &camera = *_entity.AddScript<Canis::Camera2D>();
+                    auto &camera = *_entity.AddScript<Canis::Camera2D>(false);
                     camera.SetPosition(camera2DComponent["position"].as<Vector2>(camera.GetPosition()));
                     camera.SetScale(camera2DComponent["scale"].as<float>(camera.GetScale()));
+                    camera.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {

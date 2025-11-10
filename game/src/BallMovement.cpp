@@ -38,10 +38,11 @@ ScriptConf ballMovementConf = {
     {
         if (auto ballComponent = _node["BallMovement"])
         {
-            auto &ball = *_entity.AddScript<BallMovement>();
+            auto &ball = *_entity.AddScript<BallMovement>(false);
             ball.direction = ballComponent["direction"].as<Vector2>();
             ball.speed = ballComponent["speed"].as<float>();
             ball.randomRotation = ballComponent["randomRotation"].as<float>();
+            ball.Create();
         }
     },
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void

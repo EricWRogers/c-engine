@@ -37,14 +37,16 @@ namespace Canis
         Entity() = default;
 
         template <typename T>
-        T *AddScript()
+        T *AddScript(bool _callCreate = true)
         {
             T *scriptableEntity = new T(*this);
 
             // might check if the entity already has script
 
             m_scriptComponents.push_back((ScriptableEntity*)scriptableEntity);
-            scriptableEntity->Create();
+
+            if (_callCreate)
+                scriptableEntity->Create();
 
             return scriptableEntity;
         }

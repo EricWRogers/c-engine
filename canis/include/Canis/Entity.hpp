@@ -148,6 +148,51 @@ namespace Canis
         Vector2 rotationOriginOffset = Vector2(0.0f);
         Entity  parent;
 		std::vector<Entity> children;
+
+        Vector2 GetPosition()
+        {
+            return position + originOffset;
+        }
+
+        void SetPosition(Vector2 _globalPosition)
+        {
+            position = _globalPosition - originOffset;
+        }
+
+        void Move(Vector2 _delta)
+        {
+            position = position + _delta;
+        }
+    };
+
+    class Transform : public ScriptableEntity
+    {
+    public:
+        Transform(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw() {
+            /*std::string nameOfType = "Transform";
+            ImGui::Text("%s", nameOfType.c_str());
+            ImGui::InputFloat3("position", &position.x, "%.3f");
+            ImGui::InputFloat2("size", &size.x, "%.3f");
+            ImGui::InputFloat2("scale", &scale.x);
+            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
+            ImGui::InputFloat("depth", &depth);
+            // let user work with degrees
+            float degrees = RAD2DEG * rotation;
+            ImGui::InputFloat("rotation", &degrees);
+            rotation = DEG2RAD * degrees;*/
+        }
+
+		bool active = true;
+		Vector3 position = Vector3(0.0f);
+		//glm::quat rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+        Vector3 rotation = Vector3(0.0f);
+		Vector3 scale = Vector3(1.0f);
+		Matrix4 modelMatrix = IdentitiyMatrix4();
+		bool isDirty = true;
+        Entity  parent;
+		std::vector<Entity> children;
     };
 
     class Sprite2D : public ScriptableEntity

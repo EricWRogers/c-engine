@@ -57,8 +57,7 @@ namespace Canis
         void CommitAssetRename();
         void DrawScenePanel();
 
-        void SelectGameUI();
-
+        void SelectSprite2D();
         void DrawGizmo(Camera2D *_camera2D);
         void DrawBoundingBox(Camera2D *_camera2D);
 

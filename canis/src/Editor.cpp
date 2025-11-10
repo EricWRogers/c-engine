@@ -116,7 +116,7 @@ namespace Canis
         DrawAssetsPanel();
         DrawScenePanel(); // draw last
 
-        SelectGameUI();
+        SelectSprite2D();
 
         // find camera and verfy target entity
         m_debugDraw = DebugDraw::NONE;
@@ -666,7 +666,7 @@ namespace Canis
         ImGui::End();
     }
 
-    void Editor::SelectGameUI()
+    void Editor::SelectSprite2D()
     {
         // TODO: this will only be true when the mouse is over the game window
         if (m_scene->GetInputManager().JustLeftClicked() == false)
@@ -687,34 +687,27 @@ namespace Canis
             if (transform == nullptr)
                 continue;
 
-            Vector2 globalPos = transform->position;    // rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
+            Vector2 globalPos = transform->GetPosition();    // rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
             float globalRotation = transform->rotation; // rect_transform.GetGlobalRotation();
 
             if (globalRotation != 0.0f)
             {
                 RotatePointAroundPivot(
                     mouse,
-                    globalPos /* + rect_transform.originOffset + rect_transform.rotationOriginOffset*/,
+                    globalPos /* + rect_transform.rotationOriginOffset */,
                     -globalRotation);
             }
 
             // TODO: should add depth sort
-            if (mouse.x > globalPos.x + transform->originOffset.x &&
-                mouse.x < globalPos.x + transform->originOffset.x + (transform->size.x * transform->scale.x) &&
-                mouse.y > globalPos.y + transform->originOffset.y &&
-                mouse.y < globalPos.y + transform->originOffset.y + (transform->size.y * transform->scale.y) &&
+            if (mouse.x > globalPos.x - transform->size.x * 0.5f * transform->scale.x &&
+                mouse.x < globalPos.x + transform->size.x * 0.5f * transform->scale.x &&
+                mouse.y > globalPos.y - transform->size.x * 0.5f * transform->scale.y &&
+                mouse.y < globalPos.y + transform->size.x * 0.5f * transform->scale.y &&
                 !mouseLock)
             {
                 m_index = i;
-                // Debug::Log("Found {%f, %f}", globalPos.x, globalPos.y);
             }
-            // else
-            //{
-            //     Debug::Log("Missed {%f, %f}", globalPos.x, globalPos.y);
-            // }
         }
-
-        // Debug::Log("Mouse {%f, %f}", mouse.x, mouse.y);
     }
 
     void Editor::DrawGizmo(Camera2D *_camera2D)
@@ -769,8 +762,7 @@ namespace Canis
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
 
         RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
-        Vector2 pos = rtc.position; // ADD BACK rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
-        pos += rtc.originOffset;
+        Vector2 pos = rtc.GetPosition();
 
         // Align to bottom-left
         // ADD BACK pos += rtc.rotationOriginOffset;
@@ -814,10 +806,10 @@ namespace Canis
 
             // update position
             Vector2 newPos(translation.x, translation.y);
-            Vector2 oldPos = rtc.position + rtc.originOffset;
+            Vector2 oldPos = rtc.GetPosition();
             // ADD BACK Vector2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
             // ADD BACK oldPos += rtc.rotationOriginOffset;
-            rtc.position += newPos - oldPos;
+            rtc.Move(newPos - oldPos);
 
             // update rotation
             rtc.rotation = DEG2RAD * rotation.z;

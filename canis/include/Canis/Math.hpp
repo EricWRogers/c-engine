@@ -210,6 +210,12 @@ namespace Canis
                           float _near, float _far);
     };
 
+    static Matrix4 IdentitiyMatrix4() {
+        Matrix4 m;
+        m.Identity();
+        return m;
+    }
+
     extern void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle);
 
     extern void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian);

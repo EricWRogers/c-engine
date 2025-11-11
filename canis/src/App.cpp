@@ -59,7 +59,14 @@ namespace Canis
 
         InputManager inputManager;
 
-        Time::Init(120.0f);
+        if (Canis::GetProjectConfig().useFrameLimit)
+            Time::Init(Canis::GetProjectConfig().frameLimit + 0.0f);
+        else
+            Time::Init(100000.0f);
+        
+        #if CANIS_EDITOR
+        Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
+        #endif
 
         scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
 

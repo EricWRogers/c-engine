@@ -40,7 +40,7 @@ namespace Canis
         //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
         // load project.canis
-        ProjectConfig projectConfig = GetProjectConfig();
+        ProjectConfig& projectConfig = GetProjectConfig();
 
         YAML::Node node;
         if (FileExists("project.canis"))

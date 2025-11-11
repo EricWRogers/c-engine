@@ -572,6 +572,40 @@ namespace Canis
     {
         ImGui::Begin("ProjectSettings");
 
+        if (ImGui::Button("Save Project", ImVec2(-1.0f, 0.0f)))
+        {
+            Canis::SaveProjectConfig();
+        }
+
+        ImGui::Text("in-game fps limit"); ImGui::SameLine();
+        bool prevUseFrameLimit = Canis::GetProjectConfig().useFrameLimit;
+        ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit);
+
+        if (m_mode == EditorMode::PLAY && prevUseFrameLimit != Canis::GetProjectConfig().useFrameLimit)
+        {
+            if (Canis::GetProjectConfig().useFrameLimit)
+                Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
+            else
+                Time::SetTargetFPS(100000.0f);
+        }
+
+        if (Canis::GetProjectConfig().useFrameLimit)
+        {
+            ImGui::Text("    frame limit"); ImGui::SameLine();
+            float prevFrameLimit = Canis::GetProjectConfig().frameLimit;
+            ImGui::InputInt("##frameLimit", &Canis::GetProjectConfig().frameLimit);
+
+            if (prevFrameLimit != Canis::GetProjectConfig().frameLimit && m_mode == EditorMode::PLAY)
+                Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
+        }
+
+        ImGui::Text("editor frame limit"); ImGui::SameLine();
+        float prevFrameLimit = Canis::GetProjectConfig().frameLimitEditor;
+        ImGui::InputInt("##editorframeLimit", &Canis::GetProjectConfig().frameLimitEditor);
+
+        if (prevFrameLimit != Canis::GetProjectConfig().frameLimitEditor && m_mode == EditorMode::EDIT)
+                Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
+
         ImGui::Text("icon");
 
         ImGui::SameLine();
@@ -621,7 +655,10 @@ namespace Canis
             if (ImGui::Button("Play##ScenePanel") || (ImGui::IsKeyDown(ImGuiKey_P) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && hotKeyCoolDown < 0.0f))
             {
                 hotKeyCoolDown = HOTKEYRESET;
-                Time::SetTargetFPS(10000.0f);
+                if (Canis::GetProjectConfig().useFrameLimit)
+                    Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
+                else
+                    Time::SetTargetFPS(100000.0f);
                 // save copy of scene
                 lastSceneNode = m_scene->EncodeScene(m_app->GetScriptRegistry());
 
@@ -669,7 +706,7 @@ namespace Canis
             if (ImGui::Button("Stop##ScenePanel") || (ImGui::IsKeyDown(ImGuiKey_Q) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && hotKeyCoolDown < 0.0f))
             {
                 hotKeyCoolDown = HOTKEYRESET;
-                Time::SetTargetFPS(120.0f);
+                Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
                 m_mode = EditorMode::EDIT;
                 // restore from copy
                 m_scene->Unload();

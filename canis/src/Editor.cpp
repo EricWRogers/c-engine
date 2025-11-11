@@ -1,5 +1,6 @@
 #include <Canis/Editor.hpp>
 
+#include <Canis/Canis.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/OpenGL.hpp>
 #include <Canis/Window.hpp>
@@ -114,6 +115,7 @@ namespace Canis
         DrawEnvironment();
         // DrawSystemPanel();
         DrawAssetsPanel();
+        DrawProjectSettings();
         DrawScenePanel(); // draw last
 
         SelectSprite2D();
@@ -562,6 +564,40 @@ namespace Canis
         ImGui::Begin("Assets");
 
         DrawDirectoryRecursive("assets");
+
+        ImGui::End();
+    }
+
+    void Editor::DrawProjectSettings()
+    {
+        ImGui::Begin("ProjectSettings");
+
+        ImGui::Text("icon");
+
+        ImGui::SameLine();
+
+        ImGui::Button(
+            AssetManager::GetMetaFile(AssetManager::GetPath(Canis::GetProjectConfig().iconUUID))->name.c_str(),
+            ImVec2(150, 0)
+        );
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+            {
+                const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                std::string path = AssetManager::GetPath(dropped.uuid);
+                TextureAsset* asset = AssetManager::GetTexture(path);
+
+                if (asset) // validate that this is a texture
+                {
+                    Canis::GetProjectConfig().iconUUID = dropped.uuid;
+                    Canis::SaveProjectConfig();
+                    m_window->SetWindowIcon(path);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         ImGui::End();
     }

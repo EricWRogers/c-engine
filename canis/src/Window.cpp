@@ -88,6 +88,8 @@ namespace Canis
 
     void Window::SetWindowIcon(std::string _path)
     {
+        stbi_set_flip_vertically_on_load(false);
+
         int w, h, channels;
         // force RGBA
         unsigned char* pixels = stbi_load(_path.c_str(), &w, &h, &channels, 4);

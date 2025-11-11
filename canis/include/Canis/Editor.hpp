@@ -55,6 +55,7 @@ namespace Canis
         void DrawAssetsPanel();
         void DrawDirectoryRecursive(const std::string &_dirPath);
         void CommitAssetRename();
+        void DrawProjectSettings();
         void DrawScenePanel();
 
         void SelectSprite2D();

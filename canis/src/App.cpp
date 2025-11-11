@@ -7,6 +7,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_loadso.h>
 
+#include <Canis/Canis.hpp>
 #include <Canis/GameCodeObject.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Debug.hpp>
@@ -34,12 +35,22 @@ namespace Canis
 
         for (std::string path : paths)
             MetaFileAsset *meta = AssetManager::GetMetaFile(path);
+        
+        Canis::Init();
 
         // init window
         Window window("Canis Beta", 512, 512);
         window.SetClearColor(Color(1.0f));
         window.SetSync(Window::Sync::IMMEDIATE);
-        window.SetWindowIcon("assets/defaults/engine_icon.png");
+        
+        // get icon
+        if (GetProjectConfig().iconUUID == UUID(0))
+        {
+            GetProjectConfig().iconUUID = AssetManager::GetMetaFile("assets/defaults/textures/engine_icon.png")->uuid;
+            SaveProjectConfig();
+        }
+
+        window.SetWindowIcon(AssetManager::GetPath(GetProjectConfig().iconUUID));
 
         Editor editor;
         editor.Init(&window);

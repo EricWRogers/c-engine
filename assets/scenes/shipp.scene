@@ -1,0 +1,33 @@
+Environment:
+  ClearColor: [0.38626686, 0.7009804, 0.10652154, 1]
+Entities:
+  - Entity: 752832027556229489
+    Name: Camera
+    Tag: MainCamera
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Camera2D:
+      position: [0, 0]
+      scale: 1
+  - Entity: 17211598765004236790
+    Name: Square
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [111.50016, -79.49984]
+      size: [64, 64]
+      scale: [0.9999996, 0.9999996]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: -0.7853971
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        uuid: 10819762428735356505

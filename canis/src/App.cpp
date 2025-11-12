@@ -207,7 +207,6 @@ namespace Canis
                     {
                         UUID uuid = textureAsset["uuid"].as<uint64_t>();
                         std::string path = AssetManager::GetPath(uuid);
-                        Debug::Log("Path: %s", path.c_str());
                         sprite.textureHandle = AssetManager::GetTextureHandle(path);
                     }
                     //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());

@@ -75,11 +75,11 @@ void BallMovement::Create()
 
 void BallMovement::Ready()
 {
-    direction = Vector2(1.0f, 1.0f).Normalize();
+    direction = Vector2(-1.0f, -1.0f).Normalize();
     direction = Vector2::Normalize(direction);
 }
 
-void BallMovement::Destroy() { Canis::Debug::Log("OnDestroy"); }
+void BallMovement::Destroy() {}
 
 void BallMovement::Update(float _dt)
 {

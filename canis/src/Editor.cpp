@@ -577,11 +577,9 @@ namespace Canis
             Canis::SaveProjectConfig();
         }
 
+        // fps limit checkbox
         ImGui::Text("in-game fps limit"); ImGui::SameLine();
-        bool prevUseFrameLimit = Canis::GetProjectConfig().useFrameLimit;
-        ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit);
-
-        if (m_mode == EditorMode::PLAY && prevUseFrameLimit != Canis::GetProjectConfig().useFrameLimit)
+        if (m_mode == EditorMode::PLAY && ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit))
         {
             if (Canis::GetProjectConfig().useFrameLimit)
                 Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
@@ -589,27 +587,22 @@ namespace Canis
                 Time::SetTargetFPS(100000.0f);
         }
 
+        // fps limit input
         if (Canis::GetProjectConfig().useFrameLimit)
         {
-            ImGui::Text("    frame limit"); ImGui::SameLine();
-            float prevFrameLimit = Canis::GetProjectConfig().frameLimit;
-            ImGui::InputInt("##frameLimit", &Canis::GetProjectConfig().frameLimit);
-
-            if (prevFrameLimit != Canis::GetProjectConfig().frameLimit && m_mode == EditorMode::PLAY)
+            ImGui::Text("    fps limit"); ImGui::SameLine();
+            if (ImGui::InputInt("##frameLimit", &Canis::GetProjectConfig().frameLimit, 0) && m_mode == EditorMode::PLAY)
                 Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
         }
 
-        ImGui::Text("editor frame limit"); ImGui::SameLine();
-        float prevFrameLimit = Canis::GetProjectConfig().frameLimitEditor;
-        ImGui::InputInt("##editorframeLimit", &Canis::GetProjectConfig().frameLimitEditor);
-
-        if (prevFrameLimit != Canis::GetProjectConfig().frameLimitEditor && m_mode == EditorMode::EDIT)
+        // editor fps limit input
+        ImGui::Text("editor fps"); ImGui::SameLine();
+        if (ImGui::InputInt("##editorframeLimit", &Canis::GetProjectConfig().frameLimitEditor, 0) && m_mode == EditorMode::EDIT)
                 Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
 
+        // application icon
         ImGui::Text("icon");
-
         ImGui::SameLine();
-
         ImGui::Button(
             AssetManager::GetMetaFile(AssetManager::GetPath(Canis::GetProjectConfig().iconUUID))->name.c_str(),
             ImVec2(150, 0)

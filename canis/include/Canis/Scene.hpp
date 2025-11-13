@@ -38,6 +38,7 @@ namespace Canis
 
         Entity* CreateEntity(std::string _name = "", std::string _tag = "");
         Entity* GetEntity(int _id);
+        Entity* FindEntityWithName(std::string _name);
 
         void Destroy(int _id);
         void Destroy(Entity& _entity);

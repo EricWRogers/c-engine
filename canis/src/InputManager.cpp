@@ -267,8 +267,7 @@ namespace Canis
 
     bool InputManager::GetKey(unsigned int _keyID)
     {
-        int *keystate;
-        SDL_GetKeyboardState(keystate);
+        const bool *keystate = SDL_GetKeyboardState(NULL);
         return keystate[_keyID] && active;
     }
 

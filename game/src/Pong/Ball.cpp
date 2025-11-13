@@ -1,4 +1,4 @@
-#include "../include/BallMovement.hpp"
+#include "../../include/Pong/Ball.hpp"
 
 #include <Canis/App.hpp>
 #include <Canis/Time.hpp>
@@ -7,23 +7,26 @@
 
 using namespace Canis;
 
-ScriptConf ballMovementConf = {
-    .name = "BallMovement",
+namespace Pong
+{
+
+ScriptConf ballConf = {
+    .name = "Pong::Ball",
     .Add = [](Entity &_entity) -> void
     {
         // TODO: require a RectTransform component
         // TODO: require a Sprite2D component
-        _entity.AddScript<BallMovement>();
+        _entity.AddScript<Ball>();
     },
     .Has = [](Entity &_entity) -> bool
-    { return (_entity.GetScript<BallMovement>() != nullptr); },
+    { return (_entity.GetScript<Ball>() != nullptr); },
     .Remove = [](Entity &_entity) -> void
-    { _entity.RemoveScript<BallMovement>(); },
+    { _entity.RemoveScript<Ball>(); },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        if (_entity.GetScript<BallMovement>())
+        if (_entity.GetScript<Ball>())
         {
-            BallMovement &ball = *_entity.GetScript<BallMovement>();
+            Ball &ball = *_entity.GetScript<Ball>();
 
             YAML::Node comp;
 
@@ -31,14 +34,14 @@ ScriptConf ballMovementConf = {
             comp["speed"] = ball.speed;
             comp["randomRotation"] = ball.randomRotation;
 
-            _node[ballMovementConf.name] = comp;
+            _node[ballConf.name] = comp;
         }
     },
     .Decode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        if (auto ballComponent = _node["BallMovement"])
+        if (auto ballComponent = _node[ballConf.name])
         {
-            auto &ball = *_entity.AddScript<BallMovement>(false);
+            auto &ball = *_entity.AddScript<Ball>(false);
             ball.direction = ballComponent["direction"].as<Vector2>();
             ball.speed = ballComponent["speed"].as<float>();
             ball.randomRotation = ballComponent["randomRotation"].as<float>();
@@ -47,8 +50,8 @@ ScriptConf ballMovementConf = {
     },
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
-        BallMovement *ball = nullptr;
-        if ((ball = _entity.GetScript<BallMovement>()) != nullptr)
+        Ball *ball = nullptr;
+        if ((ball = _entity.GetScript<Ball>()) != nullptr)
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
@@ -57,31 +60,31 @@ ScriptConf ballMovementConf = {
     },
 };
 
-void RegisterBallMovementScript(Canis::App &_app)
+void RegisterBallScript(Canis::App &_app)
 {
-    _app.RegisterScript(ballMovementConf);
+    _app.RegisterScript(ballConf);
 }
 
-void UnRegisterBallMovementScript(Canis::App &_app)
+void UnRegisterBallScript(Canis::App &_app)
 {
-    _app.UnregisterScript(ballMovementConf);
+    _app.UnregisterScript(ballConf);
 }
 
-void BallMovement::Create()
-{
-    direction = Vector2(-1.0f, -1.0f).Normalize();
-    direction = Vector2::Normalize(direction);
-}
-
-void BallMovement::Ready()
+void Ball::Create()
 {
     direction = Vector2(-1.0f, -1.0f).Normalize();
     direction = Vector2::Normalize(direction);
 }
 
-void BallMovement::Destroy() {}
+void Ball::Ready()
+{
+    direction = Vector2(-1.0f, -1.0f).Normalize();
+    direction = Vector2::Normalize(direction);
+}
 
-void BallMovement::Update(float _dt)
+void Ball::Destroy() {}
+
+void Ball::Update(float _dt)
 {
     Vector2 delta = direction * speed * Time::DeltaTime();
     transform.position += delta;
@@ -90,16 +93,16 @@ void BallMovement::Update(float _dt)
     CheckWalls();
 }
 
-void BallMovement::EditorInspectorDraw()
+void Ball::EditorInspectorDraw()
 {
-    std::string nameOfType = "BallMovement";
+    std::string nameOfType = "Ball";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::InputFloat2("direction", &direction.x, "%.3f");
     ImGui::InputFloat("speed", &speed);
     ImGui::InputFloat("randomRotation", &randomRotation);
 }
 
-void BallMovement::CheckWalls()
+void Ball::CheckWalls()
 {
     Canis::Window &window = entity.scene->GetWindow();
 
@@ -132,3 +135,5 @@ void BallMovement::CheckWalls()
         }
     }
 }
+
+} // namespace Pong

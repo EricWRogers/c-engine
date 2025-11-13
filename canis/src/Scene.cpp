@@ -260,6 +260,20 @@ namespace Canis
         return nullptr; 
     }
 
+    Entity* Scene::FindEntityWithName(std::string _name)
+    {
+        for (Entity* entity : m_entities)
+        {
+            if (entity == nullptr)
+                continue;
+            
+            if (entity->name == _name)
+                return entity;
+        }
+
+        return nullptr;
+    }
+
     void Scene::Destroy(int _id)
     {
         if (_id < 0 || m_entities.size() <= _id)

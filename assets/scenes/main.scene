@@ -15,28 +15,12 @@ Entities:
     Canis::Camera2D:
       position: [0, 0]
       scale: 1
-  - Entity: 4565708369290017478
-    Name: Circle
-    Tag: ""
-    Canis::RectTransform:
-      active: true
-      position: [0, 0]
-      size: [64, 64]
-      scale: [1, 1]
-      originOffset: [0, 0]
-      depth: 0
-      rotation: 0
-    Canis::Sprite2D:
-      color: [1, 1, 1, 1]
-      uv: [0, 0, 1, 1]
-      TextureAsset:
-        uuid: 14778330599421933417
   - Entity: 8958296995334191509
     Name: Ball
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [-71.85695, 146.36299]
+      position: [0, 0]
       size: [32, 32]
       scale: [1, 1]
       originOffset: [0, 0]
@@ -47,16 +31,16 @@ Entities:
       uv: [0, 0, 1, 1]
       TextureAsset:
         uuid: 10819762428735356505
-    BallMovement:
-      direction: [0.89442724, 0.44721362]
+    Pong::Ball:
+      direction: [-0.7071068, -0.7071068]
       speed: 100
       randomRotation: 0
   - Entity: 1887228533441049087
-    Name: Ball
+    Name: PaddleLeft
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [-64.85695, -64.88043]
+      position: [-238.85695, -64.88043]
       size: [32, 32]
       scale: [1, 1]
       originOffset: [0, 0]
@@ -67,7 +51,25 @@ Entities:
       uv: [0, 0, 1, 1]
       TextureAsset:
         uuid: 10819762428735356505
-    BallMovement:
-      direction: [0.89442724, 0.44721362]
+    Pong::Paddle:
+      direction: [0, 0]
       speed: 100
-      randomRotation: 0
+  - Entity: 1420805413281042048
+    Name: PaddleRight
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [237.14305, -64.88043]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        uuid: 10819762428735356505
+    Pong::Paddle:
+      direction: [0, 0]
+      speed: 100

@@ -6,7 +6,8 @@
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
-#include "../include/BallMovement.hpp"
+#include "../include/Pong/Ball.hpp"
+#include "../include/Pong/Paddle.hpp"
 
 #include "../include/GameData.hpp"
 
@@ -28,7 +29,8 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
         
         app.RegisterInspectorItem(inspectorCreateBall);
-        RegisterBallMovementScript(app);
+        Pong::RegisterBallScript(app);
+        Pong::RegisterPaddleScript(app);
 
         Canis::Debug::Log("Game initialized!");
         GameData *gameData = (GameData *)malloc(sizeof(GameData));
@@ -48,7 +50,8 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
 
         app.UnregisterInspectorItem(inspectorCreateBall);
-        UnRegisterBallMovementScript(app);
+        Pong::UnRegisterBallScript(app);
+        Pong::UnRegisterPaddleScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;
@@ -59,7 +62,7 @@ extern "C"
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
         Canis::RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
         Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
-        entityOne->AddScript<BallMovement>();
+        entityOne->AddScript<Pong::Ball>();
 
         sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         transform->size = Vector2(32.0f);

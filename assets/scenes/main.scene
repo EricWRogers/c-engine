@@ -27,7 +27,7 @@ Entities:
       depth: 0
       rotation: 0
     Canis::Sprite2D:
-      color: [1, 1, 1, 1]
+      color: [0.872549, 0.19675125, 0.19675125, 1]
       uv: [0, 0, 1, 1]
       TextureAsset:
         uuid: 10819762428735356505

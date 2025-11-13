@@ -78,7 +78,7 @@ void Ball::Create()
 
 void Ball::Ready()
 {
-    direction = Vector2(-1.0f, -1.0f).Normalize();
+    direction = Vector2(1.0f, 0.0f).Normalize();
     direction = Vector2::Normalize(direction);
 }
 

@@ -579,7 +579,7 @@ namespace Canis
 
         // fps limit checkbox
         ImGui::Text("in-game fps limit"); ImGui::SameLine();
-        if (m_mode == EditorMode::PLAY && ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit))
+        if (ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit) && m_mode == EditorMode::PLAY)
         {
             if (Canis::GetProjectConfig().useFrameLimit)
                 Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);

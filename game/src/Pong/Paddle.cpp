@@ -6,6 +6,8 @@
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
+#include "../../include/Pong/Ball.hpp"
+
 using namespace Canis;
 
 namespace Pong
@@ -33,6 +35,7 @@ ScriptConf paddleConf = {
 
             comp["direction"] = paddle.direction;
             comp["speed"] = paddle.speed;
+            comp["playerNum"] = paddle.playerNum;
 
             _node[paddleConf.name] = comp;
         }
@@ -42,8 +45,9 @@ ScriptConf paddleConf = {
         if (auto paddleComponent = _node[paddleConf.name])
         {
             auto &paddle = *_entity.AddScript<Paddle>(false);
-            paddle.direction = paddleComponent["direction"].as<Vector2>();
-            paddle.speed = paddleComponent["speed"].as<float>();
+            paddle.direction = paddleComponent["direction"].as<Vector2>(paddle.direction);
+            paddle.speed = paddleComponent["speed"].as<float>(paddle.speed);
+            paddle.playerNum = paddleComponent["playerNum"].as<int>(paddle.playerNum);
             paddle.Create();
         }
     },
@@ -54,6 +58,7 @@ ScriptConf paddleConf = {
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);
+            ImGui::InputInt(("playerNum##" + _conf.name).c_str(), &paddle->playerNum, 0, 100);
         }
     },
 };
@@ -75,16 +80,36 @@ void Paddle::Destroy() {}
 void Paddle::Update(float _dt)
 {
     InputManager& inputManager = entity.scene->GetInputManager();
+
+    Canis::Clamp(playerNum, 1, 2);
+
+    unsigned int up = (playerNum == 1) ? Canis::Key::W : Canis::Key::UP;
+    unsigned int down = (playerNum == 1) ? Canis::Key::S : Canis::Key::DOWN;
     
-    if (inputManager.GetKey(Canis::Key::W))
+    if (inputManager.GetKey(up))
         direction.y = 1.0f;
-    else if (inputManager.GetKey(Canis::Key::S))
+    else if (inputManager.GetKey(down))
         direction.y = -1.0f;
     else
         direction.y = 0.0f;
     
     Vector2 delta = direction * speed * Time::DeltaTime();
     transform.position += delta;
+
+    if (Entity* e = entity.scene->FindEntityWithName("Ball"))
+    {
+        RectTransform& ballTransform = *e->GetScript<RectTransform>();
+
+        float distance = transform.GetPosition().Distance2D(ballTransform.GetPosition());
+
+        if (distance < (ballTransform.size.x * ballTransform.scale.x * 0.5f) + (transform.size.x * transform.scale.x * 0.5f))
+        {
+            Ball& ball = *e->GetScript<Ball>();
+
+            ball.direction = (ballTransform.GetPosition() - transform.GetPosition()).Normalize();
+
+        }
+    }
 }
 
 void Paddle::EditorInspectorDraw()

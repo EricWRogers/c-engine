@@ -1,5 +1,5 @@
 Environment:
-  ClearColor: [0, 1, 1, 1]
+  ClearColor: [0.09147924, 0.6911765, 0.47951856, 1]
 Entities:
   - Entity: 752832027556229489
     Name: Camera
@@ -54,6 +54,7 @@ Entities:
     Pong::Paddle:
       direction: [0, 0]
       speed: 100
+      playerNum: 1
   - Entity: 1420805413281042048
     Name: PaddleRight
     Tag: ""
@@ -73,3 +74,4 @@ Entities:
     Pong::Paddle:
       direction: [0, 0]
       speed: 100
+      playerNum: 2

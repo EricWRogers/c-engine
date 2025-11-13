@@ -9,6 +9,7 @@ namespace Pong
     public:
         Canis::Vector2 direction;
         float speed = 100.0f;
+        int playerNum = 1;
 
         Canis::RectTransform &transform = *entity.GetScript<Canis::RectTransform>();
         Canis::Sprite2D &sprite = *entity.GetScript<Canis::Sprite2D>();

@@ -10,18 +10,33 @@ using namespace Canis;
 namespace Pong
 {
 
+#define DEFAULT_NAME(type) \
+    .name = #type \
+
+#define DEFAULT_ADD(type) \
+    .Add = [](Entity &_entity) -> void { _entity.AddScript<type>(); } \
+
+#define DEFAULT_HAS(type) \
+    .Has = [](Entity &_entity) -> bool { return (_entity.GetScript<type>() != nullptr); } \
+
+#define DEFAULT_REMOVE(type) \
+    .Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
+
+#define DECODE(node, component, property) \
+    component.property = node[#property].as<decltype(component.property)>(component.property); \
+
+
 ScriptConf ballConf = {
-    .name = "Pong::Ball",
+    DEFAULT_NAME(Pong::Ball),
+    /*DEFAULT_ADD(Pong::Ball),*/
+    DEFAULT_HAS(Pong::Ball),
+    DEFAULT_REMOVE(Pong::Ball),
     .Add = [](Entity &_entity) -> void
     {
-        // TODO: require a RectTransform component
-        // TODO: require a Sprite2D component
+        _entity.scene->app->AddRequiredScript(_entity, "Canis::RectTransform");
+        _entity.scene->app->AddRequiredScript(_entity, "Canis::Sprite2D");
         _entity.AddScript<Ball>();
     },
-    .Has = [](Entity &_entity) -> bool
-    { return (_entity.GetScript<Ball>() != nullptr); },
-    .Remove = [](Entity &_entity) -> void
-    { _entity.RemoveScript<Ball>(); },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
         if (_entity.GetScript<Ball>())
@@ -42,9 +57,9 @@ ScriptConf ballConf = {
         if (auto ballComponent = _node[ballConf.name])
         {
             auto &ball = *_entity.AddScript<Ball>(false);
-            ball.direction = ballComponent["direction"].as<Vector2>();
-            ball.speed = ballComponent["speed"].as<float>();
-            ball.randomRotation = ballComponent["randomRotation"].as<float>();
+            DECODE(ballComponent, ball, direction)
+            DECODE(ballComponent, ball, speed)
+            DECODE(ballComponent, ball, randomRotation)
             ball.Create();
         }
     },
@@ -78,7 +93,7 @@ void Ball::Create()
 
 void Ball::Ready()
 {
-    direction = Vector2(1.0f, 0.0f).Normalize();
+    direction = Vector2(-1.0f, 0.0f).Normalize();
     direction = Vector2::Normalize(direction);
 }
 

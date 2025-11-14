@@ -21,6 +21,9 @@ public:
     void UnregisterScript(ScriptConf& _conf);
     std::vector<ScriptConf>& GetScriptRegistry() { return m_scriptRegistry; }
 
+    ScriptConf* GetScriptConf(const std::string& _name);
+    bool AddRequiredScript(Entity& _entity, const std::string& _name);
+
     void RegisterInspectorItem(InspectorItemRightClick& _item);
     void UnregisterInspectorItem(InspectorItemRightClick& _item);
     std::vector<InspectorItemRightClick>& GetInspectorItemRegistry() { return m_inspectorItemRegistry; }

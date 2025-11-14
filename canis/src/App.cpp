@@ -340,6 +340,36 @@ namespace Canis
         Time::SetTargetFPS(_targetFPS);
     }
 
+    ScriptConf* App::GetScriptConf(const std::string& _name)
+    {
+        for(ScriptConf& sc : m_scriptRegistry)
+        {
+            if (sc.name == _name)
+            {
+                return &sc;
+            }
+        }
+
+        return nullptr;
+    }
+
+    bool App::AddRequiredScript(Entity& _entity, const std::string& _name)
+    {
+        if (ScriptConf* sc = GetScriptConf(_name))
+        {
+            if (sc->Has(_entity) == false)
+            {
+                sc->Add(_entity);
+            }
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     void App::RegisterScript(ScriptConf &_conf)
     {
         for (ScriptConf &sc : m_scriptRegistry)

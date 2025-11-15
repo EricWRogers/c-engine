@@ -16,6 +16,26 @@ namespace Pong
 #define DEFAULT_ADD(type) \
     .Add = [](Entity &_entity) -> void { _entity.AddScript<type>(); } \
 
+template<typename... Ts>
+inline void AddRequiredScripts(Entity& _entity)
+{
+    // Fold expression over the type pack Ts...
+    (
+        _entity.scene->app->AddRequiredScript(
+            _entity,
+            std::string(type_name<Ts>()) // convert string_view -> std::string
+        ),
+        ...
+    );
+}
+
+#define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \
+    .Add = [](Entity &_entity)   -> void                                  \
+    {                                                                     \
+        AddRequiredScripts<__VA_ARGS__>(_entity);                         \
+        _entity.AddScript<type>();                                        \
+    }                                                                     \
+
 #define DEFAULT_HAS(type) \
     .Has = [](Entity &_entity) -> bool { return (_entity.GetScript<type>() != nullptr); } \
 
@@ -28,15 +48,9 @@ namespace Pong
 
 ScriptConf ballConf = {
     DEFAULT_NAME(Pong::Ball),
-    /*DEFAULT_ADD(Pong::Ball),*/
+    DEFAULT_ADD_AND_REQUIRED(Pong::Ball, Canis::RectTransform, Canis::Sprite2D),
     DEFAULT_HAS(Pong::Ball),
     DEFAULT_REMOVE(Pong::Ball),
-    .Add = [](Entity &_entity) -> void
-    {
-        _entity.scene->app->AddRequiredScript(_entity, "Canis::RectTransform");
-        _entity.scene->app->AddRequiredScript(_entity, "Canis::Sprite2D");
-        _entity.AddScript<Ball>();
-    },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
         if (_entity.GetScript<Ball>())

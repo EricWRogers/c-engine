@@ -4,6 +4,7 @@
 // #include <Canis/UUID.hpp>
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
+#include <Canis/External/GetNameOfType.hpp>
 
 #include <map>
 #include <variant>

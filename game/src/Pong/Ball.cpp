@@ -5,16 +5,18 @@
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
+#include <map>
+
 using namespace Canis;
 
 namespace Pong
 {
 
 #define DEFAULT_NAME(type) \
-    .name = #type \
+    name = #type \
 
 #define DEFAULT_ADD(type) \
-    .Add = [](Entity &_entity) -> void { _entity.AddScript<type>(); } \
+    Add = [](Entity &_entity) -> void { _entity.AddScript<type>(); } \
 
 template<typename... Ts>
 inline void AddRequiredScripts(Entity& _entity)
@@ -30,54 +32,123 @@ inline void AddRequiredScripts(Entity& _entity)
 }
 
 #define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \
-    .Add = [](Entity &_entity)   -> void                                  \
+    Add = [](Entity &_entity)   -> void                                  \
     {                                                                     \
         AddRequiredScripts<__VA_ARGS__>(_entity);                         \
         _entity.AddScript<type>();                                        \
     }                                                                     \
 
 #define DEFAULT_HAS(type) \
-    .Has = [](Entity &_entity) -> bool { return (_entity.GetScript<type>() != nullptr); } \
+    Has = [](Entity &_entity) -> bool { return (_entity.GetScript<type>() != nullptr); } \
 
 #define DEFAULT_REMOVE(type) \
-    .Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
+    Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
 
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \
 
+#define DEFAULT_REGISTER_SCRIPT(type)           \
+void Register##type##Script(Canis::App& _app)   \
+{                                               \
+    _app.RegisterScript(conf);                  \
+}
 
-ScriptConf ballConf = {
-    DEFAULT_NAME(Pong::Ball),
-    DEFAULT_ADD_AND_REQUIRED(Pong::Ball, Canis::RectTransform, Canis::Sprite2D),
-    DEFAULT_HAS(Pong::Ball),
-    DEFAULT_REMOVE(Pong::Ball),
-    .Encode = [](YAML::Node &_node, Entity &_entity) -> void
+#define DEFAULT_UNREGISTER_SCRIPT(type)         \
+void UnRegister##type##Script(Canis::App& _app) \
+{                                               \
+    _app.UnregisterScript(conf);                \
+}
+
+using PropertySetter = std::function<void(YAML::Node&, void*)>;
+using PropertyGetter = std::function<YAML::Node(void*)>;
+
+struct PropertyRegistry {
+    std::map<std::string, PropertySetter> setters;
+    std::map<std::string, PropertyGetter> getters;
+	std::vector<std::string> propertyOrder;
+};
+
+template <typename T>
+PropertyRegistry& GetPropertyRegistry()
+{
+    static PropertyRegistry registry;
+    return registry;
+}
+
+#define REGISTER_PROPERTY(component, property, type)                                                                 		\
+{                                                                                                                    		\
+    GetPropertyRegistry<component>().setters[#property] = [](YAML::Node &node, void *componentPtr) {             	        \
+        static_cast<component *>(componentPtr)->property = node.as<type>();                                         		\
+    };                                                                                                               		\
+                                                                                                                     		\
+    GetPropertyRegistry<component>().getters[#property] = [](void *componentPtr) -> YAML::Node {                     		\
+        return YAML::Node(static_cast<component *>(componentPtr)->property);                                     		    \
+    };                                                                                                               		\
+                                                                                                                     		\
+    GetPropertyRegistry<component>().propertyOrder.push_back(#property);                                             		\
+}
+
+template <typename ComponentType>
+void EncodeComponent(YAML::Node &_node, Entity &_entity)
+{
+    if (_entity.GetScript<ComponentType>())
     {
-        if (_entity.GetScript<Ball>())
+        ComponentType &component = *_entity.GetScript<ComponentType>();
+
+        YAML::Node comp;
+
+        auto &registry = GetPropertyRegistry<ComponentType>();
+        for (const auto &propertyName : registry.propertyOrder)
         {
-            Ball &ball = *_entity.GetScript<Ball>();
-
-            YAML::Node comp;
-
-            comp["direction"] = ball.direction;
-            comp["speed"] = ball.speed;
-            comp["randomRotation"] = ball.randomRotation;
-
-            _node[ballConf.name] = comp;
+            comp[propertyName] = registry.getters[propertyName](&component);
         }
-    },
-    .Decode = [](YAML::Node &_node, Entity &_entity) -> void
+
+        _node[type_name<ComponentType>()] = comp;
+    }
+}
+
+#define DEFAULT_ENCODE(type) \
+    Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent<type>(_node, _entity); } \
+
+template <typename ComponentType>
+void DecodeComponent(YAML::Node &_node, Canis::Entity &_entity)
+{
+    if (auto componentNode = _node[std::string(type_name<ComponentType>())])
     {
-        if (auto ballComponent = _node[ballConf.name])
+        auto &script = *_entity.AddScript<ComponentType>(false);
+        auto &registry = GetPropertyRegistry<ComponentType>();
+
+        for (const auto &[propertyName, setter] : registry.setters)
         {
-            auto &ball = *_entity.AddScript<Ball>(false);
-            DECODE(ballComponent, ball, direction)
-            DECODE(ballComponent, ball, speed)
-            DECODE(ballComponent, ball, randomRotation)
-            ball.Create();
+            if (componentNode[propertyName])
+            {
+                YAML::Node propertyNode = componentNode[propertyName];
+                setter(propertyNode, &script);
+            }
         }
-    },
-    .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
+        script.Create();
+    }
+}
+
+#define DEFAULT_DECODE(type) \
+    Decode = [](YAML::Node &_node, Entity &_entity) -> void { DecodeComponent<type>(_node, _entity); } \
+
+ScriptConf conf = {};
+
+void RegisterBallScript(Canis::App& _app)
+{
+    REGISTER_PROPERTY(Pong::Ball, direction, Vector2);
+    REGISTER_PROPERTY(Pong::Ball, speed, float);
+    REGISTER_PROPERTY(Pong::Ball, randomRotation, float);
+
+    conf.DEFAULT_NAME(Pong::Ball);
+    conf.DEFAULT_ADD_AND_REQUIRED(Pong::Ball, Canis::RectTransform, Canis::Sprite2D);
+    conf.DEFAULT_HAS(Pong::Ball);
+    conf.DEFAULT_REMOVE(Pong::Ball);
+    conf.DEFAULT_ENCODE(Pong::Ball);
+    conf.DEFAULT_DECODE(Pong::Ball);
+
+    conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
         Ball *ball = nullptr;
         if ((ball = _entity.GetScript<Ball>()) != nullptr)
@@ -86,18 +157,12 @@ ScriptConf ballConf = {
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
             ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball->randomRotation);
         }
-    },
-};
-
-void RegisterBallScript(Canis::App &_app)
-{
-    _app.RegisterScript(ballConf);
+    };
+    
+    _app.RegisterScript(conf);
 }
 
-void UnRegisterBallScript(Canis::App &_app)
-{
-    _app.UnregisterScript(ballConf);
-}
+DEFAULT_UNREGISTER_SCRIPT(Ball)
 
 void Ball::Create()
 {

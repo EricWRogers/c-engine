@@ -9,9 +9,11 @@
 
 namespace Canis
 {
-
     Window::Window(const char *title, int width, int height)
     {
+        // if linux
+        SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD) == false)
         {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init Error: %s", SDL_GetError());
@@ -29,7 +31,8 @@ namespace Canis
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-        SDL_SetHint(SDL_HINT_RENDER_GPU_LOW_POWER, "0"); // prefer high-perf GPU
+
+        //SDL_SetHint(SDL_HINT_RENDER_GPU_LOW_POWER, "0"); // prefer high-perf GPU
 #endif
 
         m_screenWidth = width;
@@ -52,9 +55,11 @@ namespace Canis
             std::exit(1);
         }
 
-        SDL_GL_SetSwapInterval(0);
+        
 
         InitGL();
+
+        SDL_GL_SetSwapInterval(0);
     }
 
     Window::~Window()
@@ -125,11 +130,15 @@ namespace Canis
 #ifdef __EMSCRIPTEN__
 
 #else
+        SDL_GL_MakeCurrent((SDL_Window*)m_window, (SDL_GLContext)m_context);
+        
         glewExperimental = GL_TRUE; // required for core profile
-        if (glewInit() != GLEW_OK)
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
         {
-            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GLEW initialization failed: %s",
-                         (const char *)glewGetErrorString(glewInit()));
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                        "GLEW initialization failed: %s",
+                        (const char*)glewGetErrorString(err));
             std::exit(1);
         }
 #endif

@@ -36,11 +36,12 @@ ScriptConf paddleConf = {
             comp["direction"] = paddle.direction;
             comp["speed"] = paddle.speed;
             comp["playerNum"] = paddle.playerNum;
+            comp["ball"] = paddle.ball->uuid;
 
             _node[paddleConf.name] = comp;
         }
     },
-    .Decode = [](YAML::Node &_node, Entity &_entity) -> void
+    .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void
     {
         if (auto paddleComponent = _node[paddleConf.name])
         {
@@ -48,7 +49,9 @@ ScriptConf paddleConf = {
             paddle.direction = paddleComponent["direction"].as<Vector2>(paddle.direction);
             paddle.speed = paddleComponent["speed"].as<float>(paddle.speed);
             paddle.playerNum = paddleComponent["playerNum"].as<int>(paddle.playerNum);
-            paddle.Create();
+            _entity.scene->GetEntityAfterLoad(paddleComponent["ball"].as<Canis::UUID>(0),paddle.ball);
+            if (_callCreate)
+                paddle.Create();
         }
     },
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
@@ -59,6 +62,14 @@ ScriptConf paddleConf = {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);
             ImGui::InputInt(("playerNum##" + _conf.name).c_str(), &paddle->playerNum, 0, 100);
+            if (paddle->ball)
+            {
+                ImGui::Text("Entity: %s", paddle->ball->name.c_str());
+            }
+            else
+            {
+                ImGui::Text("Entity: Missing Entity!");
+            }
         }
     },
 };

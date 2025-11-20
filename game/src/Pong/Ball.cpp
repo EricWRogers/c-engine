@@ -111,7 +111,7 @@ void EncodeComponent(YAML::Node &_node, Entity &_entity)
     Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent<type>(_node, _entity); } \
 
 template <typename ComponentType>
-void DecodeComponent(YAML::Node &_node, Canis::Entity &_entity)
+void DecodeComponent(YAML::Node &_node, Canis::Entity &_entity, bool _callCreate)
 {
     if (auto componentNode = _node[std::string(type_name<ComponentType>())])
     {
@@ -126,12 +126,13 @@ void DecodeComponent(YAML::Node &_node, Canis::Entity &_entity)
                 setter(propertyNode, &script);
             }
         }
-        script.Create();
+        if (_callCreate)
+            script.Create();
     }
 }
 
 #define DEFAULT_DECODE(type) \
-    Decode = [](YAML::Node &_node, Entity &_entity) -> void { DecodeComponent<type>(_node, _entity); } \
+    Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent<type>(_node, _entity, _callCreate); } \
 
 ScriptConf conf = {};
 

@@ -30,7 +30,7 @@ namespace Canis
         void Load(std::vector<ScriptConf>& _scriptRegistry);
         void LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root);
         Canis::Entity& DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID = true);
-        
+        void GetEntityAfterLoad(Canis::UUID _uuid, Canis::Entity* &_variable);
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }
@@ -38,6 +38,7 @@ namespace Canis
 
         Entity* CreateEntity(std::string _name = "", std::string _tag = "");
         Entity* GetEntity(int _id);
+        Entity* GetEntityWithUUID(Canis::UUID _uuid);
         Entity* FindEntityWithName(std::string _name);
 
         void Destroy(int _id);
@@ -84,6 +85,13 @@ namespace Canis
         std::vector<System*> m_systems = {};
         std::vector<System*>  m_updateSystems = {};
         std::vector<System*>  m_renderSystems = {};
+
+        struct EntityConnectInfo {
+            Canis::UUID targetUUID;
+            Canis::Entity** variable;
+        };
+
+        std::vector<EntityConnectInfo> m_entityConnectInfo = {};
 
         void ReadySystem(System *_system);
     };

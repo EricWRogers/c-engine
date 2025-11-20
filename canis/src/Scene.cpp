@@ -142,11 +142,30 @@ namespace Canis
 
         auto entities = _root["Entities"];
 
+        m_entityConnectInfo.clear();
+        std::vector<Canis::Entity*> newEntitys = {};
+
         if (entities)
         {
             for (auto e : entities)
             {
-                Entity& entity = DecodeEntity(_scriptRegistry, e);
+                newEntitys.push_back(&DecodeEntity(_scriptRegistry, e));
+            }
+
+            for (auto eci : m_entityConnectInfo)
+            {
+                (*eci.variable) = GetEntityWithUUID(eci.targetUUID);
+            }
+
+            for (auto e : newEntitys)
+            {
+                for (ScriptableEntity* se : e->m_scriptComponents)
+                {
+                    if (se)
+                    {
+                        se->Create();
+                    }
+                }
             }
         }
     }
@@ -156,7 +175,7 @@ namespace Canis
         Entity& entity = *CreateEntity();
         
         if (_copyUUID)
-            entity.uuid = _node["Entity"].as<uint64_t>(0);
+            entity.uuid = _node["Entity"].as<Canis::UUID>(0);
         
         entity.name = _node["Name"].as<std::string>("");
         entity.tag = _node["Tag"].as<std::string>("");
@@ -165,11 +184,26 @@ namespace Canis
         {
             if (_scriptRegistry[i].Decode)
             {
-                _scriptRegistry[i].Decode(_node, entity);
+                _scriptRegistry[i].Decode(_node, entity, false);
             }
         }
 
         return entity;
+    }
+
+    void Scene::GetEntityAfterLoad(Canis::UUID _uuid, Canis::Entity* &_variable)
+    {
+        if (_uuid == 0)
+        {
+            _variable = nullptr;
+            return;
+        }
+
+        EntityConnectInfo eci;
+        eci.targetUUID = _uuid;
+        eci.variable = &_variable;
+
+        m_entityConnectInfo.push_back(eci);
     }
 
     void Scene::Save(std::vector<ScriptConf>& _scriptRegistry)
@@ -218,7 +252,7 @@ namespace Canis
     YAML::Node Scene::EncodeEntity(std::vector<ScriptConf>& _scriptRegistry, Entity &_entity)
     {
         YAML::Node node;
-        node["Entity"] = std::to_string(_entity.uuid);
+        node["Entity"] = _entity.uuid;
         node["Name"] = _entity.name;
         node["Tag"] = _entity.tag;
 
@@ -255,6 +289,18 @@ namespace Canis
     {
         if (_id > -1 && _id < m_entities.size())
             return m_entities[_id];
+        
+        // TODO : Handle Error
+        return nullptr; 
+    }
+
+    Entity* Scene::GetEntityWithUUID(Canis::UUID _uuid)
+    {
+        for (int i = 0; i < m_entities.size(); i++)
+            if (m_entities[i] != nullptr)
+                if (m_entities[i]->uuid == _uuid)
+                    return m_entities[i];
+
         
         // TODO : Handle Error
         return nullptr; 

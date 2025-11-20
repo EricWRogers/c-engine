@@ -1,7 +1,7 @@
 #pragma once
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-// #include <Canis/UUID.hpp>
+#include <Canis/UUID.hpp>
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
 #include <Canis/External/GetNameOfType.hpp>
@@ -116,4 +116,20 @@ namespace YAML
 			return true;
 		}
 	};
+
+    template <>
+    struct convert<Canis::UUID>
+    {
+        static Node encode(const Canis::UUID &_uuid)
+        {
+            Node node;
+            node = std::to_string(_uuid);
+            return node;
+        }
+        static bool decode(const Node &_node, Canis::UUID &_uuid)
+        {
+            _uuid = (Canis::UUID)_node.as<uint64_t>(0);
+            return true;
+        }
+    };
 }

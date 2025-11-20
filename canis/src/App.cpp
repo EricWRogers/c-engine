@@ -26,7 +26,7 @@ namespace Canis
         const char *sharedObjectPath = "./libGameCode.dll";
 #elif __APPLE__
         const char *sharedObjectPath = "./libGameCode.dylib";
-#else
+#elif __linux__
         const char *sharedObjectPath = "./libGameCode.so";
 #endif
 
@@ -135,7 +135,7 @@ namespace Canis
                     _node["Canis::RectTransform"] = comp;
                 }
             },
-            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto rectTransform = _node["Canis::RectTransform"])
                 {
                     auto &rt = *_entity.AddScript<Canis::RectTransform>(false);
@@ -148,7 +148,8 @@ namespace Canis
                     rt.depth = rectTransform["depth"].as<float>();
                     rt.rotation = rectTransform["rotation"].as<float>();
                     //rt.scaleWithScreen = (ScaleWithScreen)rectTransform["scaleWithScreen"].as<int>(0);
-                    rt.Create();
+                    if (_callCreate)
+                        rt.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
@@ -197,7 +198,7 @@ namespace Canis
                     _node["Canis::Sprite2D"] = comp;
                 }
             },
-            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto sprite2DComponent = _node["Canis::Sprite2D"])
                 {
                     auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
@@ -210,7 +211,8 @@ namespace Canis
                         sprite.textureHandle = AssetManager::GetTextureHandle(path);
                     }
                     //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
-                    sprite.Create();
+                    if (_callCreate)
+                        sprite.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
@@ -265,13 +267,14 @@ namespace Canis
                     _node["Canis::Camera2D"] = comp;
                 }
             },
-            .Decode = [](YAML::Node &_node, Entity &_entity) -> void {
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto camera2DComponent = _node["Canis::Camera2D"])
                 {
                     auto &camera = *_entity.AddScript<Canis::Camera2D>(false);
                     camera.SetPosition(camera2DComponent["position"].as<Vector2>(camera.GetPosition()));
                     camera.SetScale(camera2DComponent["scale"].as<float>(camera.GetScale()));
-                    camera.Create();
+                    if (_callCreate)
+                        camera.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {

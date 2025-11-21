@@ -182,6 +182,18 @@ namespace Canis
 #endif
     }
 
+    void Editor::FocusEntity(Canis::Entity* _entity)
+    {
+        for (int i = 0; i < m_scene->GetEntities().size(); i++)
+        {
+            if (m_scene->GetEntities()[i] == _entity)
+            {
+                m_index = i;
+                return;
+            }
+        }
+    }
+
     bool Editor::DrawHierarchyPanel()
     {
         ImGui::Begin("Hierarchy");
@@ -191,17 +203,28 @@ namespace Canis
 
         for (int i = 0; i < entities.size(); i++)
         {
-            if (entities[i] == nullptr)
+            Canis::Entity* entity = entities[i];
+            if (entity == nullptr)
                 continue;
 
             // ImGui::Text("%s", entities[i]->name.c_str());
             std::string inputID = entities[i]->name + "##input" + std::to_string(i);
             ImGui::Selectable(inputID.c_str(), m_index == i);
 
-            if (ImGui::IsItemFocused())
+            if (ImGui::IsItemDeactivated() && ImGui::IsItemHovered())
             {
                 m_index = i;
                 refresh = true;
+            }
+
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            {
+                Canis::UUID uuid = entity->uuid;
+
+                ImGui::SetDragDropPayload("ENTITY_DRAG", &uuid, sizeof(Canis::UUID));
+                ImGui::Text("Entity: %s", entity->name.c_str());
+
+                ImGui::EndDragDropSource();
             }
 
             // TODO: extend from game dll
@@ -285,10 +308,10 @@ namespace Canis
 
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
+        Clamp(m_index, 0, entities.size() - 1);
+
         if (entities.size() != 0 && entities[m_index] != nullptr)
         {
-            Clamp(m_index, 0, entities.size() - 1);
-
             Entity &entity = *entities[m_index];
 
             ImGui::Text("name: ");

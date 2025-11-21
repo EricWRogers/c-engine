@@ -11,6 +11,7 @@ namespace Canis
     class App;
     class Window;
     class Camera2D;
+    class Entity;
     struct GameCodeObject;
 
     enum EditorMode
@@ -45,6 +46,7 @@ namespace Canis
         void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib);
 
         EditorMode GetMode() { return m_mode; }
+        void FocusEntity(Canis::Entity* _entity);
     private:
         void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);

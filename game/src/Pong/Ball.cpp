@@ -32,7 +32,7 @@ inline void AddRequiredScripts(Entity& _entity)
 }
 
 #define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \
-    Add = [](Entity &_entity)   -> void                                  \
+    Add = [](Entity &_entity)   -> void                                   \
     {                                                                     \
         AddRequiredScripts<__VA_ARGS__>(_entity);                         \
         _entity.AddScript<type>();                                        \

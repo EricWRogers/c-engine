@@ -4,6 +4,7 @@
 #include <Canis/Time.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
 
 #include "../../include/Pong/Ball.hpp"
@@ -62,14 +63,49 @@ ScriptConf paddleConf = {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);
             ImGui::InputInt(("playerNum##" + _conf.name).c_str(), &paddle->playerNum, 0, 100);
+            
+            ImGui::Text("ball");
+            ImGui::SameLine();
+
+            std::string label;
             if (paddle->ball)
-            {
-                ImGui::Text("Entity: %s", paddle->ball->name.c_str());
-            }
+                label = "[ Entity: " + paddle->ball->name + " ]";
             else
+                label = "[ missing entity ]";
+
+            ImGui::Button(label.c_str(), ImVec2(150, 0));
+
+            if (ImGui::BeginDragDropTarget())
             {
-                ImGui::Text("Entity: Missing Entity!");
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+                {
+                    const Canis::UUID dropped = *static_cast<const Canis::UUID*>(payload->Data);
+                    Canis::Entity* entity = paddle->entity.scene->GetEntityWithUUID(dropped);
+
+                    if (entity)
+                        paddle->ball = entity;
+                }
+                ImGui::EndDragDropTarget();
             }
+
+            if (ImGui::IsItemHovered() &&
+                ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                if (paddle->ball)
+                    _editor.FocusEntity(paddle->ball);
+            }
+
+            if (ImGui::BeginPopupContextItem("ball_ctx"))
+            {
+                if (ImGui::MenuItem("Clear"))
+                    paddle->ball = nullptr;
+
+                if (paddle->ball && ImGui::MenuItem("Select in Hierarchy"))
+                    _editor.FocusEntity(paddle->ball);
+
+                ImGui::EndPopup();
+            }
+
         }
     },
 };

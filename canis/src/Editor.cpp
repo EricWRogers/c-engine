@@ -194,6 +194,52 @@ namespace Canis
         }
     }
 
+    void Editor::InputEntity(const std::string& _name, Canis::Entity* &_variable)
+    {
+        ImGui::Text(_name.c_str());
+        ImGui::SameLine();
+
+        std::string label;
+        Canis::Entity* entity = *&_variable;
+        if (entity)
+            label = "[entity] " + entity->name;
+        else
+            label = "[ missing entity ]";
+
+        ImGui::Button(label.c_str(), ImVec2(150, 0));
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+            {
+                const Canis::UUID dropped = *static_cast<const Canis::UUID*>(payload->Data);
+                Canis::Entity* e = m_scene->GetEntityWithUUID(dropped);
+
+                if (e)
+                    *&_variable = e;
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            if (entity)
+                FocusEntity(entity);
+        }
+
+        std::string popUpLabel = _name + "_ctx;";
+        if (entity && ImGui::BeginPopupContextItem(popUpLabel.c_str()))
+        {
+            if (ImGui::MenuItem("Clear"))
+                *&_variable = nullptr;
+
+            if (ImGui::MenuItem("Select in Hierarchy"))
+                FocusEntity(entity);
+
+            ImGui::EndPopup();
+        }
+    }
+
     bool Editor::DrawHierarchyPanel()
     {
         ImGui::Begin("Hierarchy");

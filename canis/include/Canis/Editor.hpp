@@ -47,6 +47,10 @@ namespace Canis
 
         EditorMode GetMode() { return m_mode; }
         void FocusEntity(Canis::Entity* _entity);
+
+        // inspector variables
+        void InputEntity(const std::string& _name, Canis::Entity* &_variable);
+        //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
         void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);

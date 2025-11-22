@@ -26,6 +26,7 @@ ScriptConf paddleConf = {
     { return (_entity.GetScript<Paddle>() != nullptr); },
     .Remove = [](Entity &_entity) -> void
     { _entity.RemoveScript<Paddle>(); },
+    .Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<Paddle>(); },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
         if (_entity.GetScript<Paddle>())
@@ -64,47 +65,7 @@ ScriptConf paddleConf = {
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);
             ImGui::InputInt(("playerNum##" + _conf.name).c_str(), &paddle->playerNum, 0, 100);
             
-            ImGui::Text("ball");
-            ImGui::SameLine();
-
-            std::string label;
-            if (paddle->ball)
-                label = "[ Entity: " + paddle->ball->name + " ]";
-            else
-                label = "[ missing entity ]";
-
-            ImGui::Button(label.c_str(), ImVec2(150, 0));
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
-                {
-                    const Canis::UUID dropped = *static_cast<const Canis::UUID*>(payload->Data);
-                    Canis::Entity* entity = paddle->entity.scene->GetEntityWithUUID(dropped);
-
-                    if (entity)
-                        paddle->ball = entity;
-                }
-                ImGui::EndDragDropTarget();
-            }
-
-            if (ImGui::IsItemHovered() &&
-                ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-            {
-                if (paddle->ball)
-                    _editor.FocusEntity(paddle->ball);
-            }
-
-            if (ImGui::BeginPopupContextItem("ball_ctx"))
-            {
-                if (ImGui::MenuItem("Clear"))
-                    paddle->ball = nullptr;
-
-                if (paddle->ball && ImGui::MenuItem("Select in Hierarchy"))
-                    _editor.FocusEntity(paddle->ball);
-
-                ImGui::EndPopup();
-            }
+            _editor.InputEntity("ball", paddle->ball);
 
         }
     },

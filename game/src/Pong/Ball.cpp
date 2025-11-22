@@ -44,6 +44,9 @@ inline void AddRequiredScripts(Entity& _entity)
 #define DEFAULT_REMOVE(type) \
     Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
 
+#define DEFAULT_GET(type) \
+    Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<type>(); } \
+
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \
 
@@ -146,6 +149,7 @@ void RegisterBallScript(Canis::App& _app)
     conf.DEFAULT_ADD_AND_REQUIRED(Pong::Ball, Canis::RectTransform, Canis::Sprite2D);
     conf.DEFAULT_HAS(Pong::Ball);
     conf.DEFAULT_REMOVE(Pong::Ball);
+    conf.DEFAULT_GET(Pong::Ball);
     conf.DEFAULT_ENCODE(Pong::Ball);
     conf.DEFAULT_DECODE(Pong::Ball);
 

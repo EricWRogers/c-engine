@@ -108,6 +108,7 @@ namespace Canis
         std::function<void(Entity&)> Add = nullptr;
         std::function<bool(Entity&)> Has = nullptr;
         std::function<void(Entity&)> Remove = nullptr;
+        std::function<void*(Entity&)> Get = nullptr;
         std::function<void(YAML::Node &_node, Entity &_entity)> Encode = nullptr;
         std::function<void(YAML::Node &_node, Entity &_entity, bool _callCreate)> Decode = nullptr;
         std::function<void(Editor&, Entity&, const ScriptConf&)> DrawInspector = nullptr;

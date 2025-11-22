@@ -1,4 +1,6 @@
 #include <Canis/Scene.hpp>
+#include <Canis/App.hpp>
+#include <Canis/Editor.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/System.hpp>
@@ -199,6 +201,13 @@ namespace Canis
             return;
         }
 
+        if (app->GetEditor().GetMode() == EditorMode::PLAY)
+        {
+            _variable = GetEntityWithUUID(_uuid);
+            return;
+        }
+
+        // editor edit mode
         EntityConnectInfo eci;
         eci.targetUUID = _uuid;
         eci.variable = &_variable;

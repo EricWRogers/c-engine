@@ -53,6 +53,7 @@ namespace Canis
         window.SetWindowIcon(AssetManager::GetPath(GetProjectConfig().iconUUID));
 
         Editor editor;
+        m_editor = &editor;
         editor.Init(&window);
 
         RegisterDefaults(editor);
@@ -118,6 +119,7 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<RectTransform>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<RectTransform>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<RectTransform>(); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<RectTransform>())
                 {
@@ -182,6 +184,7 @@ namespace Canis
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Sprite2D>(); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::Sprite2D>())
                 {
@@ -255,6 +258,7 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Camera2D>(); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::Camera2D>())
                 {

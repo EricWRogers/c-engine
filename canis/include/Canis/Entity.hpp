@@ -147,8 +147,8 @@ namespace Canis
         float   depth = 0.0f;
         float   rotation = 0.0f;
         Vector2 rotationOriginOffset = Vector2(0.0f);
-        Entity  parent;
-		std::vector<Entity> children;
+        Entity*  parent = nullptr;
+		std::vector<Entity*> children;
 
         Vector2 GetPosition()
         {

@@ -12,6 +12,9 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
+      parent: 0
+      children:
+        []
     Canis::Camera2D:
       position: [0, 0]
       scale: 1
@@ -26,6 +29,9 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
+      parent: 0
+      children:
+        []
     Canis::Sprite2D:
       color: [0.872549, 0.19675125, 0.19675125, 1]
       uv: [0, 0, 1, 1]
@@ -46,6 +52,9 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
+      parent: 0
+      children:
+        - 1420805413281042048
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]
@@ -67,6 +76,9 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
+      parent: 1887228533441049087
+      children:
+        []
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]

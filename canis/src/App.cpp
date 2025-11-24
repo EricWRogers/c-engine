@@ -133,6 +133,16 @@ namespace Canis
                     comp["originOffset"] = transform.originOffset;
                     comp["depth"] = transform.depth;
                     comp["rotation"] = transform.rotation;
+                    comp["parent"] = (transform.parent == nullptr) ? Canis::UUID(0) : transform.parent->uuid;
+                    // children
+                    YAML::Node children = YAML::Node(YAML::NodeType::Sequence);
+
+                    for (Canis::Entity* c : transform.children)
+                    {
+                        children.push_back(c->uuid);
+                    }
+
+                    comp["children"] = children;
 
                     _node["Canis::RectTransform"] = comp;
                 }
@@ -149,7 +159,25 @@ namespace Canis
                     rt.originOffset = rectTransform["originOffset"].as<Vector2>();
                     rt.depth = rectTransform["depth"].as<float>();
                     rt.rotation = rectTransform["rotation"].as<float>();
-                    //rt.scaleWithScreen = (ScaleWithScreen)rectTransform["scaleWithScreen"].as<int>(0);
+
+                    if (rectTransform["parent"].as<Canis::UUID>(0) != Canis::UUID(0))
+                        _entity.scene->GetEntityAfterLoad(rectTransform["parent"].as<Canis::UUID>(0), rt.parent);
+                    
+                    if (auto children = rectTransform["children"]; children && children.IsSequence())
+                    {
+                        const std::size_t count = children.size();
+                        rt.children.clear();
+                        rt.children.resize(count);
+
+                        std::size_t i = 0;
+                        for (const auto &e : children)
+                        {
+                            auto uuid = e.as<Canis::UUID>(Canis::UUID(0));
+                            _entity.scene->GetEntityAfterLoad(uuid, rt.children[i++]);
+                        }
+                    }
+                    
+                        //rt.scaleWithScreen = (ScaleWithScreen)rectTransform["scaleWithScreen"].as<int>(0);
                     if (_callCreate)
                         rt.Create();
                 }

@@ -8,6 +8,7 @@
 
 #include "../include/Pong/Ball.hpp"
 #include "../include/Pong/Paddle.hpp"
+#include <TankGame/Tank.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -29,8 +30,14 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
         
         app.RegisterInspectorItem(inspectorCreateBall);
+        TankGame::RegisterTankScript(app);
         Pong::RegisterBallScript(app);
         Pong::RegisterPaddleScript(app);
+
+        Canis::Entity e;
+        if (e.GetScript<TankGame::Tank>() == nullptr)
+            e.AddScript<TankGame::Tank>();
+        
 
         Canis::Debug::Log("Game initialized!");
         GameData *gameData = (GameData *)malloc(sizeof(GameData));
@@ -52,6 +59,7 @@ extern "C"
         app.UnregisterInspectorItem(inspectorCreateBall);
         Pong::UnRegisterBallScript(app);
         Pong::UnRegisterPaddleScript(app);
+        TankGame::UnRegisterTankScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;

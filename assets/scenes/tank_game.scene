@@ -1,0 +1,79 @@
+Environment:
+  ClearColor: [0.38626686, 0.10652154, 0.7009804, 1]
+Entities:
+  - Entity: 752832027556229489
+    Name: Camera
+    Tag: MainCamera
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Camera2D:
+      position: [0, 0]
+      scale: 1
+    TankGame::Tank:
+      speed: 10.0
+  - Entity: 7627268716593414174
+    Name: tank
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [64, 64]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 0
+      children:
+        - 2526265367846920492
+    Canis::Sprite2D:
+      color: [0.15039186, 0.45098037, 0.0066320705, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        uuid: 16060716090729117806
+  - Entity: 2526265367846920492
+    Name: gun
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [48, 48]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 7627268716593414174
+      children:
+        - 15087449679467618189
+    Canis::Sprite2D:
+      color: [0.09198384, 0.64705884, 0.17361248, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        uuid: 16060716090729117806
+  - Entity: 15087449679467618189
+    Name: barrel
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [32, 0]
+      size: [64, 12]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 2526265367846920492
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.09206864, 0.45098037, 0.044213757, 1]
+      uv: [0, 0, 1, 1]
+      TextureAsset:
+        uuid: 16060716090729117806

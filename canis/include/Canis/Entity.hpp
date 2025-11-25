@@ -145,7 +145,7 @@ namespace Canis
         Vector2 size = Vector2(32.0f);
         Vector2 scale = Vector2(1.0f);
         Vector2 originOffset = Vector2(0.0f);
-        float   depth = 0.0f;
+        float   depth = 0.001f;
         float   rotation = 0.0f;
         Vector2 rotationOriginOffset = Vector2(0.0f);
         Entity*  parent = nullptr;
@@ -213,6 +213,35 @@ namespace Canis
 
 			return rotation;
 		}
+
+        float GetDepth() const
+		{
+            if (parent)
+			{
+                if (auto* parentRT = parent->GetScript<RectTransform>())
+                {
+                    return depth + parentRT->GetDepth();
+                }
+			}
+
+			return depth;
+		}
+
+        void SetDepth(Vector2 _globalDepth)
+        {
+            if (parent)
+            {
+                if (auto* parentRT = parent->GetScript<RectTransform>())
+                {
+                    Vector2 parentDepth = parentRT->GetPosition();
+                    
+                    position = _globalDepth - parentDepth;
+                    return;
+                }
+            }
+
+            position = _globalDepth;
+        }
     
         Vector2 GetScale() const
         {
@@ -248,10 +277,6 @@ namespace Canis
 
         bool HasParent() const {
             return parent != nullptr;
-        }
-
-        RectTransform* GetParentRT() const {
-            return (parent) ? parent->GetScript<RectTransform>() : nullptr;
         }
 
         void SetParentAtIndex(Entity* newParent, std::size_t index)

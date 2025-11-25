@@ -18,6 +18,8 @@ Entities:
     Canis::Camera2D:
       position: [0, 0]
       scale: 1
+    TankGame::Tank:
+      speed: 12.0
   - Entity: 8958296995334191509
     Name: Ball
     Tag: ""

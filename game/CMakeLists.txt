@@ -1,4 +1,4 @@
-set(GAME_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include/game")
+set(GAME_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/game")
 message(STATUS "GAME_INCLUDE_DIRS ${GAME_INCLUDE_DIRS}")
 
 file(GLOB_RECURSE GAME_SOURCES src/*.c*)
@@ -13,6 +13,7 @@ add_library(GameCode SHARED
 
 # Include SDL3 headers if needed
 target_include_directories(GameCode PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     CanisEngine
 )
 

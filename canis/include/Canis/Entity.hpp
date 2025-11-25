@@ -284,7 +284,9 @@ namespace Canis
                 return;
             }
 
-            // different parent: remove from old parent (if any)
+            Vector2 oldPos = GetPosition();
+
+            // different parent: remove from old parent
             if (parent)
             {
                 if (auto* oldParentRT = parent->GetScript<RectTransform>())
@@ -308,6 +310,8 @@ namespace Canis
                     list.insert(list.begin() + index, self);
                 }
             }
+
+            SetPosition(oldPos);
         }
 
         void SetParent(Entity* newParent)

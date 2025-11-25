@@ -23,13 +23,13 @@ Entities:
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [0, 0]
+      position: [238.85695, 64.88043]
       size: [32, 32]
       scale: [1, 1]
       originOffset: [0, 0]
       depth: 0
       rotation: 0
-      parent: 1420805413281042048
+      parent: 0
       children:
         []
     Canis::Sprite2D:
@@ -54,7 +54,7 @@ Entities:
       rotation: 0
       parent: 0
       children:
-        - 1420805413281042048
+        []
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]
@@ -76,9 +76,9 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
-      parent: 1887228533441049087
+      parent: 0
       children:
-        - 8958296995334191509
+        []
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]

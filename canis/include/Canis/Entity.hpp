@@ -2,6 +2,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <algorithm>
 
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
@@ -150,20 +151,223 @@ namespace Canis
         Entity*  parent = nullptr;
 		std::vector<Entity*> children;
 
-        Vector2 GetPosition()
+        Vector2 GetPosition() const
         {
-            return position + originOffset;
+            Vector2 localPos = position + originOffset;
+
+            if (!parent)
+                return localPos;
+
+            if (auto* parentRT = parent->GetScript<RectTransform>())
+            {
+                Vector2 parentPos = parentRT->GetPosition();
+                float parentRot   = parentRT->GetRotation();
+                Vector2 parentScale = parentRT->GetScale();
+
+                Vector2 scaled(
+                    localPos.x * parentScale.x,
+                    localPos.y * parentScale.y
+                );
+                
+                Vector2 rotatedLocal = RotatePoint(scaled, parentRot);
+                return parentPos + rotatedLocal;
+            }
+
+            return localPos;
         }
 
-        void SetPosition(Vector2 _globalPosition)
+        void SetPosition(Vector2 _globalPos)
         {
-            position = _globalPosition - originOffset;
+            if (parent)
+            {
+                if (auto* parentRT = parent->GetScript<RectTransform>())
+                {
+                    Vector2 parentPos = parentRT->GetPosition();
+                    float parentRot   = parentRT->GetRotation();
+                    
+                    Vector2 parentSpace = _globalPos - parentPos;
+                    Vector2 localPos = RotatePoint(parentSpace, -parentRot);
+
+                    position = localPos - originOffset;
+                    return;
+                }
+            }
+
+            position = _globalPos - originOffset;
         }
 
         void Move(Vector2 _delta)
         {
             position = position + _delta;
         }
+
+        float GetRotation() const
+		{
+            if (parent)
+			{
+                if (auto* parentRT = parent->GetScript<RectTransform>())
+                {
+                    return rotation + parentRT->GetRotation();
+                }
+			}
+
+			return rotation;
+		}
+    
+        Vector2 GetScale() const
+        {
+            if (!parent)
+                return scale;
+
+            if (auto* parentRT = parent->GetScript<RectTransform>())
+            {
+                Vector2 p = parentRT->GetScale();
+                return Vector2(p.x * scale.x, p.y * scale.y);
+            }
+
+            return scale;
+        }
+
+        void SetScale(const Vector2& _globalScale)
+        {
+            if (parent)
+            {
+                if (auto* parentRT = parent->GetScript<RectTransform>())
+                {
+                    Vector2 parentScale = parentRT->GetScale();
+
+                    // avoid divide-by-zero
+                    scale.x = (parentScale.x != 0.0f) ? (_globalScale.x / parentScale.x) : _globalScale.x;
+                    scale.y = (parentScale.y != 0.0f) ? (_globalScale.y / parentScale.y) : _globalScale.y;
+                    return;
+                }
+            }
+
+            scale = _globalScale;
+        }
+
+        bool HasParent() const {
+            return parent != nullptr;
+        }
+
+        RectTransform* GetParentRT() const {
+            return (parent) ? parent->GetScript<RectTransform>() : nullptr;
+        }
+
+        void SetParentAtIndex(Entity* newParent, std::size_t index)
+        {
+            Entity* self = &entity;;
+
+            // same parent: just reorder within the same children list
+            if (parent == newParent)
+            {
+                if (!parent)
+                    return;
+
+                if (auto* prt = parent->GetScript<RectTransform>())
+                {
+                    auto& list = prt->children;
+                    auto it = std::find(list.begin(), list.end(), self);
+                    if (it == list.end())
+                        return;
+
+                    std::size_t currentIndex = std::distance(list.begin(), it);
+                    if (currentIndex == index)
+                        return; // nothing to do
+
+                    list.erase(it);
+
+                    Clamp(index, 0, list.size());
+
+                    list.insert(list.begin() + index, self);
+                }
+                return;
+            }
+
+            // different parent: remove from old parent (if any)
+            if (parent)
+            {
+                if (auto* oldParentRT = parent->GetScript<RectTransform>())
+                {
+                    auto& list = oldParentRT->children;
+                    list.erase(std::remove(list.begin(), list.end(), self), list.end());
+                }
+            }
+
+            // set new parent pointer
+            parent = newParent;
+
+            // insert into new parent's children list at index
+            if (newParent)
+            {
+                if (auto* newParentRT = newParent->GetScript<RectTransform>())
+                {
+                    auto& list = newParentRT->children;
+                    Clamp(index, 0, list.size());
+
+                    list.insert(list.begin() + index, self);
+                }
+            }
+        }
+
+        void SetParent(Entity* newParent)
+        {
+            if (auto* rt = newParent ? newParent->GetScript<RectTransform>() : nullptr)
+            {
+                SetParentAtIndex(newParent, rt->children.size());
+            }
+            else
+            {
+                // unparent
+                Unparent();
+            }
+        }
+
+        void Unparent()
+        {
+            SetParentAtIndex(nullptr, 0);
+        }
+
+        bool IsChildOf(Entity* potentialParent) const
+        {
+            return parent == potentialParent;
+        }
+
+        bool HasChildren() const {
+            return !children.empty();
+        }
+
+        void AddChild(Entity* child)
+        {
+            if (!child) return;
+
+            auto* rt = child->GetScript<RectTransform>();
+            if (!rt) return;
+
+            rt->SetParent(&entity);
+        }
+
+        void RemoveChild(Entity* child)
+        {
+            if (!child) return;
+
+            // remove from children list
+            children.erase(std::remove(children.begin(), children.end(), child), children.end());
+
+            // clear child's parent
+            if (auto* rt = child->GetScript<RectTransform>())
+                rt->parent = nullptr;
+        }
+
+        void RemoveAllChildren()
+        {
+            for (auto* child : children)
+                if (auto* rt = child->GetScript<RectTransform>())
+                    rt->parent = nullptr;
+            
+            children.clear();
+        }
+
     };
 
     class Transform : public ScriptableEntity

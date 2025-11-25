@@ -182,7 +182,7 @@ namespace Canis
 #endif
     }
 
-    void Editor::FocusEntity(Canis::Entity* _entity)
+    void Editor::FocusEntity(Canis::Entity *_entity)
     {
         for (int i = 0; i < m_scene->GetEntities().size(); i++)
         {
@@ -194,13 +194,13 @@ namespace Canis
         }
     }
 
-    void Editor::InputEntity(const std::string& _name, Canis::Entity* &_variable)
+    void Editor::InputEntity(const std::string &_name, Canis::Entity *&_variable)
     {
         ImGui::Text(_name.c_str());
         ImGui::SameLine();
 
         std::string label;
-        Canis::Entity* entity = *&_variable;
+        Canis::Entity *entity = *&_variable;
         if (entity)
             label = "[entity] " + entity->name;
         else
@@ -210,10 +210,10 @@ namespace Canis
 
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
             {
-                const Canis::UUID dropped = *static_cast<const Canis::UUID*>(payload->Data);
-                Canis::Entity* e = m_scene->GetEntityWithUUID(dropped);
+                const Canis::UUID dropped = *static_cast<const Canis::UUID *>(payload->Data);
+                Canis::Entity *e = m_scene->GetEntityWithUUID(dropped);
 
                 if (e)
                     *&_variable = e;
@@ -240,109 +240,397 @@ namespace Canis
         }
     }
 
+    bool Editor::IsDescendantOf(Canis::Entity *_parent, Canis::Entity *_potentialChild)
+    {
+        if (!_parent || !_potentialChild)
+            return false;
+
+        auto *parentRT = _parent->GetScript<RectTransform>();
+        if (!parentRT)
+            return false;
+
+        for (auto *child : parentRT->children)
+        {
+            if (!child)
+                continue;
+            if (child == _potentialChild)
+                return true;
+            if (IsDescendantOf(child, _potentialChild))
+                return true;
+        }
+
+        return false;
+    }
+
+    void Editor::DrawHierarchyNode(Canis::Entity *_entity,
+                                   std::vector<Canis::Entity *> &_entities,
+                                   bool &_refresh)
+    {
+        if (!_entity)
+            return;
+
+        auto *rt = _entity->GetScript<RectTransform>();
+
+        bool isSelected = (m_index >= 0 && m_index < (int)_entities.size() &&
+                           _entities[m_index] == _entity);
+
+        bool hasChildren = (rt && !rt->children.empty());
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        if (!hasChildren)
+            flags |= ImGuiTreeNodeFlags_Leaf;
+        if (isSelected)
+            flags |= ImGuiTreeNodeFlags_Selected;
+
+        std::string label = _entity->name + "##" + std::to_string(_entity->uuid);
+        bool nodeOpen = ImGui::TreeNodeEx(label.c_str(), flags);
+
+        // select on click
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+        {
+            for (int i = 0; i < (int)_entities.size(); ++i)
+            {
+                if (_entities[i] == _entity)
+                {
+                    m_index = i;
+                    _refresh = true;
+                    break;
+                }
+            }
+        }
+
+        // drag source
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        {
+            Canis::UUID uuid = _entity->uuid;
+            ImGui::SetDragDropPayload("ENTITY_DRAG", &uuid, sizeof(Canis::UUID));
+            ImGui::Text("Entity: %s", _entity->name.c_str());
+            ImGui::EndDragDropSource();
+        }
+
+        // drop ON node = parent and append at end
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+            {
+                Canis::UUID droppedUUID = *static_cast<const Canis::UUID *>(payload->Data);
+
+                Canis::Entity *droppedEntity = nullptr;
+                for (auto *e : _entities)
+                {
+                    if (e && e->uuid == droppedUUID)
+                    {
+                        droppedEntity = e;
+                        break;
+                    }
+                }
+
+                if (droppedEntity && droppedEntity != _entity)
+                {
+                    auto *droppedRT = droppedEntity->GetScript<RectTransform>();
+                    auto *targetRT = _entity->GetScript<RectTransform>();
+
+                    if (droppedRT && targetRT && !IsDescendantOf(droppedEntity, _entity))
+                    {
+                        // append as last child
+                        droppedRT->SetParent(_entity);
+                        _refresh = true;
+                    }
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        // context menu
+        if (ImGui::BeginPopupContextItem())
+        {
+            int idx = -1;
+            for (int i = 0; i < (int)_entities.size(); ++i)
+            {
+                if (_entities[i] == _entity)
+                {
+                    idx = i;
+                    break;
+                }
+            }
+
+            if (ImGui::MenuItem("Create"))
+                m_scene->CreateEntity();
+
+            if (idx >= 0 && ImGui::MenuItem("Duplicate"))
+            {
+                Canis::Entity *selected = _entities[idx];
+                YAML::Node node = m_scene->EncodeEntity(m_app->GetScriptRegistry(), *selected);
+                m_scene->DecodeEntity(m_app->GetScriptRegistry(), node, false);
+            }
+
+            if (idx >= 0 && ImGui::MenuItem("Remove"))
+            {
+                m_scene->Destroy(idx);
+                if (m_index == idx)
+                    m_index = -1;
+                _refresh = true;
+                if (nodeOpen)
+                    ImGui::TreePop();
+                ImGui::EndPopup();
+                return;
+            }
+
+            for (auto &item : m_app->GetInspectorItemRegistry())
+            {
+                if (ImGui::MenuItem((item.name + "##").c_str()))
+                    item.Func(*m_app, *this, *_entity, m_app->GetScriptRegistry());
+            }
+
+            ImGui::EndPopup();
+        }
+
+        // children + single per-gap drop slots
+        if (nodeOpen)
+        {
+            if (rt)
+            {
+                auto &children = rt->children;
+
+                for (std::size_t ci = 0; ci < children.size(); ++ci)
+                {
+                    Canis::Entity *child = children[ci];
+                    if (!child)
+                        continue;
+
+                    // drop BEFORE this child -> specific index
+                    ImGui::PushID((void *)((uintptr_t)child ^ 0xBEEF));
+                    {
+                        ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+                        ImGui::InvisibleButton("##drop_before", slotSize);
+
+                        if (ImGui::BeginDragDropTarget())
+                        {
+                            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+                            {
+                                Canis::UUID droppedUUID = *static_cast<const Canis::UUID *>(payload->Data);
+
+                                Canis::Entity *droppedEntity = nullptr;
+                                for (auto *e2 : _entities)
+                                {
+                                    if (e2 && e2->uuid == droppedUUID)
+                                    {
+                                        droppedEntity = e2;
+                                        break;
+                                    }
+                                }
+
+                                if (droppedEntity && droppedEntity != _entity)
+                                {
+                                    auto *droppedRT = droppedEntity->GetScript<RectTransform>();
+                                    auto *targetRT = _entity->GetScript<RectTransform>();
+
+                                    if (droppedRT && targetRT && !IsDescendantOf(droppedEntity, _entity))
+                                    {
+                                        droppedRT->SetParentAtIndex(_entity, ci);
+                                        _refresh = true;
+                                    }
+                                }
+                            }
+                            ImGui::EndDragDropTarget();
+                        }
+                    }
+                    ImGui::PopID();
+
+                    // actual child row
+                    DrawHierarchyNode(child, _entities, _refresh);
+                }
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
     bool Editor::DrawHierarchyPanel()
     {
         ImGui::Begin("Hierarchy");
         bool refresh = false;
 
-        std::vector<Entity *> &entities = m_scene->GetEntities();
+        std::vector<Canis::Entity *> &entities = m_scene->GetEntities();
 
-        for (int i = 0; i < entities.size(); i++)
+        // Build list of root entities + their indices in 'entities'
+        std::vector<Canis::Entity *> rootEntities;
+        std::vector<int> rootIndices;
+
+        for (int i = 0; i < (int)entities.size(); ++i)
         {
-            Canis::Entity* entity = entities[i];
-            if (entity == nullptr)
+            Canis::Entity *entity = entities[i];
+            if (!entity)
                 continue;
 
-            // ImGui::Text("%s", entities[i]->name.c_str());
-            std::string inputID = entities[i]->name + "##input" + std::to_string(i);
-            ImGui::Selectable(inputID.c_str(), m_index == i);
+            auto *rt = entity->GetScript<RectTransform>();
 
-            if (ImGui::IsItemDeactivated() && ImGui::IsItemHovered())
+            // If it has a RectTransform and a parent, it's not a root
+            if (rt && rt->parent != nullptr)
+                continue;
+
+            rootEntities.push_back(entity);
+            rootIndices.push_back(i);
+        }
+
+        auto moveRootToPos = [&](Canis::Entity *droppedEntity, int targetRootPos)
+        {
+            if (!droppedEntity)
+                return;
+
+            // If it was a child, unparent it first so it becomes a root
+            if (auto *droppedRT = droppedEntity->GetScript<RectTransform>())
             {
-                m_index = i;
-                refresh = true;
+                if (droppedRT->parent != nullptr)
+                    droppedRT->SetParent(nullptr);
             }
 
-            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            // Find its index in the flat entities array
+            int from = -1;
+            for (int i = 0; i < (int)entities.size(); ++i)
             {
-                Canis::UUID uuid = entity->uuid;
+                if (entities[i] == droppedEntity)
+                {
+                    from = i;
+                    break;
+                }
+            }
+            if (from == -1)
+                return;
 
-                ImGui::SetDragDropPayload("ENTITY_DRAG", &uuid, sizeof(Canis::UUID));
-                ImGui::Text("Entity: %s", entity->name.c_str());
+            // Clamp targetRootPos
+            if (targetRootPos < 0)
+                targetRootPos = 0;
+            if (targetRootPos > (int)rootEntities.size())
+                targetRootPos = (int)rootEntities.size();
 
-                ImGui::EndDragDropSource();
+            int to;
+            if (targetRootPos == (int)rootEntities.size())
+            {
+                // After last root
+                to = rootIndices.empty() ? (int)entities.size()
+                                         : rootIndices.back() + 1;
+                if (to > (int)entities.size())
+                    to = (int)entities.size();
+            }
+            else
+            {
+                to = rootIndices[targetRootPos];
             }
 
-            // TODO: extend from game dll
-            if (ImGui::BeginPopupContextItem(("Menu##" + std::to_string(i)).c_str()))
+            Canis::Entity *ptr = entities[from];
+            entities.erase(entities.begin() + from);
+
+            if (from < to)
+                --to;
+            if (to < 0)
+                to = 0;
+            if (to > (int)entities.size())
+                to = (int)entities.size();
+
+            entities.insert(entities.begin() + to, ptr);
+            refresh = true;
+        };
+
+        // ---------- TOP ROOT DROP SLOT (move to front) ----------
+        {
+            ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+            ImGui::InvisibleButton("##root_drop_before_first", slotSize);
+
+            if (ImGui::BeginDragDropTarget())
             {
-                if (ImGui::MenuItem(std::string("Create##").c_str()))
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
                 {
-                    m_scene->CreateEntity();
-                }
-
-                if (ImGui::MenuItem(std::string("Duplicate##").c_str()))
-                {
-                    // 1. make this into a function
-                    // 2. once yaml is add encode then decode
-                    Entity *selected = entities[i];
-                    // Entity *entity = m_scene->CreateEntity();
-                    // entity->name = selected->name; // ++ a number at the end
-                    // entity->tag = selected->tag;
-
-                    // encode
-                    YAML::Node node = m_scene->EncodeEntity(m_app->GetScriptRegistry(), *selected);
-
-                    // decode
-                    Entity &entity = m_scene->DecodeEntity(m_app->GetScriptRegistry(), node, false);
-                }
-
-                if (ImGui::MenuItem(std::string("Remove##").c_str()))
-                {
-                    m_scene->Destroy(i);
-                    i--;
-                    ImGui::EndPopup();
-                    continue;
-                }
-
-                for (int index = 0; index < m_app->GetInspectorItemRegistry().size(); index++)
-                {
-                    if (ImGui::MenuItem(std::string(m_app->GetInspectorItemRegistry()[index].name + "##").c_str()))
+                    Canis::UUID droppedUUID = *static_cast<const Canis::UUID *>(payload->Data);
+                    Canis::Entity *droppedEntity = nullptr;
+                    for (auto *e : entities)
                     {
-                        m_app->GetInspectorItemRegistry()[index].Func(*m_app, *this, *entities[i], m_app->GetScriptRegistry());
+                        if (e && e->uuid == droppedUUID)
+                        {
+                            droppedEntity = e;
+                            break;
+                        }
+                    }
+                    moveRootToPos(droppedEntity, 0); // move to first root
+                }
+                ImGui::EndDragDropTarget();
+            }
+        }
+
+        // ---------- ROOT ENTITIES + BETWEEN-SLOTS ----------
+        for (int ri = 0; ri < (int)rootEntities.size(); ++ri)
+        {
+            Canis::Entity *entity = rootEntities[ri];
+            if (!entity)
+                continue;
+
+            DrawHierarchyNode(entity, entities, refresh);
+
+            // drop slot AFTER this root -> position ri+1
+            ImGui::PushID((void *)((uintptr_t)entity ^ 0xABCDEF));
+            ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+            ImGui::InvisibleButton("##root_drop_after", slotSize);
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+                {
+                    Canis::UUID droppedUUID = *static_cast<const Canis::UUID *>(payload->Data);
+                    Canis::Entity *droppedEntity = nullptr;
+                    for (auto *e : entities)
+                    {
+                        if (e && e->uuid == droppedUUID)
+                        {
+                            droppedEntity = e;
+                            break;
+                        }
+                    }
+                    moveRootToPos(droppedEntity, ri + 1);
+                }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::PopID();
+        }
+
+        // --------- ROOT DROP ZONE (unparent children) ----------
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        if (avail.y < 24.0f)
+            avail.y = 24.0f;
+
+        ImGui::InvisibleButton("##hierarchy_root_drop_zone", avail);
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ENTITY_DRAG"))
+            {
+                Canis::UUID droppedUUID = *static_cast<const Canis::UUID *>(payload->Data);
+
+                Canis::Entity *droppedEntity = nullptr;
+                for (auto *e : entities)
+                {
+                    if (e && e->uuid == droppedUUID)
+                    {
+                        droppedEntity = e;
+                        break;
                     }
                 }
 
-                ImGui::EndPopup();
+                if (droppedEntity)
+                {
+                    if (auto *droppedRT = droppedEntity->GetScript<RectTransform>())
+                    {
+                        // Only unparent if it *has* a parent
+                        if (droppedRT->parent != nullptr)
+                        {
+                            droppedRT->SetParent(nullptr);
+                            refresh = true;
+                        }
+                    }
+                }
             }
+            ImGui::EndDragDropTarget();
         }
-
-        /*for (int i = 0; i < GetSceneManager().hierarchyElements.size(); i++)
-        {
-            Entity entity = GetSceneManager().hierarchyElements[i].entity;
-
-            if (entity.HasComponent<Canis::RectTransform>())
-                if (entity.GetComponent<Canis::RectTransform>().parent)
-                    continue;
-
-            bool skip = DrawHierarchyElement(i);
-
-            if (skip)
-                break;
-        }
-
-        if (ImGui::Button("New Entity"))
-        {
-            Entity e = m_scene->CreateEntity();
-            e.AddComponent<IDComponent>();
-
-            HierarchyElementInfo hei;
-            hei.entity.entityHandle = e.entityHandle;
-            hei.entity.scene = m_scene;
-
-            GetSceneManager().hierarchyElements.push_back(hei);
-            m_forceRefresh = true;
-        }*/
+        // -----------------------------------------------------
 
         ImGui::End();
         return refresh;
@@ -647,7 +935,8 @@ namespace Canis
         }
 
         // fps limit checkbox
-        ImGui::Text("in-game fps limit"); ImGui::SameLine();
+        ImGui::Text("in-game fps limit");
+        ImGui::SameLine();
         if (ImGui::Checkbox("##useFPSLimit", &Canis::GetProjectConfig().useFrameLimit) && m_mode == EditorMode::PLAY)
         {
             if (Canis::GetProjectConfig().useFrameLimit)
@@ -659,31 +948,32 @@ namespace Canis
         // fps limit input
         if (Canis::GetProjectConfig().useFrameLimit)
         {
-            ImGui::Text("    fps limit"); ImGui::SameLine();
+            ImGui::Text("    fps limit");
+            ImGui::SameLine();
             if (ImGui::InputInt("##frameLimit", &Canis::GetProjectConfig().frameLimit, 0) && m_mode == EditorMode::PLAY)
                 Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
         }
 
         // editor fps limit input
-        ImGui::Text("editor fps"); ImGui::SameLine();
+        ImGui::Text("editor fps");
+        ImGui::SameLine();
         if (ImGui::InputInt("##editorframeLimit", &Canis::GetProjectConfig().frameLimitEditor, 0) && m_mode == EditorMode::EDIT)
-                Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
+            Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
 
         // application icon
         ImGui::Text("icon");
         ImGui::SameLine();
         ImGui::Button(
             AssetManager::GetMetaFile(AssetManager::GetPath(Canis::GetProjectConfig().iconUUID))->name.c_str(),
-            ImVec2(150, 0)
-        );
+            ImVec2(150, 0));
 
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
             {
-                const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                const AssetDragData dropped = *static_cast<const AssetDragData *>(payload->Data);
                 std::string path = AssetManager::GetPath(dropped.uuid);
-                TextureAsset* asset = AssetManager::GetTexture(path);
+                TextureAsset *asset = AssetManager::GetTexture(path);
 
                 if (asset) // validate that this is a texture
                 {
@@ -823,7 +1113,7 @@ namespace Canis
                 continue;
 
             Vector2 globalPos = transform->GetPosition();    // rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
-            float globalRotation = transform->rotation; // rect_transform.GetGlobalRotation();
+            float globalRotation = transform->GetRotation(); // rect_transform.GetGlobalRotation();
 
             if (globalRotation != 0.0f)
             {
@@ -833,11 +1123,11 @@ namespace Canis
                     -globalRotation);
             }
 
-            // TODO: should add depth sort
-            if (mouse.x > globalPos.x - transform->size.x * 0.5f * transform->scale.x &&
-                mouse.x < globalPos.x + transform->size.x * 0.5f * transform->scale.x &&
-                mouse.y > globalPos.y - transform->size.x * 0.5f * transform->scale.y &&
-                mouse.y < globalPos.y + transform->size.x * 0.5f * transform->scale.y &&
+            Vector2 globalScale = transform->GetScale();
+            if (mouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
+                mouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
+                mouse.y > globalPos.y - transform->size.x * 0.5f * globalScale.y &&
+                mouse.y < globalPos.y + transform->size.x * 0.5f * globalScale.y &&
                 !mouseLock)
             {
                 m_index = i;
@@ -901,12 +1191,13 @@ namespace Canis
 
         // Align to bottom-left
         // ADD BACK pos += rtc.rotationOriginOffset;
+        Vector2 globalScale = rtc.GetScale();
 
         Matrix4 model;
         model.Identity();
         model.Translate(Vector3(pos.x, pos.y, 0.0f));
         model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
-        model.Scale(Vector3(rtc.size.x * rtc.scale.x, rtc.size.y * rtc.scale.y, 1.0f));
+        model.Scale(Vector3(rtc.size.x * globalScale.x, rtc.size.y * globalScale.y, 1.0f));
 
         ImGuizmo::SetOrthographic(true);
         ImGuizmo::SetDrawlist();
@@ -950,7 +1241,7 @@ namespace Canis
             rtc.rotation = DEG2RAD * rotation.z;
 
             // update size (scale stays constant, we resize the actual size)
-            rtc.scale = Vector2(scale.x / rtc.size.x, scale.y / rtc.size.y);
+            rtc.SetScale(Vector2(scale.x / rtc.size.x, scale.y / rtc.size.y));
         }
 
         ImGui::End();
@@ -966,24 +1257,24 @@ namespace Canis
         static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
         RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
-        Vector2 pos = rtc.position; // rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight());
-        pos += rtc.originOffset;
+        Vector2 pos = rtc.GetPosition();
+        Vector2 scale = rtc.GetScale();
         // Vector2 vertices[] = {
         //     {pos.x, pos.y},
         //     {pos.x + (rtc.size.x * rtc.scale), pos.y},
         //     {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
         //     {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
         Vector2 vertices[] = {
-            {pos.x - (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
-            {pos.x + (rtc.size.x * rtc.scale.x * 0.5f), pos.y - (rtc.size.y * rtc.scale.y * 0.5f)},
-            {pos.x + (rtc.size.x * rtc.scale.x * 0.5f), pos.y + (rtc.size.y * rtc.scale.y * 0.5f)},
-            {pos.x - (rtc.size.x * rtc.scale.x * 0.5f), pos.y + (rtc.size.y * rtc.scale.y * 0.5f)}};
+            {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)},
+            {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)},
+            {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)},
+            {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)}};
 
         for (Vector2 &v : vertices)
             RotatePointAroundPivot(
                 v,
                 Vector2(pos.x, pos.y) /*vertices[0] + rtc.originOffset + rtc.rotationOriginOffset*/,
-                -rtc.rotation // debugRectTransform.GetGlobalRotation()
+                -rtc.GetRotation() // debugRectTransform.GetGlobalRotation()
             );
 
         for (Vector2 &v : vertices)

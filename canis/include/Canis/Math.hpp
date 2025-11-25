@@ -216,6 +216,8 @@ namespace Canis
         return m;
     }
 
+    extern Vector2 RotatePoint(Vector2 _vector, float _radian);
+
     extern void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle);
 
     extern void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian);
@@ -223,5 +225,7 @@ namespace Canis
     extern void Clamp(int &_value, int _min, int _max);
 
     extern void Clamp(float &_value, float _min, float _max);
+
+    extern void Clamp(size_t &_value, size_t _min, size_t _max);
 
 }

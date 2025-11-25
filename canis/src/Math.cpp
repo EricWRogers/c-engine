@@ -439,6 +439,16 @@ namespace Canis
         m[14] = -(_far + _near) / fn;   // (2,3)
     }
 
+    Vector2 RotatePoint(Vector2 _vector, float _radian)
+    {
+        float c = std::cos(_radian);
+        float s = std::sin(_radian);
+        return Vector2(
+            _vector.x * c - _vector.y * s,
+            _vector.x * s + _vector.y * c
+        );
+    }
+
     void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle)
     {
         float x = _point.x;
@@ -486,5 +496,14 @@ namespace Canis
         {
             _value = _max;
         }
+    }
+
+    void Clamp(size_t &_value, size_t _min, size_t _max)
+    {
+        if (_value < _min)
+            _value = _min;
+        
+        if (_value > _max)
+            _value = _max;
     }
 }

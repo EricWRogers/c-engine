@@ -452,30 +452,23 @@ namespace Canis
             if (transform == nullptr || sprite == nullptr)
                 continue;
             
-            p = transform->position;// + anchorTable[rect_transform.anchor];
-            s.x = transform->scale.x * transform->size.x + halfWidth;
-            s.y = transform->scale.y * transform->size.y + halfHeight;
-            if (p.x > camPos.x - s.x &&
-                p.x < camPos.x + s.x &&
-                p.y > camPos.y - s.y &&
-                p.y < camPos.y + s.y &&
+            p = transform->GetPosition();// + anchorTable[rect_transform.anchor];
+            s = transform->GetScale();
+            s.x = s.x * transform->size.x;// + halfWidth;
+            s.y = s.y * transform->size.y;// + halfHeight;
+            if (p.x > camPos.x - s.x - halfWidth  &&
+                p.x < camPos.x + s.x + halfWidth  &&
+                p.y > camPos.y - s.y - halfHeight &&
+                p.y < camPos.y + s.y + halfHeight &&
                 entity->active)
             {
-                /*Draw(
-                    Vector4(rect_transform.position.x + anchorTable[rect_transform.anchor].x, rect_transform.position.y + anchorTable[rect_transform.anchor].y, rect_transform.size.x, rect_transform.size.y),
-                    sprite->uv,
-                    sprite.textureHandle.texture,
-                    rect_transform.depth,
-                    sprite->color,
-                    rect_transform.rotation,
-                    rect_transform.originOffset);*/
                 Draw(
-                    Vector4(transform->position.x, transform->position.y, transform->size.x * transform->scale.x, transform->size.y * transform->scale.y),
+                    Vector4(p.x, p.y, s.x, s.y),// transform->size.x * transform->scale.x, transform->size.y * transform->scale.y),
                     sprite->uv,
                     sprite->textureHandle.texture,
                     transform->depth,
                     sprite->color,
-                    transform->rotation,
+                    transform->GetRotation(),
                     transform->originOffset);
             }
         }

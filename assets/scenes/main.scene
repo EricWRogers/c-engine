@@ -29,7 +29,7 @@ Entities:
       originOffset: [0, 0]
       depth: 0
       rotation: 0
-      parent: 0
+      parent: 1420805413281042048
       children:
         []
     Canis::Sprite2D:
@@ -78,7 +78,7 @@ Entities:
       rotation: 0
       parent: 1887228533441049087
       children:
-        []
+        - 8958296995334191509
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 1]

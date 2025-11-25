@@ -55,6 +55,8 @@ namespace Canis
         void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);
         //void DrawSystemPanel();
+        bool IsDescendantOf(Canis::Entity* _parent, Canis::Entity* _potentialChild);
+        void DrawHierarchyNode(Canis::Entity* _entity, std::vector<Canis::Entity*>& _entities,bool& _refresh);
         bool DrawHierarchyPanel();
         bool DrawHierarchyElement(int _index);
         void DrawEnvironment();

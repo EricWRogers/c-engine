@@ -130,3 +130,12 @@ void DecodeComponent(YAML::Node &_node, Canis::Entity &_entity, bool _callCreate
 
 #define DEFAULT_DECODE(type) \
     Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent<type>(_node, _entity, _callCreate); }
+
+/*#define CHECK_SCRIPTABLE_ENTITY(type) \
+    Canis::Entity e; \
+    type v(e); \
+    if ((void*)dynamic_cast<Canis::ScriptableEntity*>(&v) == nullptr) { \
+        Debug::Error("%s does NOT publicly inherit ScriptableEntity!", type_name<type>().data()); \
+    } else { \
+        Debug::Log("I Checked!"); \
+    }*/

@@ -18,7 +18,7 @@ Entities:
     Canis::Camera2D:
       position: [0, 0]
       scale: 1
-    TankGame::Tank:
+    Tank:
       speed: 10.0
   - Entity: 7627268716593414174
     Name: tank

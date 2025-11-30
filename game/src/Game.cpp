@@ -33,10 +33,6 @@ extern "C"
         TankGame::RegisterTankScript(app);
         Pong::RegisterBallScript(app);
         Pong::RegisterPaddleScript(app);
-
-        Canis::Entity e;
-        if (e.GetScript<TankGame::Tank>() == nullptr)
-            e.AddScript<TankGame::Tank>();
         
 
         Canis::Debug::Log("Game initialized!");

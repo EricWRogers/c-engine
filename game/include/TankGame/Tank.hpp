@@ -4,7 +4,7 @@
 
 namespace TankGame
 {
-    class Tank : Canis::ScriptableEntity
+    class Tank : public Canis::ScriptableEntity
     {
     public:
         float speed = 10.0f;

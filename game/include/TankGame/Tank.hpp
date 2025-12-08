@@ -6,8 +6,11 @@ namespace TankGame
 {
     class Tank : public Canis::ScriptableEntity
     {
+    private:
+        Canis::RectTransform* m_transform = nullptr;
     public:
         float speed = 10.0f;
+        float turnSpeed = 25.0f;
 
         Tank(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 

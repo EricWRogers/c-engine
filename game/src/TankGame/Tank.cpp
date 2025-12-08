@@ -18,6 +18,7 @@ namespace TankGame
     void RegisterTankScript(Canis::App &_app)
     {
         REGISTER_PROPERTY(TankGame::Tank, speed, float);
+        REGISTER_PROPERTY(TankGame::Tank, turnSpeed, float);
 
         conf.DEFAULT_NAME(TankGame::Tank);
         conf.DEFAULT_ADD_AND_REQUIRED(TankGame::Tank, Canis::RectTransform, Canis::Sprite2D);
@@ -33,6 +34,7 @@ namespace TankGame
             if ((tank = _entity.GetScript<Tank>()) != nullptr)
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank->speed);
+                ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank->turnSpeed);
             }
         };
 
@@ -45,11 +47,25 @@ namespace TankGame
 
     void Tank::Create() { Debug::Log("Tank But No Tank!"); }
 
-    void Tank::Ready() {}
+    void Tank::Ready() {
+        m_transform = entity.GetScript<Canis::RectTransform>();
+    }
 
     void Tank::Destroy() { Debug::Log("Kill Tank But No Tank!"); }
 
-    void Tank::Update(float _dt) { Debug::Log("Tank Update!"); }
+    void Tank::Update(float _dt) {
+        if (entity.scene->GetInputManager().GetKey(Canis::Key::W))
+            m_transform->Move(Vector2(1.0f, 0.0f) * speed * _dt);
+        
+        if (entity.scene->GetInputManager().GetKey(Canis::Key::S))
+            m_transform->Move(Vector2(-1.0f, 0.0f) * speed * _dt);
+        
+        if (entity.scene->GetInputManager().GetKey(Canis::Key::A))
+            m_transform->rotation += -turnSpeed * Canis::DEG2RAD * _dt;
+        
+        if (entity.scene->GetInputManager().GetKey(Canis::Key::D))
+            m_transform->rotation += turnSpeed * Canis::DEG2RAD * _dt;
+    }
 
     void Tank::EditorInspectorDraw() {}
 }

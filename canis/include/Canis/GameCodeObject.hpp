@@ -87,7 +87,11 @@ namespace Canis
 
     static void GameCodeObjectWatchFile(GameCodeObject *_gameCodeObject, Canis::App *_app)
     {
-        if (SDL_GetTicksNS() - _gameCodeObject->_lastFileCheck > 1.e9)
+        _gameCodeObject->GameShutdownFunction((void *)_app, _gameCodeObject->gameData);
+        SDL_UnloadObject(_gameCodeObject->sharedObjectHandle);
+        *_gameCodeObject = GameCodeObjectInit(_gameCodeObject->path);
+        GameCodeObjectInitFunction(_gameCodeObject, _app);
+        /*if (SDL_GetTicksNS() - _gameCodeObject->_lastFileCheck > 1.e9)
         {
             Debug::Log("Check");
             _gameCodeObject->_lastFileCheck = SDL_GetTicksNS();
@@ -108,6 +112,6 @@ namespace Canis
             }
 
             _gameCodeObject->_lastPathInfo = info;
-        }
+        }*/
     }
 }

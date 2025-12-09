@@ -49,6 +49,7 @@ namespace TankGame
 
     void Tank::Ready() {
         m_transform = entity.GetScript<Canis::RectTransform>();
+        m_turret = m_transform->children[0]->GetScript<RectTransform>();
     }
 
     void Tank::Destroy() { Debug::Log("Kill Tank But No Tank!"); }
@@ -61,10 +62,10 @@ namespace TankGame
             m_transform->Move(Vector2(-1.0f, 0.0f) * speed * _dt);
         
         if (entity.scene->GetInputManager().GetKey(Canis::Key::A))
-            m_transform->rotation += -turnSpeed * Canis::DEG2RAD * _dt;
+            m_transform->rotation += turnSpeed * Canis::DEG2RAD * _dt;
         
         if (entity.scene->GetInputManager().GetKey(Canis::Key::D))
-            m_transform->rotation += turnSpeed * Canis::DEG2RAD * _dt;
+            m_transform->rotation += -turnSpeed * Canis::DEG2RAD * _dt;
     }
 
     void Tank::EditorInspectorDraw() {}

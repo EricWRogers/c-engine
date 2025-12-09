@@ -8,6 +8,7 @@ namespace TankGame
     {
     private:
         Canis::RectTransform* m_transform = nullptr;
+        Canis::RectTransform* m_turret = nullptr;
     public:
         float speed = 10.0f;
         float turnSpeed = 25.0f;

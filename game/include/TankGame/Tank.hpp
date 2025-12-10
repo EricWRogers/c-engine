@@ -12,6 +12,7 @@ namespace TankGame
     public:
         float speed = 10.0f;
         float turnSpeed = 25.0f;
+        float test = 5.0f;
 
         Tank(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 

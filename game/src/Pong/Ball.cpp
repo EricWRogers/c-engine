@@ -13,23 +13,48 @@ using namespace Canis;
 
 namespace Pong
 {
-ScriptConf conf = {};
 
-void RegisterBallScript(Canis::App& _app)
-{
-    REGISTER_PROPERTY(Pong::Ball, direction, Vector2);
-    REGISTER_PROPERTY(Pong::Ball, speed, float);
-    REGISTER_PROPERTY(Pong::Ball, randomRotation, float);
+ScriptConf ballConf = {
+    .name = "Pong::Ball",
+    .Add = [](Entity &_entity) -> void
+    {
+        // TODO: require a RectTransform component
+        // TODO: require a Sprite2D component
+        _entity.AddScript<Ball>();
+    },
+    .Has = [](Entity &_entity) -> bool
+    { return (_entity.GetScript<Ball>() != nullptr); },
+    .Remove = [](Entity &_entity) -> void
+    { _entity.RemoveScript<Ball>(); },
+    .Encode = [](YAML::Node &_node, Entity &_entity) -> void
+    {
+        if (_entity.GetScript<Ball>())
+        {
+            Ball &ball = *_entity.GetScript<Ball>();
 
-    conf.DEFAULT_NAME(Pong::Ball);
-    conf.DEFAULT_ADD_AND_REQUIRED(Pong::Ball, Canis::RectTransform, Canis::Sprite2D);
-    conf.DEFAULT_HAS(Pong::Ball);
-    conf.DEFAULT_REMOVE(Pong::Ball);
-    conf.DEFAULT_GET(Pong::Ball);
-    conf.DEFAULT_ENCODE(Pong::Ball);
-    conf.DEFAULT_DECODE(Pong::Ball);
+            YAML::Node comp;
 
-    conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
+            comp["direction"] = ball.direction;
+            comp["speed"] = ball.speed;
+            comp["randomRotation"] = ball.randomRotation;
+
+            _node[ballConf.name] = comp;
+        }
+    },
+    .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void
+    {
+        if (auto ballComponent = _node[ballConf.name])
+        {
+            auto &ball = *_entity.AddScript<Ball>(false);
+            ball.direction = ballComponent["direction"].as<Vector2>();
+            ball.speed = ballComponent["speed"].as<float>();
+            ball.randomRotation = ballComponent["randomRotation"].as<float>();
+
+            if (_callCreate)
+                ball.Create();
+        }
+    },
+    .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
         Ball *ball = nullptr;
         if ((ball = _entity.GetScript<Ball>()) != nullptr)
@@ -38,12 +63,18 @@ void RegisterBallScript(Canis::App& _app)
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
             ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball->randomRotation);
         }
-    };
-    
-    _app.RegisterScript(conf);
+    },
+};
+
+void RegisterBallScript(Canis::App &_app)
+{
+    _app.RegisterScript(ballConf);
 }
 
-DEFAULT_UNREGISTER_SCRIPT(Ball)
+void UnRegisterBallScript(Canis::App &_app)
+{
+    _app.UnregisterScript(ballConf);
+}
 
 void Ball::Create()
 {

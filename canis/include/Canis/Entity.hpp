@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <vector>
 #include <functional>
 #include <unordered_map>
@@ -104,8 +105,18 @@ namespace Canis
         virtual void EditorInspectorDraw() {}
     };
 
+    using PropertySetter = std::function<void(YAML::Node&, void*)>;
+    using PropertyGetter = std::function<YAML::Node(void*)>;
+
+    struct PropertyRegistry {
+        std::map<std::string, PropertySetter> setters;
+        std::map<std::string, PropertyGetter> getters;
+        std::vector<std::string> propertyOrder;
+    };
+
     struct ScriptConf {
         std::string name;
+        PropertyRegistry registry;
         std::function<void(Entity&)> Add = nullptr;
         std::function<bool(Entity&)> Has = nullptr;
         std::function<void(Entity&)> Remove = nullptr;

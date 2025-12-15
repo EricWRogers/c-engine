@@ -286,6 +286,24 @@ namespace Canis
             scale = _globalScale;
         }
 
+        Vector2 GetRight() const
+        {
+            const float a = GetRotation();
+
+            Vector2 right(std::cos(a), std::sin(a));
+
+            return right.Normalize();
+        }
+
+        Vector2 GetUp() const
+        {
+            const float a = GetRotation();
+
+            Vector2 up(-std::sin(a), std::cos(a));
+
+            return up.Normalize();
+        }
+
         bool HasParent() const {
             return parent != nullptr;
         }

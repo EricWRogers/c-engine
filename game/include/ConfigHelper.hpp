@@ -125,6 +125,30 @@ void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Canis::Enti
 #define DEFAULT_DECODE(config, type) \
     Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent<type>(config.registry, _node, _entity, _callCreate); } \
 
+#define DEFAULT_CONFIG(config, type)                \
+{                                                   \
+    config.DEFAULT_NAME(type);                      \
+    config.DEFAULT_ADD(type);                       \
+    config.DEFAULT_HAS(type);                       \
+    config.DEFAULT_REMOVE(type);                    \
+    config.DEFAULT_ENCODE(config, type);            \
+    config.DEFAULT_DECODE(config, type);            \
+}
+
+#define DEFAULT_CONFIG_AND_REQUIRED(config, type, ...)  \
+{                                                       \
+    config.DEFAULT_NAME(type);                          \
+    config.Add = [](Entity &_entity) -> void            \
+    {                                                   \
+        AddRequiredScripts<__VA_ARGS__>(_entity);       \
+        _entity.AddScript<type>();                      \
+    };                                                  \
+    config.DEFAULT_HAS(type);                           \
+    config.DEFAULT_REMOVE(type);                        \
+    config.DEFAULT_ENCODE(config, type);                \
+    config.DEFAULT_DECODE(config, type);                \
+}
+
 /*#define CHECK_SCRIPTABLE_ENTITY(type) \
     Canis::Entity e; \
     type v(e); \

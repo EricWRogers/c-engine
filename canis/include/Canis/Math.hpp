@@ -49,6 +49,8 @@ namespace Canis
         Vector2 operator*(float scalar) const;
         Vector2 operator/(float scalar) const;
 
+        Vector2 operator-() const { return Vector2(-x, -y); }
+
         Vector2 &operator+=(const Vector2 &rhs);
         Vector2 &operator-=(const Vector2 &rhs);
         Vector2 &operator*=(float scalar);

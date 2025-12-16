@@ -69,7 +69,7 @@ namespace Canis
         Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
         #endif
 
-        scene.Init(this, &window, &inputManager, "assets/scenes/main.scene");
+        scene.Init(this, &window, &inputManager, "assets/scenes/tank_game.scene");
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);

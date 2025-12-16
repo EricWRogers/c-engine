@@ -15,6 +15,9 @@ namespace Canis
         m_window = _window;
         m_inputManager = _inputManger;
         m_path = _path;
+
+        // TODO resizing breaks components
+        m_entities.reserve(1000);
     }
 
     void Scene::Update(float _deltaTime)
@@ -43,7 +46,8 @@ namespace Canis
 
             for (ScriptableEntity* se : e->m_scriptComponents)
             {
-                se->Update(_deltaTime);
+                if (se->m_onReadyCalled)
+                    se->Update(_deltaTime);
             }
         }
     }
@@ -286,6 +290,7 @@ namespace Canis
             if (m_entities[i] == nullptr)
             {
                 m_entities[i] = entity;
+                entity->id = i;
                 return entity;
             }
         }
@@ -332,7 +337,16 @@ namespace Canis
     void Scene::Destroy(int _id)
     {
         if (_id < 0 || m_entities.size() <= _id)
+        {
+            Debug::Log("size %d, id %d", m_entities.size(), _id);
             return;
+        }
+        
+        if (m_entities[_id] == nullptr)
+        {
+            Debug::Log("Why are you NULL");
+            return;
+        }
         
         Destroy(*m_entities[_id]);
     }
@@ -355,6 +369,15 @@ namespace Canis
 
         delete m_entities[_entity.id];
         m_entities[_entity.id] = nullptr;
+
+        if (m_entities[_entity.id] != nullptr)
+        {
+            Debug::Log("NOT NULL");
+        }
+        else
+        {
+            Debug::Log("NULL");
+        }
     }
 
     void Scene::ReadySystem(System *_system)

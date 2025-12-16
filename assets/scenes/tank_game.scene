@@ -19,7 +19,7 @@ Entities:
       position: [0, 0]
       scale: 1
   - Entity: 7627268716593414174
-    Name: tank
+    Name: Tank
     Tag: ""
     Canis::RectTransform:
       active: true
@@ -39,8 +39,24 @@ Entities:
         uuid: 16060716090729117806
     TankGame::Tank:
       speed: 10
+      turnSpeed: 25
+      count: 5
+  - Entity: 3225605259588162169
+    Name: FirePoint
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [64, -1]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 2526265367846920492
+      children:
+        []
   - Entity: 2526265367846920492
-    Name: gun
+    Name: Gun
     Tag: ""
     Canis::RectTransform:
       active: true
@@ -52,6 +68,7 @@ Entities:
       rotation: 0
       parent: 7627268716593414174
       children:
+        - 3225605259588162169
         - 15087449679467618189
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
@@ -59,11 +76,11 @@ Entities:
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 15087449679467618189
-    Name: barrel
+    Name: Barrel
     Tag: ""
     Canis::RectTransform:
       active: true
-      position: [32, 0]
+      position: [32, -1]
       size: [64, 12]
       scale: [1, 1]
       originOffset: [0, 0]

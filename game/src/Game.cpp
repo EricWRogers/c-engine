@@ -9,6 +9,7 @@
 #include "../include/Pong/Ball.hpp"
 #include "../include/Pong/Paddle.hpp"
 #include <TankGame/Tank.hpp>
+#include <TankGame/Bullet.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -31,6 +32,7 @@ extern "C"
         
         app.RegisterInspectorItem(inspectorCreateBall);
         TankGame::RegisterTankScript(app);
+        TankGame::RegisterBulletScript(app);
         Pong::RegisterBallScript(app);
         Pong::RegisterPaddleScript(app);
         
@@ -56,6 +58,7 @@ extern "C"
         Pong::UnRegisterBallScript(app);
         Pong::UnRegisterPaddleScript(app);
         TankGame::UnRegisterTankScript(app);
+        TankGame::UnRegisterBulletScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;

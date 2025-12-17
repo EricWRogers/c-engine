@@ -17,7 +17,7 @@ namespace Canis
         m_path = _path;
 
         // TODO resizing breaks components
-        m_entities.reserve(1000);
+        m_entities.reserve(100000);
     }
 
     void Scene::Update(float _deltaTime)
@@ -148,19 +148,30 @@ namespace Canis
 
         auto entities = _root["Entities"];
 
+        LoadEntityNodes(_scriptRegistry, entities);
+    }
+
+    void Scene::LoadEntityNodes(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_entities, bool _copyUUID)
+    {
+        m_targetUUIDNewUUID.clear();
         m_entityConnectInfo.clear();
         std::vector<Canis::Entity*> newEntitys = {};
 
-        if (entities)
+        if (_entities)
         {
-            for (auto e : entities)
+            for (auto e : _entities)
             {
-                newEntitys.push_back(&DecodeEntity(_scriptRegistry, e));
+                newEntitys.push_back(&DecodeEntity(_scriptRegistry, e, _copyUUID));
             }
 
             for (auto eci : m_entityConnectInfo)
             {
-                (*eci.variable) = GetEntityWithUUID(eci.targetUUID);
+                Canis::UUID uuid = eci.targetUUID;
+
+                if (m_targetUUIDNewUUID.contains(uuid))
+                    uuid = m_targetUUIDNewUUID[uuid];
+                
+                (*eci.variable) = GetEntityWithUUID(uuid);
             }
 
             for (auto e : newEntitys)
@@ -180,8 +191,11 @@ namespace Canis
     {
         Entity& entity = *CreateEntity();
         
-        if (_copyUUID)
+        if (_copyUUID) {
             entity.uuid = _node["Entity"].as<Canis::UUID>(0);
+        } else {
+            m_targetUUIDNewUUID[_node["Entity"].as<Canis::UUID>(0)] = entity.uuid;
+        }
         
         entity.name = _node["Name"].as<std::string>("");
         entity.tag = _node["Tag"].as<std::string>("");
@@ -289,6 +303,8 @@ namespace Canis
         {
             if (m_entities[i] == nullptr)
             {
+                if (i == 0)
+                    Debug::Log("The Camera Just Died");
                 m_entities[i] = entity;
                 entity->id = i;
                 return entity;
@@ -369,15 +385,6 @@ namespace Canis
 
         delete m_entities[_entity.id];
         m_entities[_entity.id] = nullptr;
-
-        if (m_entities[_entity.id] != nullptr)
-        {
-            Debug::Log("NOT NULL");
-        }
-        else
-        {
-            Debug::Log("NULL");
-        }
     }
 
     void Scene::ReadySystem(System *_system)

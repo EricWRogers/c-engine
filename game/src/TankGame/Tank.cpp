@@ -8,6 +8,7 @@
 #include <Canis/Window.hpp>
 #include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
+#include <Canis/AssetManager.hpp>
 
 #include <ConfigHelper.hpp>
 
@@ -90,13 +91,14 @@ namespace TankGame
     }
 
     void Tank::UpdateGun(float _dt) {
-        if (entity.scene->GetInputManager().JustLeftClicked())
+        if (entity.scene->GetInputManager().GetLeftClick())
         {
             Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
             Canis::RectTransform* bulletTransform = bulletEntity->AddScript<RectTransform>();
             Canis::Sprite2D* bulletSprite = bulletEntity->AddScript<Sprite2D>();
+            bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
+            
             Bullet* bullet = bulletEntity->AddScript<Bullet>();
-
             bulletTransform->SetPosition(m_firePoint->GetPosition());
             bulletTransform->rotation = m_firePoint->GetRotation();
 

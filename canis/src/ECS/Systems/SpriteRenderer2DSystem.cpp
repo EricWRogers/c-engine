@@ -400,8 +400,12 @@ namespace Canis
 
         std::vector<Entity*>& entities = scene->GetEntities();
 
+        int g = 0;
+
         for (Entity* entity : entities)
         {
+            g++;
+        
             if (entity == nullptr)
                 continue;
             

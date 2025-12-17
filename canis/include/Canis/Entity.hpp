@@ -13,6 +13,7 @@
 
 #include <Canis/Yaml.hpp>
 #include <Canis/UUID.hpp>
+#include <Canis/Debug.hpp>
 
 namespace Canis
 {
@@ -483,6 +484,9 @@ namespace Canis
         ~Camera2D();
 
         void Create();
+        void Destroy() {
+            Debug::Log("DestroyCamera");
+        }
 
         void Update(float _dt);
 

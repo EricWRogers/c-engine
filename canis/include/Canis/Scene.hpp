@@ -29,6 +29,7 @@ namespace Canis
 
         void Load(std::vector<ScriptConf>& _scriptRegistry);
         void LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root);
+        void LoadEntityNodes(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_entities, bool _copyUUID = true);
         Canis::Entity& DecodeEntity(std::vector<ScriptConf>& _scriptRegistry, YAML::Node _node, bool _copyUUID = true);
         void GetEntityAfterLoad(Canis::UUID _uuid, Canis::Entity* &_variable);
 
@@ -81,10 +82,14 @@ namespace Canis
         std::string m_path = "assets/scenes/main.scene";
         Window *m_window;
         InputManager *m_inputManager;
-        std::vector<Entity*>  m_entities = {};
+
+        std::vector<Entity*> m_entities = {};
         std::vector<System*> m_systems = {};
-        std::vector<System*>  m_updateSystems = {};
-        std::vector<System*>  m_renderSystems = {};
+        std::vector<System*> m_updateSystems = {};
+        std::vector<System*> m_renderSystems = {};
+
+        // this is used when duplicating entity
+        std::unordered_map<UUID, UUID> m_targetUUIDNewUUID;
 
         struct EntityConnectInfo {
             Canis::UUID targetUUID;

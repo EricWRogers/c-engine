@@ -262,6 +262,19 @@ namespace Canis
         return false;
     }
 
+    void GetRectTransformChildren(Canis::Entity* _entity, std::vector<Canis::Entity*> &_entities)
+    {
+        Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>();
+
+        for (int i = 0; i < transform->children.size(); i++)
+        {
+            Canis::Entity* e = transform->children[i];
+            _entities.push_back(e);
+
+            GetRectTransformChildren(e, _entities);
+        }
+    }
+
     void Editor::DrawHierarchyNode(Canis::Entity *_entity,
                                    std::vector<Canis::Entity *> &_entities,
                                    bool &_refresh)
@@ -359,9 +372,27 @@ namespace Canis
 
             if (idx >= 0 && ImGui::MenuItem("Duplicate"))
             {
+                Debug::Log("Duplicate");
                 Canis::Entity *selected = _entities[idx];
-                YAML::Node node = m_scene->EncodeEntity(m_app->GetScriptRegistry(), *selected);
-                m_scene->DecodeEntity(m_app->GetScriptRegistry(), node, false);
+
+                std::vector<Canis::Entity*> entities;
+                entities.push_back(selected);
+
+                // get all entities to duplicate
+                if (selected->GetScript<Canis::RectTransform>())
+                {
+                    GetRectTransformChildren(selected, entities);
+                }
+
+                // encode entities into sequence of nodes
+                YAML::Node nodes;
+                for (Canis::Entity* e : entities)
+                {
+                    nodes.push_back(m_scene->EncodeEntity(m_app->GetScriptRegistry(), *e));
+                }
+
+                // option to tell it to generate new UUIDS
+                m_scene->LoadEntityNodes(m_app->GetScriptRegistry(), nodes, false);
             }
 
             if (idx >= 0 && ImGui::MenuItem("Remove"))
@@ -1072,7 +1103,6 @@ namespace Canis
         ImGui::Text("FPS: %s", std::to_string(m_app->FPS()).c_str());
 
         ImGui::SameLine();
-
         if (m_guizmoMode == GuizmoMode::LOCAL)
         {
             if (ImGui::Button("Local##ScenePanel"))
@@ -1087,6 +1117,9 @@ namespace Canis
                 m_guizmoMode = GuizmoMode::LOCAL;
             }
         }
+
+        ImGui::SameLine();
+        ImGui::Text("Entity Count: %d", m_scene->GetEntities().size());
 
         ImGui::End();
     }

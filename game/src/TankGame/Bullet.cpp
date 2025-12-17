@@ -52,7 +52,7 @@ namespace TankGame
 
         lifeTime -= _dt;
 
-        Debug::Log("LifeTime: %f", lifeTime);
+        //Debug::Log("LifeTime: %f", lifeTime);
 
         if (lifeTime <= 0.0f) {
             Scene* scene = entity.scene;

@@ -41,9 +41,12 @@ namespace Canis
 
     public:
         Editor() = default;
-        ~Editor() = default;
+        ~Editor();
         void Init(Window* _window);
         void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib);
+        void BeginGameRender(Window* _window);
+        void EndGameRender(Window* _window);
+        void RenderGameDebug();
 
         EditorMode GetMode() { return m_mode; }
         void FocusEntity(Canis::Entity* _entity);
@@ -52,6 +55,10 @@ namespace Canis
         void InputEntity(const std::string& _name, Canis::Entity* &_variable);
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
+        void DrawGameView();
+        void DrawGameViewGizmo();
+        void EnsureGameRenderTarget(int _width, int _height);
+        void DestroyGameRenderTarget();
         void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);
         //void DrawSystemPanel();
@@ -97,5 +104,17 @@ namespace Canis
         bool m_isRenamingAsset = false;
         std::string m_renamingPath;
         char m_renameBuffer[256] = {};
+
+        unsigned int m_gameFramebuffer = 0;
+        unsigned int m_gameColorTexture = 0;
+        unsigned int m_gameDepthRbo = 0;
+        int m_gameViewportWidth = 0;
+        int m_gameViewportHeight = 0;
+        float m_gameViewportPosX = 0.0f;
+        float m_gameViewportPosY = 0.0f;
+        unsigned int m_gameViewportId = 0;
+        bool m_gameViewHovered = false;
+        int m_gameTextureWidth = 0;
+        int m_gameTextureHeight = 0;
     };
 }

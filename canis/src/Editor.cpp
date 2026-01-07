@@ -20,10 +20,12 @@
 #include <imgui_stdlib.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 
 #include <ImGuizmo.h>
 
 #include <filesystem>
+#include <cstdint>
 
 namespace Canis
 {
@@ -51,14 +53,19 @@ namespace Canis
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
         (void)io;
+        //ImGui::LoadIniSettingsFromMemory("");
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+        //io.ConfigWindowsMoveFromTitleBarOnly = true;
+        //io.IniFilename = nullptr;
 
 #ifdef __EMSCRIPTEN__
 
 #else
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Keep all windows in the main SDL window
+        io.ConfigViewportsNoAutoMerge = true;
+        io.ConfigViewportsNoTaskBarIcon = true;
 #endif
 
         // io.ConfigViewportsNoAutoMerge = true;
@@ -88,6 +95,42 @@ namespace Canis
         ImGui_ImplOpenGL3_Init(OPENGLVERSION);
 
         m_assetPaths = FindFilesInFolder("assets", "");
+
+        m_gameViewportWidth = _window->GetScreenWidth();
+        m_gameViewportHeight = _window->GetScreenHeight();
+        EnsureGameRenderTarget(m_gameViewportWidth, m_gameViewportHeight);
+#endif
+    }
+
+    Editor::~Editor()
+    {
+        DestroyGameRenderTarget();
+    }
+
+    void Editor::BeginGameRender(Window* _window)
+    {
+#if CANIS_EDITOR
+        int targetWidth = (m_gameViewportWidth > 0) ? m_gameViewportWidth : _window->GetScreenWidth();
+        int targetHeight = (m_gameViewportHeight > 0) ? m_gameViewportHeight : _window->GetScreenHeight();
+
+        EnsureGameRenderTarget(targetWidth, targetHeight);
+        if (m_gameFramebuffer == 0)
+            return;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_gameFramebuffer);
+        glViewport(0, 0, targetWidth, targetHeight);
+
+        Color clear = _window->GetClearColor();
+        glClearColor(clear.r, clear.g, clear.b, clear.a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
+    }
+
+    void Editor::EndGameRender(Window* _window)
+    {
+#if CANIS_EDITOR
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, _window->GetScreenWidth(), _window->GetScreenHeight());
 #endif
     }
 
@@ -116,6 +159,7 @@ namespace Canis
         // DrawSystemPanel();
         DrawAssetsPanel();
         DrawProjectSettings();
+        DrawGameView();
         DrawScenePanel(); // draw last
 
         SelectSprite2D();
@@ -149,12 +193,6 @@ namespace Canis
             }
         }
 
-        // draw gizmo
-        if (m_debugDraw == DebugDraw::RECT && m_scene->GetEntities()[m_index] != nullptr)
-        {
-            DrawGizmo(camera2D);
-        }
-
         // rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -174,12 +212,268 @@ namespace Canis
             SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
         }
 
-        // draw debug bounding box
-        if (m_debugDraw == DebugDraw::RECT && m_scene->GetEntities()[m_index] != nullptr)
-        {
-            DrawBoundingBox(camera2D);
-        }
 #endif
+    }
+
+    void Editor::RenderGameDebug()
+    {
+#if CANIS_EDITOR
+        if (!m_scene)
+            return;
+
+        if (m_index < 0 || m_index >= m_scene->GetEntities().size())
+            return;
+
+        if (m_scene->GetEntities()[m_index] == nullptr)
+            return;
+
+        Camera2D *camera2D = nullptr;
+        std::vector<Entity *> &entities = m_scene->GetEntities();
+
+        for (Entity *entity : entities)
+        {
+            if (entity == nullptr)
+                continue;
+
+            Camera2D *camera = entity->GetScript<Camera2D>();
+            if (camera)
+            {
+                camera2D = camera;
+                break;
+            }
+        }
+
+        if (!camera2D)
+            return;
+
+        Entity &selected = *m_scene->GetEntities()[m_index];
+        if (!selected.GetScript<RectTransform>())
+            return;
+
+        DrawBoundingBox(camera2D);
+        DrawGizmo(camera2D);
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+    }
+
+    void Editor::DrawGameView()
+    {
+        ImGui::Begin("Game");
+
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        int nextWidth = static_cast<int>(avail.x);
+        int nextHeight = static_cast<int>(avail.y);
+        bool hovered = false;
+
+        if (nextWidth > 0 && nextHeight > 0)
+        {
+            ImVec2 cursor = ImGui::GetCursorScreenPos();
+            ImGuiViewport *viewport = ImGui::GetWindowViewport();
+            if (viewport)
+                m_gameViewportId = viewport->ID;
+
+            m_gameViewportPosX = cursor.x;
+            m_gameViewportPosY = cursor.y;
+
+            if (nextWidth != m_gameViewportWidth || nextHeight != m_gameViewportHeight)
+            {
+                m_gameViewportWidth = nextWidth;
+                m_gameViewportHeight = nextHeight;
+            }
+
+            if (m_gameColorTexture != 0)
+            {
+                ImGui::Image(
+                    (ImTextureID)(intptr_t)m_gameColorTexture,
+                    ImVec2(static_cast<float>(nextWidth), static_cast<float>(nextHeight)),
+                    ImVec2(0.0f, 1.0f),
+                    ImVec2(1.0f, 0.0f));
+                hovered = ImGui::IsItemHovered();
+                DrawGameViewGizmo();
+            }
+            else
+            {
+                ImGui::Text("Game view unavailable.");
+            }
+        }
+        else
+        {
+            m_gameViewportPosX = 0.0f;
+            m_gameViewportPosY = 0.0f;
+            m_gameViewportWidth = 0;
+            m_gameViewportHeight = 0;
+        }
+
+        m_gameViewHovered = hovered;
+        ImGui::End();
+    }
+
+    void Editor::DrawGameViewGizmo()
+    {
+        if (m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
+            return;
+
+        if (m_index < 0 || m_index >= m_scene->GetEntities().size())
+            return;
+
+        Entity *selected = m_scene->GetEntities()[m_index];
+        if (!selected)
+            return;
+
+        RectTransform *rtc = selected->GetScript<RectTransform>();
+        if (!rtc)
+            return;
+
+        Camera2D *camera2D = nullptr;
+        std::vector<Entity *> &entities = m_scene->GetEntities();
+        for (Entity *entity : entities)
+        {
+            if (!entity)
+                continue;
+            Camera2D *camera = entity->GetScript<Camera2D>();
+            if (camera)
+            {
+                camera2D = camera;
+                break;
+            }
+        }
+
+        if (!camera2D)
+            return;
+
+        Matrix4 projection;
+        projection.Identity();
+        projection.Orthographic(0.0f,
+                                static_cast<float>(m_gameViewportWidth),
+                                0.0f,
+                                static_cast<float>(m_gameViewportHeight),
+                                0.0f,
+                                100.0f);
+
+        Vector2 pos = rtc->GetPosition();
+        Vector2 globalScale = rtc->GetScale();
+
+        Matrix4 model;
+        model.Identity();
+        model.Translate(Vector3(pos.x, pos.y, 0.0f));
+        model.Rotate(rtc->rotation, Vector3(0.0f, 0.0f, 1.0f));
+        model.Scale(Vector3(rtc->size.x * globalScale.x, rtc->size.y * globalScale.y, 1.0f));
+
+        Matrix4 view;
+        view.Identity();
+        view.Translate(
+            Vector3(
+                -camera2D->GetPosition().x + m_gameViewportWidth / 2.0f,
+                -camera2D->GetPosition().y + m_gameViewportHeight / 2.0f,
+                0.0f));
+        view.Scale(Vector3(camera2D->GetScale(), camera2D->GetScale(), 1.0f));
+
+        ImGuizmo::BeginFrame();
+        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY,
+                          static_cast<float>(m_gameViewportWidth),
+                          static_cast<float>(m_gameViewportHeight));
+        ImGuizmo::SetOrthographic(true);
+        ImGuizmo::Enable(true);
+
+        static ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+        if (!ImGui::GetIO().WantTextInput)
+        {
+            if (ImGui::IsKeyPressed(ImGuiKey_W))
+                operation = ImGuizmo::TRANSLATE;
+            if (ImGui::IsKeyPressed(ImGuiKey_E))
+                operation = ImGuizmo::ROTATE;
+            if (ImGui::IsKeyPressed(ImGuiKey_R))
+                operation = ImGuizmo::SCALE;
+        }
+
+        ImGuizmo::Manipulate(
+            &view[0],
+            &projection[0],
+            operation,
+            (ImGuizmo::MODE)m_guizmoMode,
+            &model[0]);
+
+        if (ImGuizmo::IsUsing())
+        {
+            float t[3], r[3], s[3];
+            ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
+
+            Vector2 newPos(t[0], t[1]);
+            Vector2 oldPos = rtc->GetPosition();
+            rtc->Move(newPos - oldPos);
+
+            rtc->rotation = DEG2RAD * r[2];
+
+            rtc->SetScale(Vector2(s[0] / rtc->size.x, s[1] / rtc->size.y));
+        }
+    }
+
+    void Editor::EnsureGameRenderTarget(int _width, int _height)
+    {
+        if (_width <= 0 || _height <= 0)
+            return;
+
+        if (m_gameFramebuffer != 0 &&
+            _width == m_gameTextureWidth &&
+            _height == m_gameTextureHeight)
+        {
+            return;
+        }
+
+        DestroyGameRenderTarget();
+
+        glGenFramebuffers(1, &m_gameFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_gameFramebuffer);
+
+        glGenTextures(1, &m_gameColorTexture);
+        glBindTexture(GL_TEXTURE_2D, m_gameColorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gameColorTexture, 0);
+
+        glGenRenderbuffers(1, &m_gameDepthRbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_gameDepthRbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _width, _height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_gameDepthRbo);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Debug::Log("Game framebuffer incomplete.");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        m_gameTextureWidth = _width;
+        m_gameTextureHeight = _height;
+    }
+
+    void Editor::DestroyGameRenderTarget()
+    {
+        if (m_gameDepthRbo != 0)
+        {
+            glDeleteRenderbuffers(1, &m_gameDepthRbo);
+            m_gameDepthRbo = 0;
+        }
+
+        if (m_gameColorTexture != 0)
+        {
+            glDeleteTextures(1, &m_gameColorTexture);
+            m_gameColorTexture = 0;
+        }
+
+        if (m_gameFramebuffer != 0)
+        {
+            glDeleteFramebuffers(1, &m_gameFramebuffer);
+            m_gameFramebuffer = 0;
+        }
+
+        m_gameTextureWidth = 0;
+        m_gameTextureHeight = 0;
     }
 
     void Editor::FocusEntity(Canis::Entity *_entity)
@@ -196,7 +490,7 @@ namespace Canis
 
     void Editor::InputEntity(const std::string &_name, Canis::Entity *&_variable)
     {
-        ImGui::Text(_name.c_str());
+        ImGui::Text("%s", _name.c_str());
         ImGui::SameLine();
 
         std::string label;
@@ -1119,19 +1413,46 @@ namespace Canis
         }
 
         ImGui::SameLine();
-        ImGui::Text("Entity Count: %d", m_scene->GetEntities().size());
+        ImGui::Text("Entity Count: %zu", m_scene->GetEntities().size());
 
         ImGui::End();
     }
 
     void Editor::SelectSprite2D()
     {
-        // TODO: this will only be true when the mouse is over the game window
-        if (m_scene->GetInputManager().JustLeftClicked() == false)
+        if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
             return;
 
-        // TODO: this will need to be adjested when I add canvas
-        Vector2 mouse = m_scene->GetInputManager().mouse - (Vector2(m_window->GetScreenWidth(), m_window->GetScreenHeight()) / 2.0f);
+        if (!m_gameViewHovered || m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
+            return;
+
+        if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            return;
+
+        ImVec2 mousePos = ImGui::GetMousePos();
+        float localX = mousePos.x - m_gameViewportPosX;
+        float localY = mousePos.y - m_gameViewportPosY;
+        Vector2 mouse(localX, m_gameViewportHeight - localY);
+
+        mouse = mouse - (Vector2(m_gameViewportWidth, m_gameViewportHeight) / 2.0f);
+
+        Vector2 camPos(0.0f);
+        float camScale = 1.0f;
+        std::vector<Entity *> &entities = m_scene->GetEntities();
+        for (Entity *entity : entities)
+        {
+            if (!entity)
+                continue;
+            if (Camera2D *camera = entity->GetScript<Camera2D>())
+            {
+                camPos = camera->GetPosition();
+                camScale = camera->GetScale();
+                break;
+            }
+        }
+
+        if (camScale != 0.0f)
+            mouse = (mouse / camScale) + camPos;
 
         bool mouseLock = false;
 
@@ -1170,23 +1491,28 @@ namespace Canis
 
     void Editor::DrawGizmo(Camera2D *_camera2D)
     {
-        SDL_Window *backup_current_window = SDL_GL_GetCurrentWindow();
-        SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-        SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        ImGuiContext *ctx = ImGui::GetCurrentContext();
+        if (!ctx || !ctx->WithinFrameScope)
+            return;
+
+        if (m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
+            return;
+
+        ImGui::SetNextWindowPos(ImVec2(m_gameViewportPosX, m_gameViewportPosY));
+        ImGui::SetNextWindowSize(ImVec2(static_cast<float>(m_gameViewportWidth), static_cast<float>(m_gameViewportHeight)));
+        if (m_gameViewportId != 0)
+            ImGui::SetNextWindowViewport(m_gameViewportId);
 
         ImGuizmo::BeginFrame();
 
-        ImGuiViewport *mainViewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(mainViewport->WorkPos);
-        ImGui::SetNextWindowSize(mainViewport->WorkSize);
-        ImGui::SetNextWindowViewport(mainViewport->ID);
-
-        ImGui::Begin("##GuizmoWindow", nullptr,
-                     ImGuiWindowFlags_NoTitleBar |
-                         ImGuiWindowFlags_NoMove |
-                         ImGuiWindowFlags_NoScrollbar |
-                         ImGuiWindowFlags_NoSavedSettings |
-                         ImGuiWindowFlags_NoBackground);
+        // Use the Game viewport draw list so the gizmo appears in the correct platform window.
+        ImDrawList *drawList = ImGui::GetForegroundDrawList();
+        if (m_gameViewportId != 0)
+        {
+            if (ImGuiViewport *viewport = ImGui::FindViewportByID(m_gameViewportId))
+                drawList = ImGui::GetForegroundDrawList(viewport);
+        }
+        ImGuizmo::SetDrawlist(drawList);
 
         // === Gizmo operation selector ===
         static ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
@@ -1211,11 +1537,12 @@ namespace Canis
 
         Matrix4 projection;
         projection.Identity();
-
-        projection = _camera2D->GetProjectionMatrix();
-
-        if (_camera2D == nullptr)
-            Debug::Log("NULL");
+        projection.Orthographic(0.0f,
+                                static_cast<float>(m_gameViewportWidth),
+                                0.0f,
+                                static_cast<float>(m_gameViewportHeight),
+                                0.0f,
+                                100.0f);
 
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
 
@@ -1233,18 +1560,19 @@ namespace Canis
         model.Scale(Vector3(rtc.size.x * globalScale.x, rtc.size.y * globalScale.y, 1.0f));
 
         ImGuizmo::SetOrthographic(true);
-        ImGuizmo::SetDrawlist();
-        ImGuizmo::SetRect(mainViewport->WorkPos.x, mainViewport->WorkPos.y, mainViewport->WorkSize.x, mainViewport->WorkSize.y);
+        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY,
+                          static_cast<float>(m_gameViewportWidth),
+                          static_cast<float>(m_gameViewportHeight));
         ImGuizmo::Enable(true);
 
-        Matrix4 view; // = camera2D->GetViewMatrix();
+        Matrix4 view;
         view.Identity();
         view.Translate(
             Vector3(
-                _camera2D->GetPosition().x + m_window->GetScreenWidth() / 2.0f,
-                _camera2D->GetPosition().y + m_window->GetScreenHeight() / 2.0f,
+                -_camera2D->GetPosition().x + m_gameViewportWidth / 2.0f,
+                -_camera2D->GetPosition().y + m_gameViewportHeight / 2.0f,
                 0.0f));
-        view.Scale(Vector3(_camera2D->GetScale()));
+        view.Scale(Vector3(_camera2D->GetScale(), _camera2D->GetScale(), 0.0f));
 
         ImGuizmo::Manipulate(
             &view[0],
@@ -1277,7 +1605,6 @@ namespace Canis
             rtc.SetScale(Vector2(scale.x / rtc.size.x, scale.y / rtc.size.y));
         }
 
-        ImGui::End();
     }
 
     void Editor::DrawBoundingBox(Camera2D *_camera2D)

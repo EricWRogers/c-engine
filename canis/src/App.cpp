@@ -80,8 +80,6 @@ namespace Canis
 
         while (inputManager.Update((void *)&window))
         {
-            window.Clear();
-
             float deltaTime = Time::StartFrame();
 
             #if CANIS_EDITOR
@@ -97,8 +95,14 @@ namespace Canis
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);
 
+            editor.BeginGameRender(&window);
             scene.Render(deltaTime);
+            editor.RenderGameDebug();
             editor.Draw(&scene, &window, this, &gameCodeObject);
+            editor.EndGameRender(&window);
+
+            window.Clear();
+            scene.Render(deltaTime);
             window.SwapBuffer();
 
             Time::EndFrame();

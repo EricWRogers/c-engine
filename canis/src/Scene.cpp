@@ -17,7 +17,8 @@ namespace Canis
         m_path = _path;
 
         // TODO resizing breaks components
-        m_entities.reserve(100000);
+        // I think this is fixed but needs more testing
+        m_entities.reserve(1000);
     }
 
     void Scene::Update(float _deltaTime)

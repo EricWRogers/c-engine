@@ -444,7 +444,6 @@ namespace Canis
         Vector2 p;
         Vector2 s;
 
-
         for (Entity* entity : entities)
         {
             if (entity == nullptr)

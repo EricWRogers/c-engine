@@ -363,28 +363,27 @@ namespace Canis
             Debug::Log("Why are you NULL");
             return;
         }
-        
-        Destroy(*m_entities[_id]);
-    }
 
-    void Scene::Destroy(Entity& _entity)
-    {
-        
-        for (ScriptableEntity* se : _entity.m_scriptComponents)
+        for (ScriptableEntity* se : m_entities[_id]->m_scriptComponents)
         {
             se->Destroy();
         }
 
         
-        for (ScriptableEntity* se : _entity.m_scriptComponents)
+        for (ScriptableEntity* se : m_entities[_id]->m_scriptComponents)
         {
             delete se;
         }
 
-        _entity.m_scriptComponents.clear();
+        m_entities[_id]->m_scriptComponents.clear();
 
-        delete m_entities[_entity.id];
-        m_entities[_entity.id] = nullptr;
+        delete m_entities[_id];
+        m_entities[_id] = nullptr;
+    }
+
+    void Scene::Destroy(Entity& _entity)
+    {
+        Destroy(_entity.id);
     }
 
     void Scene::ReadySystem(System *_system)

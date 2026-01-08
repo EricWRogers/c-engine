@@ -55,8 +55,8 @@ namespace Canis
         void InputEntity(const std::string& _name, Canis::Entity* &_variable);
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
-        void DrawGameView();
-        void DrawGameViewGizmo();
+        void DrawSceneView();
+        void DrawSceneViewGizmo();
         void EnsureGameRenderTarget(int _width, int _height);
         void DestroyGameRenderTarget();
         void DrawInspectorPanel(bool _refresh);
@@ -71,7 +71,7 @@ namespace Canis
         void DrawDirectoryRecursive(const std::string &_dirPath);
         void CommitAssetRename();
         void DrawProjectSettings();
-        void DrawScenePanel();
+        void DrawEditorPanel();
 
         void SelectSprite2D();
         void DrawGizmo(Camera2D *_camera2D);

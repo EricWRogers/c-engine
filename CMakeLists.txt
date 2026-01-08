@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(c-engine)
 set(ASSETS_DIR_NAME assets)
+set(PROJECT_SETTINGS_DIR_NAME project_settings)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/dist/${CMAKE_SYSTEM_NAME}>)
 
 set(CMAKE_CXX_STANDARD 20)

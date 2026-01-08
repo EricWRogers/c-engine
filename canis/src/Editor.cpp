@@ -54,10 +54,12 @@ namespace Canis
         ImGuiIO &io = ImGui::GetIO();
         (void)io;
         //ImGui::LoadIniSettingsFromMemory("");
+        static std::string imguiIniPath = "project_settings\\imgui.ini";
+        io.IniFilename = imguiIniPath.c_str();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-        //io.ConfigWindowsMoveFromTitleBarOnly = true;
+        io.ConfigWindowsMoveFromTitleBarOnly = true;
         //io.IniFilename = nullptr;
 
 #ifdef __EMSCRIPTEN__
@@ -159,8 +161,8 @@ namespace Canis
         // DrawSystemPanel();
         DrawAssetsPanel();
         DrawProjectSettings();
-        DrawGameView();
-        DrawScenePanel(); // draw last
+        DrawSceneView();
+        DrawEditorPanel(); // draw last
 
         SelectSprite2D();
 
@@ -257,9 +259,9 @@ namespace Canis
 #endif
     }
 
-    void Editor::DrawGameView()
+    void Editor::DrawSceneView()
     {
-        ImGui::Begin("Game");
+        ImGui::Begin("Scene");
 
         ImVec2 avail = ImGui::GetContentRegionAvail();
         int nextWidth = static_cast<int>(avail.x);
@@ -270,6 +272,7 @@ namespace Canis
         {
             ImVec2 cursor = ImGui::GetCursorScreenPos();
             ImGuiViewport *viewport = ImGui::GetWindowViewport();
+
             if (viewport)
                 m_gameViewportId = viewport->ID;
 
@@ -284,13 +287,29 @@ namespace Canis
 
             if (m_gameColorTexture != 0)
             {
+                float targetW = static_cast<float>(m_window->GetScreenWidth());
+                float targetH = static_cast<float>(m_window->GetScreenHeight());
+                float targetAspect = targetW / targetH;
+                float availAspect = (avail.y > 0.0f) ? (avail.x / avail.y) : targetAspect;
+
+                ImVec2 drawSize = avail;
+                if (availAspect > targetAspect) {
+                    drawSize.x = avail.y * targetAspect; // letterbox left/right
+                } else {
+                    drawSize.y = avail.x / targetAspect; // letterbox top/bottom
+                }
+
+                ImVec2 cursor = ImGui::GetCursorPos();
+                ImVec2 offset((avail.x - drawSize.x) * 0.5f, (avail.y - drawSize.y) * 0.5f);
+                ImGui::SetCursorPos(ImVec2(cursor.x + offset.x, cursor.y + offset.y));
+
                 ImGui::Image(
                     (ImTextureID)(intptr_t)m_gameColorTexture,
-                    ImVec2(static_cast<float>(nextWidth), static_cast<float>(nextHeight)),
+                    drawSize,
                     ImVec2(0.0f, 1.0f),
                     ImVec2(1.0f, 0.0f));
                 hovered = ImGui::IsItemHovered();
-                DrawGameViewGizmo();
+                DrawSceneViewGizmo();
             }
             else
             {
@@ -309,7 +328,7 @@ namespace Canis
         ImGui::End();
     }
 
-    void Editor::DrawGameViewGizmo()
+    void Editor::DrawSceneViewGizmo()
     {
         if (m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
             return;
@@ -569,9 +588,7 @@ namespace Canis
         }
     }
 
-    void Editor::DrawHierarchyNode(Canis::Entity *_entity,
-                                   std::vector<Canis::Entity *> &_entities,
-                                   bool &_refresh)
+    void Editor::DrawHierarchyNode(Canis::Entity *_entity, std::vector<Canis::Entity *> &_entities, bool &_refresh)
     {
         if (!_entity)
             return;
@@ -1313,13 +1330,13 @@ namespace Canis
         ImGui::End();
     }
 
-    void Editor::DrawScenePanel()
+    void Editor::DrawEditorPanel()
     {
         static YAML::Node lastSceneNode;
         static float hotKeyCoolDown = 0.0f;
         const float HOTKEYRESET = 0.1f;
 
-        ImGui::Begin("Scene");
+        ImGui::Begin("Canis Editor");
 
         if (m_mode == EditorMode::EDIT)
         {

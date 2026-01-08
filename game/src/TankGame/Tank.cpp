@@ -43,7 +43,7 @@ namespace TankGame
 
     DEFAULT_UNREGISTER_SCRIPT(tankConf, Tank)
 
-    void Tank::Create() { Debug::Log("Tank But No Tank!"); }
+    void Tank::Create() { }
 
     void Tank::Ready() {
         m_transform = entity.GetScript<Canis::RectTransform>();
@@ -51,7 +51,7 @@ namespace TankGame
         m_firePoint = m_turret->children[0]->GetScript<RectTransform>();
     }
 
-    void Tank::Destroy() { Debug::Log("Kill Tank But No Tank!"); }
+    void Tank::Destroy() { }
 
     void Tank::Update(float _dt) {
         Movement(_dt);

@@ -54,13 +54,12 @@ namespace Canis
         ImGuiIO &io = ImGui::GetIO();
         (void)io;
         //ImGui::LoadIniSettingsFromMemory("");
-        static std::string imguiIniPath = "project_settings\\imgui.ini";
+        static std::string imguiIniPath = std::string(SDL_GetBasePath()) + "project_settings/imgui.ini";
         io.IniFilename = imguiIniPath.c_str();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
         io.ConfigWindowsMoveFromTitleBarOnly = true;
-        //io.IniFilename = nullptr;
 
 #ifdef __EMSCRIPTEN__
 

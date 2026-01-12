@@ -135,7 +135,7 @@ namespace Canis
 #endif
     }
 
-    void Editor::Draw(Scene *_scene, Window *_window, App *_app, GameCodeObject *_gameSharedLib)
+    void Editor::Draw(Scene *_scene, Window *_window, App *_app, GameCodeObject *_gameSharedLib, float _deltaTime)
     {
 #if CANIS_EDITOR
         // if (GetProjectConfig().editor)
@@ -148,6 +148,12 @@ namespace Canis
         m_scene = _scene;
         m_window = _window;
         m_gameSharedLib = _gameSharedLib;
+
+        // TODO: Editor V2 Needs Refactor
+        BeginGameRender(m_window);
+        m_scene->Render(_deltaTime);
+        RenderGameDebug();
+        EndGameRender(m_window);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -253,8 +259,8 @@ namespace Canis
 
         DrawBoundingBox(camera2D);
         DrawGizmo(camera2D);
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui::Render();
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
     }
 

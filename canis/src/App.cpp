@@ -94,12 +94,8 @@ namespace Canis
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);
-
-            editor.BeginGameRender(&window);
-            scene.Render(deltaTime);
-            editor.RenderGameDebug();
-            editor.Draw(&scene, &window, this, &gameCodeObject);
-            editor.EndGameRender(&window);
+            
+            editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
 
             window.Clear();
             scene.Render(deltaTime);

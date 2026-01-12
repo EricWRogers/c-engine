@@ -43,7 +43,7 @@ namespace Canis
         Editor() = default;
         ~Editor();
         void Init(Window* _window);
-        void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib);
+        void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib, float _deltaTime);
         void BeginGameRender(Window* _window);
         void EndGameRender(Window* _window);
         void RenderGameDebug();

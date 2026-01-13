@@ -9,6 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-DCANIS_EDITOR)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  add_compile_options(-fno-gnu-unique)
+endif()
+
 find_program(CCACHE_PROGRAM ccache)
 if (CCACHE_PROGRAM)
   message(STATUS "Using ccache: ${CCACHE_PROGRAM}")

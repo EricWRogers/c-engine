@@ -45,21 +45,16 @@ namespace TankGame
         m_transform = entity.GetScript<Canis::RectTransform>();
     }
 
-    void Bullet::Destroy() { Debug::Log("Kill Bullet But No Bullet!"); }
+    void Bullet::Destroy() { /*Debug::Log("Kill Bullet But No Bullet!");*/ }
 
     void Bullet::Update(float _dt) {
-        m_transform->Move(m_transform->GetRight() * speed * _dt);
+        m_transform->Move(m_transform->GetUp() * speed * _dt);
 
         lifeTime -= _dt;
 
         //Debug::Log("LifeTime: %f", lifeTime);
 
         if (lifeTime <= 0.0f) {
-            Scene* scene = entity.scene;
-            int id = entity.id;
-
-            Debug::Log("id %d", id);
-
             entity.Destroy();
         }
         

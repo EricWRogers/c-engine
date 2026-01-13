@@ -97,10 +97,10 @@ namespace TankGame
             Canis::RectTransform* bulletTransform = bulletEntity->AddScript<RectTransform>();
             Canis::Sprite2D* bulletSprite = bulletEntity->AddScript<Sprite2D>();
             bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
-            
+
             Bullet* bullet = bulletEntity->AddScript<Bullet>();
             bulletTransform->SetPosition(m_firePoint->GetPosition());
-            bulletTransform->rotation = m_firePoint->GetRotation();
+            bulletTransform->rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
 
             bullet->speed = 20.0f;
             bullet->lifeTime = 1.0f;

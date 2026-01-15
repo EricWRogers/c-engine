@@ -16,6 +16,8 @@ public:
     float FPS();
     float DeltaTime();
     void SetTargetFPS(float _targetFPS);
+    float UpdateTimeMs() const { return m_updateTimeMs; }
+    float RenderTimeMs() const { return m_renderTimeMs; }
 
     void RegisterScript(ScriptConf& _conf);
     void UnregisterScript(ScriptConf& _conf);
@@ -35,5 +37,7 @@ private:
 
     void RegisterDefaults(Editor& _editor);
     Editor* m_editor;
+    float m_updateTimeMs = 0.0f;
+    float m_renderTimeMs = 0.0f;
 };
 }

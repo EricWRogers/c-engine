@@ -103,7 +103,7 @@ namespace TankGame
             bulletTransform->rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
 
             bullet->speed = 20.0f;
-            bullet->lifeTime = 1.0f;
+            bullet->lifeTime = 50.0f;
         }
     }
 

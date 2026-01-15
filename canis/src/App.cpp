@@ -82,24 +82,33 @@ namespace Canis
         {
             float deltaTime = Time::StartFrame();
 
+            bool runGameTick = true;
             #if CANIS_EDITOR
-            if (editor.m_mode == EditorMode::PLAY)
+            runGameTick = (editor.m_mode == EditorMode::PLAY);
             #endif
-                scene.Update(deltaTime);
 
-            #if CANIS_EDITOR
-            // call the dynamically loaded function
-            if (editor.m_mode == EditorMode::PLAY)
-            #endif
+            if (runGameTick)
+            {
+                Uint64 updateStart = SDL_GetTicksNS();
+                scene.Update(deltaTime);
+                // call the dynamically loaded function
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+                m_updateTimeMs = static_cast<float>(SDL_GetTicksNS() - updateStart) / 1000000.0f;
+            }
+            else
+            {
+                m_updateTimeMs = 0.0f;
+            }
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);
             
             editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
 
+            Uint64 renderStart = SDL_GetTicksNS();
             window.Clear();
             scene.Render(deltaTime);
             window.SwapBuffer();
+            m_renderTimeMs = static_cast<float>(SDL_GetTicksNS() - renderStart) / 1000000.0f;
 
             Time::EndFrame();
         }

@@ -1434,8 +1434,18 @@ namespace Canis
             }
         }
 
+        size_t entityCount = 0;
+
+        for (Entity *e : m_scene->GetEntities())
+            if (e != nullptr)
+                entityCount++;
+
         ImGui::SameLine();
-        ImGui::Text("Entity Count: %zu", m_scene->GetEntities().size());
+        ImGui::Text("Entity Count: %zu", entityCount);
+        ImGui::SameLine();
+        ImGui::Text("Update Time: %.3f ms", m_app->UpdateTimeMs());
+        ImGui::SameLine();
+        ImGui::Text("Draw Time: %.3f ms", m_app->RenderTimeMs());
 
         ImGui::End();
     }

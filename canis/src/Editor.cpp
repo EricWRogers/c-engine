@@ -66,11 +66,9 @@ namespace Canis
 #else
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Keep all windows in the main SDL window
         io.ConfigViewportsNoAutoMerge = true;
-        io.ConfigViewportsNoTaskBarIcon = true;
+        io.ConfigViewportsNoTaskBarIcon = false;
 #endif
 
-        // io.ConfigViewportsNoAutoMerge = true;
-        // io.ConfigViewportsNoTaskBarIcon = true;
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -258,7 +256,7 @@ namespace Canis
             return;
 
         DrawBoundingBox(camera2D);
-        DrawGizmo(camera2D);
+        
         //ImGui::Render();
         //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
@@ -275,14 +273,11 @@ namespace Canis
 
         if (nextWidth > 0 && nextHeight > 0)
         {
-            ImVec2 cursor = ImGui::GetCursorScreenPos();
+            ImVec2 cursorScreen = ImGui::GetCursorScreenPos();
             ImGuiViewport *viewport = ImGui::GetWindowViewport();
 
             if (viewport)
                 m_gameViewportId = viewport->ID;
-
-            m_gameViewportPosX = cursor.x;
-            m_gameViewportPosY = cursor.y;
 
             if (nextWidth != m_gameViewportWidth || nextHeight != m_gameViewportHeight)
             {
@@ -306,6 +301,10 @@ namespace Canis
 
                 ImVec2 cursor = ImGui::GetCursorPos();
                 ImVec2 offset((avail.x - drawSize.x) * 0.5f, (avail.y - drawSize.y) * 0.5f);
+                m_gameViewportPosX = cursorScreen.x + offset.x;
+                m_gameViewportPosY = cursorScreen.y + offset.y;
+                m_gameViewportDrawWidth = drawSize.x;
+                m_gameViewportDrawHeight = drawSize.y;
                 ImGui::SetCursorPos(ImVec2(cursor.x + offset.x, cursor.y + offset.y));
 
                 ImGui::Image(
@@ -318,6 +317,10 @@ namespace Canis
             }
             else
             {
+                m_gameViewportPosX = 0.0f;
+                m_gameViewportPosY = 0.0f;
+                m_gameViewportDrawWidth = 0.0f;
+                m_gameViewportDrawHeight = 0.0f;
                 ImGui::Text("Game view unavailable.");
             }
         }
@@ -325,6 +328,8 @@ namespace Canis
         {
             m_gameViewportPosX = 0.0f;
             m_gameViewportPosY = 0.0f;
+            m_gameViewportDrawWidth = 0.0f;
+            m_gameViewportDrawHeight = 0.0f;
             m_gameViewportWidth = 0;
             m_gameViewportHeight = 0;
         }
@@ -366,14 +371,9 @@ namespace Canis
         if (!camera2D)
             return;
 
-        Matrix4 projection;
-        projection.Identity();
-        projection.Orthographic(0.0f,
-                                static_cast<float>(m_gameViewportWidth),
-                                0.0f,
-                                static_cast<float>(m_gameViewportHeight),
-                                0.0f,
-                                100.0f);
+        //Debug::Log("%f, %f", camera2D->GetPosition().x, camera2D->GetPosition().y);
+        camera2D->UpdateMatrix();
+        Matrix4 projection = camera2D->GetProjectionMatrix();
 
         Vector2 pos = rtc->GetPosition();
         Vector2 globalScale = rtc->GetScale();
@@ -384,20 +384,28 @@ namespace Canis
         model.Rotate(rtc->rotation, Vector3(0.0f, 0.0f, 1.0f));
         model.Scale(Vector3(rtc->size.x * globalScale.x, rtc->size.y * globalScale.y, 1.0f));
 
-        Matrix4 view;
-        view.Identity();
-        view.Translate(
-            Vector3(
-                -camera2D->GetPosition().x + m_gameViewportWidth / 2.0f,
-                -camera2D->GetPosition().y + m_gameViewportHeight / 2.0f,
-                0.0f));
-        view.Scale(Vector3(camera2D->GetScale(), camera2D->GetScale(), 1.0f));
+        Matrix4 view = camera2D->GetViewMatrix();
+        // Keep camera's 2D behavior, but avoid zero Z scale for gizmo rendering.
+        view[10] = 1.0f;
+
+        float rectW = (m_gameViewportDrawWidth > 0.0f) ? m_gameViewportDrawWidth : static_cast<float>(m_gameViewportWidth);
+        float rectH = (m_gameViewportDrawHeight > 0.0f) ? m_gameViewportDrawHeight : static_cast<float>(m_gameViewportHeight);
+
+        ImGui::SetNextWindowPos(ImVec2(m_gameViewportPosX, m_gameViewportPosY));
+        ImGui::SetNextWindowSize(ImVec2(rectW, rectH));
+        if (m_gameViewportId != 0)
+            ImGui::SetNextWindowViewport(m_gameViewportId);
 
         ImGuizmo::BeginFrame();
+        if (ImGuiWindow *gizmoWindow = ImGui::FindWindowByName("gizmo"))
+        {
+            //if (gizmoWindow->Viewport)
+            //    gizmoWindow->Viewport->Flags |= ImGuiViewportFlags_NoTaskBarIcon;
+        }
+
         ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY,
-                          static_cast<float>(m_gameViewportWidth),
-                          static_cast<float>(m_gameViewportHeight));
+        ImGuizmo::SetAlternativeWindow(ImGui::GetCurrentWindow());
+        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
         ImGuizmo::SetOrthographic(true);
         ImGuizmo::Enable(true);
 
@@ -425,8 +433,7 @@ namespace Canis
             ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
 
             Vector2 newPos(t[0], t[1]);
-            Vector2 oldPos = rtc->GetPosition();
-            rtc->Move(newPos - oldPos);
+            rtc->SetPosition(newPos);
 
             rtc->rotation = DEG2RAD * r[2];
 
@@ -1455,7 +1462,8 @@ namespace Canis
         if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
             return;
 
-        if (!m_gameViewHovered || m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
+        if (!m_gameViewHovered || m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0 ||
+            m_gameViewportDrawWidth <= 0.0f || m_gameViewportDrawHeight <= 0.0f)
             return;
 
         if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -1464,9 +1472,15 @@ namespace Canis
         ImVec2 mousePos = ImGui::GetMousePos();
         float localX = mousePos.x - m_gameViewportPosX;
         float localY = mousePos.y - m_gameViewportPosY;
-        Vector2 mouse(localX, m_gameViewportHeight - localY);
+        float logicalWidth = static_cast<float>(m_window->GetScreenWidth());
+        float logicalHeight = static_cast<float>(m_window->GetScreenHeight());
+        float scaleX = logicalWidth / m_gameViewportDrawWidth;
+        float scaleY = logicalHeight / m_gameViewportDrawHeight;
+        localX *= scaleX;
+        localY *= scaleY;
+        Vector2 mouse(localX, logicalHeight - localY);
 
-        mouse = mouse - (Vector2(m_gameViewportWidth, m_gameViewportHeight) / 2.0f);
+        mouse = mouse - (Vector2(logicalWidth, logicalHeight) / 2.0f);
 
         Vector2 camPos(0.0f);
         float camScale = 1.0f;
@@ -1519,124 +1533,6 @@ namespace Canis
                 m_index = i;
             }
         }
-    }
-
-    void Editor::DrawGizmo(Camera2D *_camera2D)
-    {
-        ImGuiContext *ctx = ImGui::GetCurrentContext();
-        if (!ctx || !ctx->WithinFrameScope)
-            return;
-
-        if (m_gameViewportWidth <= 0 || m_gameViewportHeight <= 0)
-            return;
-
-        ImGui::SetNextWindowPos(ImVec2(m_gameViewportPosX, m_gameViewportPosY));
-        ImGui::SetNextWindowSize(ImVec2(static_cast<float>(m_gameViewportWidth), static_cast<float>(m_gameViewportHeight)));
-        if (m_gameViewportId != 0)
-            ImGui::SetNextWindowViewport(m_gameViewportId);
-
-        ImGuizmo::BeginFrame();
-
-        // Use the Game viewport draw list so the gizmo appears in the correct platform window.
-        ImDrawList *drawList = ImGui::GetForegroundDrawList();
-        if (m_gameViewportId != 0)
-        {
-            if (ImGuiViewport *viewport = ImGui::FindViewportByID(m_gameViewportId))
-                drawList = ImGui::GetForegroundDrawList(viewport);
-        }
-        ImGuizmo::SetDrawlist(drawList);
-
-        // === Gizmo operation selector ===
-        static ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
-
-        if (ImGui::GetIO().WantTextInput)
-        {
-            // user is focused on an InputText or InputTextMultiline
-            // Debug::Log("User is typing in an input field.");
-        }
-        else
-        {
-            // safe to use keyboard shortcuts
-            if (ImGui::IsKeyPressed(ImGuiKey_W))
-                operation = ImGuizmo::TRANSLATE;
-
-            if (ImGui::IsKeyPressed(ImGuiKey_E))
-                operation = ImGuizmo::ROTATE;
-
-            if (ImGui::IsKeyPressed(ImGuiKey_R))
-                operation = ImGuizmo::SCALE;
-        }
-
-        Matrix4 projection;
-        projection.Identity();
-        projection.Orthographic(0.0f,
-                                static_cast<float>(m_gameViewportWidth),
-                                0.0f,
-                                static_cast<float>(m_gameViewportHeight),
-                                0.0f,
-                                100.0f);
-
-        Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
-
-        RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
-        Vector2 pos = rtc.GetPosition();
-
-        // Align to bottom-left
-        // ADD BACK pos += rtc.rotationOriginOffset;
-        Vector2 globalScale = rtc.GetScale();
-
-        Matrix4 model;
-        model.Identity();
-        model.Translate(Vector3(pos.x, pos.y, 0.0f));
-        model.Rotate(rtc.rotation, Vector3(0.0f, 0.0f, 1.0f));
-        model.Scale(Vector3(rtc.size.x * globalScale.x, rtc.size.y * globalScale.y, 1.0f));
-
-        ImGuizmo::SetOrthographic(true);
-        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY,
-                          static_cast<float>(m_gameViewportWidth),
-                          static_cast<float>(m_gameViewportHeight));
-        ImGuizmo::Enable(true);
-
-        Matrix4 view;
-        view.Identity();
-        view.Translate(
-            Vector3(
-                -_camera2D->GetPosition().x + m_gameViewportWidth / 2.0f,
-                -_camera2D->GetPosition().y + m_gameViewportHeight / 2.0f,
-                0.0f));
-        view.Scale(Vector3(_camera2D->GetScale(), _camera2D->GetScale(), 0.0f));
-
-        ImGuizmo::Manipulate(
-            &view[0],
-            &projection[0],
-            operation,
-            (ImGuizmo::MODE)m_guizmoMode,
-            &model[0]);
-
-        Vector2 cameraPos = _camera2D->GetPosition();
-        float cameraRot = _camera2D->GetScale();
-
-        if (ImGuizmo::IsUsing())
-        {
-            float t[3], r[3], s[3];
-            ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
-
-            Vector3 translation(t[0], t[1], t[2]), rotation(r[0], r[1], r[2]), scale(s[0], s[1], s[2]);
-
-            // update position
-            Vector2 newPos(translation.x, translation.y);
-            Vector2 oldPos = rtc.GetPosition();
-            // ADD BACK Vector2 oldPos = rtc.GetGlobalPosition(_window->GetScreenWidth(), _window->GetScreenHeight()) + rtc.originOffset;
-            // ADD BACK oldPos += rtc.rotationOriginOffset;
-            rtc.Move(newPos - oldPos);
-
-            // update rotation
-            rtc.rotation = DEG2RAD * rotation.z;
-
-            // update size (scale stays constant, we resize the actual size)
-            rtc.SetScale(Vector2(scale.x / rtc.size.x, scale.y / rtc.size.y));
-        }
-
     }
 
     void Editor::DrawBoundingBox(Camera2D *_camera2D)

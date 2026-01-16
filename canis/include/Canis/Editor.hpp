@@ -74,7 +74,6 @@ namespace Canis
         void DrawEditorPanel();
 
         void SelectSprite2D();
-        void DrawGizmo(Camera2D *_camera2D);
         void DrawBoundingBox(Camera2D *_camera2D);
 
         //bool IsDescendantOf(Entity _potentialAncestor, Entity _entity);
@@ -112,6 +111,8 @@ namespace Canis
         int m_gameViewportHeight = 0;
         float m_gameViewportPosX = 0.0f;
         float m_gameViewportPosY = 0.0f;
+        float m_gameViewportDrawWidth = 0.0f;
+        float m_gameViewportDrawHeight = 0.0f;
         unsigned int m_gameViewportId = 0;
         bool m_gameViewHovered = false;
         int m_gameTextureWidth = 0;

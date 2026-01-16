@@ -25,16 +25,14 @@ namespace Canis
     {
         // TODO: when an extity is created add its id to a list
         // call ready just on that list then clear it for better performance
-        const size_t entityCount = m_entities.size();
-        for (size_t i = 0; i < entityCount; ++i)
+        for (size_t i = 0; i < m_entities.size(); ++i)
         {
             Entity* e = m_entities[i];
             if (e == nullptr)
                 continue;
 
             auto& scripts = e->m_scriptComponents;
-            const size_t scriptCount = scripts.size();
-            for (size_t j = 0; j < scriptCount; ++j)
+            for (size_t j = 0; j < scripts.size(); ++j)
             {
                 ScriptableEntity* se = scripts[j];
                 if (!se || se->m_onReadyCalled)
@@ -45,15 +43,14 @@ namespace Canis
             }
         }
 
-        for (size_t i = 0; i < entityCount; ++i)
+        for (size_t i = 0; i < m_entities.size(); ++i)
         {
             Entity* e = m_entities[i];
             if (e == nullptr)
                 continue;
 
             auto& scripts = e->m_scriptComponents;
-            const size_t scriptCount = scripts.size();
-            for (size_t j = 0; j < scriptCount; ++j)
+            for (size_t j = 0; j < scripts.size(); ++j)
             {
                 ScriptableEntity* se = scripts[j];
                 if (se && se->m_onReadyCalled)

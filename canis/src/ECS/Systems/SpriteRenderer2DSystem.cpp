@@ -409,13 +409,13 @@ namespace Canis
             if (entity == nullptr)
                 continue;
             
-            Camera2D* camera = entity->GetScript<Camera2D>();
+            camera2D = entity->GetScript<Camera2D>();
 
-            if (camera == nullptr)
-                continue;
-
-            camera2D = camera;
-            cameraFound = true;
+            if (camera2D != nullptr)
+            {
+                cameraFound = true;
+                break;
+            }
         }
 
         // Draw

@@ -1234,3 +1234,22 @@ Entities:
       uv: [0, 0, 1, 1]
       TextureAsset:
         uuid: 16060716090729117806
+  - Entity: 13740007540238602761
+    Name: Square
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [-138.47688, 0]
+      size: [64, 64]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 1, 1, 1]
+      uv: [0, 0, 1, 0.5]
+      TextureAsset:
+        uuid: 2850763088579242438

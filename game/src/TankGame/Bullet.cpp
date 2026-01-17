@@ -8,7 +8,7 @@
 #include <Canis/Editor.hpp>
 #include <Canis/InputManager.hpp>
 
-#include <ConfigHelper.hpp>
+#include <Canis/ConfigHelper.hpp>
 
 using namespace Canis;
 

@@ -10,7 +10,7 @@
 #include <Canis/InputManager.hpp>
 #include <Canis/AssetManager.hpp>
 
-#include <ConfigHelper.hpp>
+#include <Canis/ConfigHelper.hpp>
 
 using namespace Canis;
 

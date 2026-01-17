@@ -5,7 +5,7 @@
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
-#include <ConfigHelper.hpp>
+#include <Canis/ConfigHelper.hpp>
 
 #include <map>
 

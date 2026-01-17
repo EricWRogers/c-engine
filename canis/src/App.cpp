@@ -16,6 +16,7 @@
 #include <Canis/IOManager.hpp>
 #include <Canis/InputManager.hpp>
 #include <Canis/AssetManager.hpp>
+#include <Canis/ConfigHelper.hpp>
 
 namespace Canis
 {
@@ -338,6 +339,88 @@ namespace Canis
         };
 
         RegisterScript(camera2DConf);
+
+        ScriptConf spriteAnimationConf = {
+            .name = "Canis::SpriteAnimation",
+            .Add = [this](Entity& _entity) -> void {
+                if (_entity.GetScript<Sprite2D>() == nullptr)
+                    _entity.AddScript<Sprite2D>();
+                
+                Sprite2D* sprite = _entity.GetScript<Sprite2D>();
+                sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
+                
+                SpriteAnimation* anim = _entity.AddScript<SpriteAnimation>();
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<SpriteAnimation>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<SpriteAnimation>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<SpriteAnimation>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::SpriteAnimation>())
+                {
+                    Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
+
+                    YAML::Node comp;
+                    comp["color"] = sprite.color;
+                    comp["uv"] = sprite.uv;
+
+                    YAML::Node textureAsset;
+                    textureAsset["uuid"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath())->uuid;
+                    
+                    comp["TextureAsset"] = textureAsset;
+                    _node["Canis::Sprite2D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto sprite2DComponent = _node["Canis::Sprite2D"])
+                {
+                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
+                    sprite.color = sprite2DComponent["color"].as<Vector4>();
+                    sprite.uv = sprite2DComponent["uv"].as<Vector4>();
+                    if (auto textureAsset = sprite2DComponent["TextureAsset"])
+                    {
+                        UUID uuid = textureAsset["uuid"].as<uint64_t>();
+                        std::string path = AssetManager::GetPath(uuid);
+                        sprite.textureHandle = AssetManager::GetTextureHandle(path);
+                    }
+                    //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
+                    if (_callCreate)
+                        sprite.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Sprite2D* sprite = nullptr;
+                if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
+                {
+                    // textureHandle
+                    ImGui::ColorEdit4("color", &sprite->color.r);
+                    ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
+
+                    ImGui::Text("texture");
+
+                    ImGui::SameLine();
+
+                    ImGui::Button(AssetManager::GetMetaFile(AssetManager::GetPath(sprite->textureHandle.id))->name.c_str(), ImVec2(150, 0));
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                        {
+                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                            std::string path = AssetManager::GetPath(dropped.uuid);
+                            TextureAsset* asset = AssetManager::GetTexture(path);
+
+                            if (asset)
+                            {
+                                sprite->textureHandle = AssetManager::GetTextureHandle(path);
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+            },
+        };
+
+        RegisterScript(spriteAnimationConf);
 
         // register inspector items
         InspectorItemRightClick inspectorCreateSquare = {

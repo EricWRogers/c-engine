@@ -548,8 +548,8 @@ namespace Canis
     class SpriteAnimation : public ScriptableEntity
     {
     public:
-        SpriteAnimation(Canis::Entity& _entity);
-        ~SpriteAnimation();
+        SpriteAnimation(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+        ~SpriteAnimation() {}
 
         void Create() {}
         void Destroy() {}
@@ -563,13 +563,14 @@ namespace Canis
             speed = 0.0f;
         }
 
-        unsigned short int animationId = 0u;
-        float countDown = 0.0f;
-        unsigned short int index = 0u;
+        i32 id = 0u;
         bool flipX = false;
         bool flipY = false;
+        f32 speed = 1.0f;
+
+        f32 countDown = 0.0f;
+        u16 index = 0u;
         bool redraw = true;
-        float speed = 1.0f;
     private:
     };
 }

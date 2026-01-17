@@ -54,6 +54,32 @@ namespace Canis
             return std::string("Path was not found in AssetLibrary");
         }
 
+        inline int GetID(UUID _uuid)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+
+            i32 id = -1;
+
+            std::string path = GetPath(_uuid);
+
+            if (assetLibrary.assetPath.contains(path))
+                id = assetLibrary.assetPath[path];
+
+            return id;
+        }
+
+        inline int GetID(std::string _path)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+
+            i32 id = -1;
+
+            if (assetLibrary.assetPath.contains(_path))
+                id = assetLibrary.assetPath[_path];
+
+            return id;
+        }
+
         void MoveAsset(std::string _source, std::string _target);
 
         template <typename T>

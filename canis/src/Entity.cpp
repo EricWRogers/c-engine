@@ -47,7 +47,7 @@ void Camera2D::UpdateMatrix()
 void SpriteAnimation::Play(std::string _path)
 {
     speed = 1.0f;
-    animationId = AssetManager::LoadSpriteAnimation(_path);
+    id = AssetManager::LoadSpriteAnimation(_path);
     index = 0;
     redraw = true;
 }

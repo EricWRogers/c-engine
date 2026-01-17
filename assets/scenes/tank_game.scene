@@ -1253,3 +1253,8 @@ Entities:
       uv: [0, 0, 1, 0.5]
       TextureAsset:
         uuid: 2850763088579242438
+    Canis::SpriteAnimation:
+      id: 1715765879397189629
+      flipX: false
+      flipY: false
+      speed: 1

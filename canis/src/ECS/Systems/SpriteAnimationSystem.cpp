@@ -35,9 +35,9 @@ namespace Canis
                 animation->index++;
                 animation->redraw = false;
 
-                if (animation->animationId != spriteAnimationId || spriteAnimationAsset == nullptr)
+                if (animation->id != spriteAnimationId || spriteAnimationAsset == nullptr)
                 {
-                    spriteAnimationId = animation->animationId;
+                    spriteAnimationId = animation->id;
                     spriteAnimationAsset = AssetManager::Get<SpriteAnimationAsset>(spriteAnimationId);
                 }
 
@@ -67,9 +67,9 @@ namespace Canis
                 
                 animation->redraw = false;
 
-                if (animation->animationId != spriteAnimationId || spriteAnimationAsset == nullptr)
+                if (animation->id != spriteAnimationId || spriteAnimationAsset == nullptr)
                 {
-                    spriteAnimationId = animation->animationId;
+                    spriteAnimationId = animation->id;
                     spriteAnimationAsset = AssetManager::Get<SpriteAnimationAsset>(spriteAnimationId);
                 }
                 

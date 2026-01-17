@@ -344,10 +344,10 @@ namespace Canis
             .name = "Canis::SpriteAnimation",
             .Add = [this](Entity& _entity) -> void {
                 if (_entity.GetScript<Sprite2D>() == nullptr)
-                    _entity.AddScript<Sprite2D>();
-                
-                Sprite2D* sprite = _entity.GetScript<Sprite2D>();
-                sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
+                {
+                    Sprite2D* sprite = _entity.AddScript<Sprite2D>();
+                    sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
+                }
                 
                 SpriteAnimation* anim = _entity.AddScript<SpriteAnimation>();
             },
@@ -357,49 +357,43 @@ namespace Canis
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::SpriteAnimation>())
                 {
-                    Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
+                    SpriteAnimation& animation = *_entity.GetScript<SpriteAnimation>();
 
                     YAML::Node comp;
-                    comp["color"] = sprite.color;
-                    comp["uv"] = sprite.uv;
+                    comp["id"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::GetPath(animation.id))->uuid;
+                    comp["flipX"] = animation.flipX;
+                    comp["flipY"] = animation.flipY;
+                    comp["speed"] = animation.speed;
 
-                    YAML::Node textureAsset;
-                    textureAsset["uuid"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath())->uuid;
-                    
-                    comp["TextureAsset"] = textureAsset;
-                    _node["Canis::Sprite2D"] = comp;
+                    _node["Canis::SpriteAnimation"] = comp;
                 }
             },
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
-                if (auto sprite2DComponent = _node["Canis::Sprite2D"])
+                if (auto comp = _node["Canis::SpriteAnimation"])
                 {
-                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
-                    sprite.color = sprite2DComponent["color"].as<Vector4>();
-                    sprite.uv = sprite2DComponent["uv"].as<Vector4>();
-                    if (auto textureAsset = sprite2DComponent["TextureAsset"])
-                    {
-                        UUID uuid = textureAsset["uuid"].as<uint64_t>();
-                        std::string path = AssetManager::GetPath(uuid);
-                        sprite.textureHandle = AssetManager::GetTextureHandle(path);
-                    }
-                    //sprite.textureHandle = sprite2DComponent["TextureHandle"].as<TextureHandle>();//AssetManager::GetTextureHandle(sprite2DComponent["textureHandle"].as<std::string>());
+                    auto &animation = *_entity.AddScript<Canis::SpriteAnimation>(false);
+                    
+                    Canis::UUID uuid = comp["id"].as<u64>();
+                    AssetManager::GetSpriteAnimation(AssetManager::GetPath(uuid));
+                    animation.id = AssetManager::GetID(uuid);
+                    animation.flipX = comp["flipX"].as<bool>(false);
+                    animation.flipY = comp["flipY"].as<bool>(false);
+                    animation.speed = comp["speed"].as<f32>(1.0f);
+                    
                     if (_callCreate)
-                        sprite.Create();
+                        animation.Create();
                 }
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
-                Sprite2D* sprite = nullptr;
-                if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
+                SpriteAnimation* animation = nullptr;
+                if ((animation = _entity.GetScript<SpriteAnimation>()) != nullptr)
                 {
-                    // textureHandle
-                    ImGui::ColorEdit4("color", &sprite->color.r);
-                    ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
-
-                    ImGui::Text("texture");
+                    ImGui::Text("animation");
 
                     ImGui::SameLine();
 
-                    ImGui::Button(AssetManager::GetMetaFile(AssetManager::GetPath(sprite->textureHandle.id))->name.c_str(), ImVec2(150, 0));
+                    const char* empty = "[ empty ]";
+                    ImGui::Button(AssetManager::GetMetaFile(AssetManager::GetPath(animation->id))->name.c_str(), ImVec2(150, 0));
 
                     if (ImGui::BeginDragDropTarget())
                     {
@@ -407,15 +401,19 @@ namespace Canis
                         {
                             const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
                             std::string path = AssetManager::GetPath(dropped.uuid);
-                            TextureAsset* asset = AssetManager::GetTexture(path);
+                            SpriteAnimationAsset* asset = AssetManager::GetSpriteAnimation(path);
 
                             if (asset)
                             {
-                                sprite->textureHandle = AssetManager::GetTextureHandle(path);
+                                animation->id = AssetManager::GetID(path);
                             }
                         }
                         ImGui::EndDragDropTarget();
                     }
+
+                    ImGui::Checkbox("flipX", &animation->flipX);
+                    ImGui::Checkbox("flipY", &animation->flipY);
+                    ImGui::InputFloat("speed", &animation->speed);
                 }
             },
         };

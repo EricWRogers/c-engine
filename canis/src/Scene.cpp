@@ -5,6 +5,7 @@
 #include <Canis/Entity.hpp>
 #include <Canis/System.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/ECS/Systems/SpriteAnimationSystem.hpp>
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 
 namespace Canis
@@ -23,6 +24,11 @@ namespace Canis
 
     void Scene::Update(float _deltaTime)
     {
+        for (System* system : m_updateSystems)
+        {
+            //Canis::Debug::Log("Render Update for");
+            system->Update();
+        }
         // TODO: when an extity is created add its id to a list
         // call ready just on that list then clear it for better performance
         for (size_t i = 0; i < m_entities.size(); ++i)
@@ -133,6 +139,7 @@ namespace Canis
     void Scene::LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root)
     {
         CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+        CreateSystem<Canis::SpriteAnimationSystem>();
         
         for (System* system : m_systems)
         {

@@ -98,5 +98,9 @@ namespace Canis
         int LoadMetaFile(const std::string &_path);
         MetaFileAsset* GetMetaFile(const std::string &_path);
         MetaFileAsset* GetMetaFile(const int _metaID);
+
+        int LoadSpriteAnimation(const std::string &_path);
+        SpriteAnimationAsset* GetSpriteAnimation(const std::string &_path);
+        SpriteAnimationAsset* GetSpriteAnimation(i32 _animationID);
     } // end of AssetManager namespace
 } // end of Canis namespace

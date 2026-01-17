@@ -2,6 +2,7 @@
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/AssetManager.hpp>
 
 namespace Canis {
 
@@ -41,5 +42,13 @@ void Camera2D::UpdateMatrix()
     m_cameraMatrix = m_projection * m_view;
 
     m_needsMatrixUpdate = false;
+}
+
+void SpriteAnimation::Play(std::string _path)
+{
+    speed = 1.0f;
+    animationId = AssetManager::LoadSpriteAnimation(_path);
+    index = 0;
+    redraw = true;
 }
 } // namespace Canis

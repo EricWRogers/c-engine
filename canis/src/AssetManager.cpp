@@ -3,6 +3,8 @@
 
 #include <filesystem>
 
+#include <Canis/Yaml.hpp>
+
 namespace Canis
 {
     namespace AssetManager
@@ -189,6 +191,67 @@ namespace Canis
             return (MetaFileAsset *)GetAssetLibrary().assets[_metaID];
         }
 
+        int LoadSpriteAnimation(const std::string &_path)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+            std::map<std::string, int>::iterator it;
+            it = assetLibrary.assetPath.find(_path);
+
+            // check if animation already exist
+            if (it != assetLibrary.assetPath.end()) // found
+            {
+                return it->second;
+            }
+
+            // create animation
+            Asset *anim = new SpriteAnimationAsset();
+            anim->Load(_path);
+
+            YAML::Node root = YAML::LoadFile(_path);
+
+            if (YAML::Node animation = root["Animation"])
+            {
+                for (auto animationFrame : animation)
+                {
+                    SpriteFrame frame = {};
+                    frame.timeOnFrame = animationFrame["timeOnFrame"].as<float>();
+                    frame.textureId = LoadTexture(animationFrame["textureAssetId"].as<std::string>());
+                    Vector2 offset = animationFrame["offset"].as<Vector2>();
+                    frame.offsetX = offset.x;
+                    frame.offsetY = offset.y;
+                    Vector2 index = animationFrame["index"].as<Vector2>();
+                    frame.row = index.x;
+                    frame.col = index.y;
+                    Vector2 size = animationFrame["size"].as<Vector2>();
+                    frame.width = size.x;
+                    frame.height = size.y;
+                    ((SpriteAnimationAsset *)anim)->frames.push_back(frame);
+                }
+            }
+
+            int id = assetLibrary.nextId;
+
+            // cache animation
+            assetLibrary.assets[id] = anim;
+
+            // cache id
+            assetLibrary.assetPath[_path] = id;
+
+            // increment id
+            assetLibrary.nextId++;
+
+            return id;
+        }
+    
+        SpriteAnimationAsset* GetSpriteAnimation(const std::string &_path)
+        {
+            return GetSpriteAnimation(LoadSpriteAnimation(_path));
+        }
+
+        SpriteAnimationAsset* GetSpriteAnimation(i32 _animationID)
+        {
+            return (SpriteAnimationAsset *)GetAssetLibrary().assets[_animationID];
+        }
     } // end of AssetManager namespace
 
 } // end of Canis namespace

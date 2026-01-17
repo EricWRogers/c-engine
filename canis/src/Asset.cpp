@@ -137,4 +137,14 @@ namespace Canis
 
         return false;
     }
+
+    bool SpriteAnimationAsset::Load(std::string _path)
+    {
+        return true;
+    }
+
+    bool SpriteAnimationAsset::Free()
+    {
+        return true;
+    }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 #include <Canis/Shader.hpp>
 #include <Canis/Data/GLTexture.hpp>
@@ -79,5 +80,29 @@ namespace Canis
         // i64 created
         i64 modified = 0; // nanoseconds since the Unix epoch (Jan 1, 1970).
         // i64 accessed
+    };
+
+    struct SpriteFrame
+    {
+        f32 timeOnFrame = 0.0f;
+        i32 textureId = 0u;
+        u16 offsetX = 0u;
+        u16 offsetY = 0u;
+        u16 row = 0u;
+        u16 col = 0u;
+        u16 width = 0u;
+        u16 height = 0u;
+    };
+
+    class SpriteAnimationAsset : public Asset
+    {
+    private:
+    public:
+        SpriteAnimationAsset() {}
+
+        bool Load(std::string _path) override;
+        bool Free() override;
+
+        std::vector<SpriteFrame> frames = {};
     };
 } // end of Canis namespace

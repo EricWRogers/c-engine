@@ -14,6 +14,7 @@
 #include <Canis/Yaml.hpp>
 #include <Canis/UUID.hpp>
 #include <Canis/Debug.hpp>
+#include <Canis/Data/Types.hpp>
 
 namespace Canis
 {
@@ -472,6 +473,14 @@ namespace Canis
             // textureHandle
         }
 
+        void GetSpriteFromTextureAtlas(u8 _offsetX, u8 _offsetY, u16 &_indexX, u16 &_indexY, u16 _spriteWidth, u16 _spriteHeight, bool _flipX, bool _flipY)
+        {
+            uv.x = (_flipX) ? (((_indexX+1) * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width : (_indexX == 0) ? 0.0f : ((_indexX * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width;
+            uv.y = (_flipY) ? (((_indexY+1) * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height : (_indexY == 0) ? 0.0f : ((_indexY * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height;
+            uv.z = (_flipX) ? (_spriteWidth*-1.0f)/(float)textureHandle.texture.width : _spriteWidth/(float)textureHandle.texture.width;
+            uv.w = (_flipY) ? (_spriteHeight*-1.0f)/(float)textureHandle.texture.height : _spriteHeight/(float)textureHandle.texture.height;
+        }
+
         TextureHandle textureHandle;
         Color   color = Color(1.0f);
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -534,5 +543,33 @@ namespace Canis
         Matrix4 m_cameraMatrix;
         Matrix4 m_view;
         Matrix4 m_projection;
+    };
+
+    class SpriteAnimation : public ScriptableEntity
+    {
+    public:
+        SpriteAnimation(Canis::Entity& _entity);
+        ~SpriteAnimation();
+
+        void Create() {}
+        void Destroy() {}
+        void Update(float _dt) {}
+        void EditorInspectorDraw() {}
+
+        void Play(std::string _path);
+
+        void Pause()
+        {
+            speed = 0.0f;
+        }
+
+        unsigned short int animationId = 0u;
+        float countDown = 0.0f;
+        unsigned short int index = 0u;
+        bool flipX = false;
+        bool flipY = false;
+        bool redraw = true;
+        float speed = 1.0f;
+    private:
     };
 }

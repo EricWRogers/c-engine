@@ -188,7 +188,10 @@ namespace Canis
 
         MetaFileAsset* GetMetaFile(const int _metaID)
         {
-            return (MetaFileAsset *)GetAssetLibrary().assets[_metaID];
+            if (GetAssetLibrary().assets.contains(_metaID))
+                return (MetaFileAsset *)GetAssetLibrary().assets[_metaID];
+            else
+                return nullptr;
         }
 
         int LoadSpriteAnimation(const std::string &_path)

@@ -10,6 +10,8 @@
 
 namespace Canis
 {
+    typedef i32 AnimationClip2DID;
+
     class Asset
     {
     public:
@@ -61,6 +63,7 @@ namespace Canis
             VERTEX,
             TEXTURE,
             SCENE,
+            ANIMATIONCLIP2D,
         };
 
         MetaFileAsset() {}

@@ -56,6 +56,8 @@ namespace Canis
                 return "TEXTURE";
             case MetaFileAsset::FileType::SCENE:
                 return "SCENE";
+            case MetaFileAsset::FileType::ANIMATIONCLIP2D:
+                return "ANIMATIONCLIP2D";
             default:
                 return "FILE_UNKNOWN";
         }
@@ -71,6 +73,8 @@ namespace Canis
             return MetaFileAsset::FileType::TEXTURE;
         else if (_type == "SCENE")
             return MetaFileAsset::FileType::SCENE;
+        else if (_type == "ANIMATIONCLIP2D")
+            return MetaFileAsset::FileType::ANIMATIONCLIP2D;
         else
             return MetaFileAsset::FileType::FILE_UNKNOWN;
     }
@@ -93,6 +97,8 @@ namespace Canis
                 type = FileType::FRAGMENT;
             else if (extension == "vs")
                 type = FileType::VERTEX;
+            else if (extension == "ac2d")
+                type = FileType::ANIMATIONCLIP2D;
             else
                 type = FileType::FILE_UNKNOWN;
 

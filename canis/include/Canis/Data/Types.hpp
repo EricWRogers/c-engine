@@ -12,10 +12,10 @@ typedef std::uint16_t u16; // 65,535
 typedef std::uint32_t u32; // 4,294,967,295
 typedef std::uint64_t u64; // 18,446,744,073,709,551,615
 
-# define u8_max		(255)
-# define u16_max	(65535)
-# define u32_max	(4294967295U)
-# define u64_max    (18446744073709551615)
+#define u8_max		(255)
+#define u16_max	    (65535)
+#define u32_max	    (4294967295U)
+#define u64_max     (18446744073709551615)
 
 typedef float f32;
 typedef double d64;

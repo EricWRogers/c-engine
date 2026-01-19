@@ -388,29 +388,8 @@ namespace Canis
                 SpriteAnimation* animation = nullptr;
                 if ((animation = _entity.GetScript<SpriteAnimation>()) != nullptr)
                 {
-                    ImGui::Text("animation");
-
-                    ImGui::SameLine();
-
-                    const char* empty = "[ empty ]";
-                    ImGui::Button(AssetManager::GetMetaFile(AssetManager::GetPath(animation->id))->name.c_str(), ImVec2(150, 0));
-
-                    if (ImGui::BeginDragDropTarget())
-                    {
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
-                        {
-                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
-                            std::string path = AssetManager::GetPath(dropped.uuid);
-                            SpriteAnimationAsset* asset = AssetManager::GetSpriteAnimation(path);
-
-                            if (asset)
-                            {
-                                animation->id = AssetManager::GetID(path);
-                            }
-                        }
-                        ImGui::EndDragDropTarget();
-                    }
-
+                    
+                    _editor.InputAnimationClip("animation", animation->id);
                     ImGui::Checkbox("flipX", &animation->flipX);
                     ImGui::Checkbox("flipY", &animation->flipY);
                     ImGui::InputFloat("speed", &animation->speed);

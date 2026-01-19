@@ -565,6 +565,36 @@ namespace Canis
         }
     }
 
+    void Editor::InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable)
+    {
+        ImGui::Text(_name.c_str());
+
+        ImGui::SameLine();
+
+        const char* empty = "[ empty ]";
+
+        if (auto *meta = AssetManager::GetMetaFile(AssetManager::GetPath(_variable)))
+            ImGui::Button(meta->name.c_str(), ImVec2(150, 0));
+        else
+            ImGui::Button(empty, ImVec2(150, 0));
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+            {
+                const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                std::string path = AssetManager::GetPath(dropped.uuid);
+                SpriteAnimationAsset* asset = AssetManager::GetSpriteAnimation(path);
+
+                if (asset)
+                {
+                    _variable = AssetManager::GetID(path);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+
     bool Editor::IsDescendantOf(Canis::Entity *_parent, Canis::Entity *_potentialChild)
     {
         if (!_parent || !_potentialChild)

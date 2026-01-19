@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Canis/UUID.hpp>
+#include <Canis/Asset.hpp>
 
 namespace Canis
 {
@@ -53,6 +54,7 @@ namespace Canis
 
         // inspector variables
         void InputEntity(const std::string& _name, Canis::Entity* &_variable);
+        void InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable);
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
         void DrawSceneView();

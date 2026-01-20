@@ -36,7 +36,7 @@ namespace Canis
         Vector2(Vector4 _v);
 
         size_t Hash() const;
-        float Distance2D(const Vector2 &_other) const;
+        float Distance(const Vector2 &_other) const;
         float Magnitude() const;
         Vector2 Normalize();
         const char *ToCString() const;
@@ -103,6 +103,7 @@ namespace Canis
         }
 
         size_t Hash() const;
+        float Distance(const Vector3 &_other) const;
         const char *ToCString() const;
 
         // arithmetic

@@ -108,7 +108,7 @@ void Paddle::Update(float _dt)
     {
         RectTransform& ballTransform = *e->GetScript<RectTransform>();
 
-        float distance = transform.GetPosition().Distance2D(ballTransform.GetPosition());
+        float distance = transform.GetPosition().Distance(ballTransform.GetPosition());
 
         if (distance < (ballTransform.size.x * ballTransform.scale.x * 0.5f) + (transform.size.x * transform.scale.x * 0.5f))
         {

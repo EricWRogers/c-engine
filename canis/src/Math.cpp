@@ -23,7 +23,7 @@ namespace Canis
         return h(x) ^ (h(y) << 1);
     }
 
-    float Vector2::Distance2D(const Vector2 &_other) const
+    float Vector2::Distance(const Vector2 &_other) const
     {
         return sqrtf((_other.x - x) * (_other.x - x) +
                      (_other.y - y) * (_other.y - y));
@@ -90,6 +90,13 @@ namespace Canis
     {
         std::hash<float> h;
         return h(x) ^ (h(y) << 1) ^ (h(z) << 2);
+    }
+
+    float Vector3::Distance(const Vector3 &_other) const
+    {
+        return sqrtf((_other.x - x) * (_other.x - x) +
+                     (_other.y - y) * (_other.y - y) +
+                     (_other.z - z) * (_other.z - z));
     }
 
     const char *Vector3::ToCString() const

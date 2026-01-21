@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
+#include <functional>
+
+#include <Canis/Data/Types.hpp>
 
 namespace Canis
 {
@@ -116,6 +119,9 @@ namespace Canis
         Vector3 &operator-=(const Vector3 &rhs);
         Vector3 &operator*=(float scalar);
         Vector3 &operator/=(float scalar);
+
+        bool operator==(const Vector3 &rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
+        bool operator!=(const Vector3 &rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
     };
 
     struct Vector4
@@ -193,6 +199,23 @@ namespace Canis
         size_t Hash() const;
         const char *ToCString() const;
 
+        bool operator==(const Matrix4 &rhs) const
+        {
+            for (int i = 0; i < 16; ++i)
+            {
+                if (m[i] != rhs.m[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool operator!=(const Matrix4 &rhs) const
+        {
+            return !(*this == rhs);
+        }
+
         Matrix4 operator+(const Matrix4 &_rhs) const;
         Matrix4 operator-(const Matrix4 &_rhs) const;
         Matrix4 operator*(const Matrix4 &_rhs) const; // matrix * matrix
@@ -231,4 +254,34 @@ namespace Canis
 
     extern void Clamp(size_t &_value, size_t _min, size_t _max);
 
+}
+
+namespace std {
+    template<>
+    struct hash<Canis::Vector2> {
+        size_t operator()(const Canis::Vector2 &v) const {
+            return v.Hash();
+        }
+    };
+
+    template<>
+    struct hash<Canis::Vector3> {
+        size_t operator()(const Canis::Vector3 &v) const {
+            return v.Hash();
+        }
+    };
+
+    template<>
+    struct hash<Canis::Vector4> {
+        size_t operator()(const Canis::Vector4 &v) const {
+            return v.Hash();
+        }
+    };
+
+    template<>
+    struct hash<Canis::Matrix4> {
+        size_t operator()(const Canis::Matrix4 &m) const {
+            return m.Hash();
+        }
+    };
 }

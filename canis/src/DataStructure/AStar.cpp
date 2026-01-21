@@ -1,4 +1,4 @@
-#include <Canis/DataStucture/AStar.hpp>
+#include <Canis/DataStructure/AStar.hpp>
 
 namespace Canis
 {
@@ -26,10 +26,10 @@ namespace Canis
     unsigned int AStar::GetClosestPoint(Vector3 _position)
     {
         if (graph.size() == 0)
-            FatalError("AStar::GetClosetPoint was called before a point was added to the graph.");
+            Debug::FatalError("AStar::GetClosetPoint was called before a point was added to the graph.");
         
         unsigned int id = 0u;
-        float minDistance = FLT_MAX; // set float to its largest value
+        float minDistance = f32_max; // set float to its largest value
         float distance = 0.0f;
 
         for(int i = 1; i < graph.size(); i++)
@@ -58,10 +58,10 @@ namespace Canis
     void AStar::ConnectPoints(unsigned int idFrom, unsigned int idTo)
     {
         if (graph.size() <= idFrom)
-            FatalError("AStar::ConnectPoints idFrom has not been added to the graph.");
+            Debug::FatalError("AStar::ConnectPoints idFrom has not been added to the graph.");
 
         if (graph.size() <= idTo)
-            FatalError("AStar::ConnectPoints idTo has not been added to the graph.");
+            Debug::FatalError("AStar::ConnectPoints idTo has not been added to the graph.");
         
         if (idTo == idFrom)
             return;
@@ -74,7 +74,7 @@ namespace Canis
 
     void AStar::RemovePoint(unsigned int id) {
         if (graph.size() <= id)
-            FatalError("AStar::RemovePoint id has not been added to the graph.");
+            Debug::FatalError("AStar::RemovePoint id has not been added to the graph.");
         for (int i = 0; i < graph[id].adjacentPointIDs.size(); i++) { //remove from adjacent points
             for (int j = 0; j < graph[i].adjacentPointIDs.size(); j++) { //iterate over adjacent points of neighbor
                 if (graph[i].adjacentPointIDs[j] == id) { 
@@ -89,10 +89,10 @@ namespace Canis
     bool AStar::ArePointsConnected(unsigned int idFrom, unsigned int idTo)
     {
         if (graph.size() <= idFrom)
-            FatalError("AStar::ArePointsConnected idFrom has not been added to the graph.");
+            Debug::FatalError("AStar::ArePointsConnected idFrom has not been added to the graph.");
 
         if (graph.size() <= idTo)
-            FatalError("AStar::ArePointsConnected idTo has not been added to the graph.");
+            Debug::FatalError("AStar::ArePointsConnected idTo has not been added to the graph.");
         
         if (graph[idFrom].adjacentPointIDs.size() )
 
@@ -121,10 +121,10 @@ namespace Canis
     std::vector<Vector3> AStar::GetPath(unsigned int idFrom, unsigned int idTo)
     {
         if (graph.size() <= idFrom)
-            FatalError("AStar::GetPath idFrom has not been added to the graph.");
+            Debug::FatalError("AStar::GetPath idFrom has not been added to the graph.");
 
         if (graph.size() <= idTo)
-            FatalError("AStar::GetPath idTo has not been added to the graph.");
+            Debug::FatalError("AStar::GetPath idTo has not been added to the graph.");
 
         // find better solution for reseting the graph
         for(AStarNode& node : graph) {
@@ -177,7 +177,7 @@ namespace Canis
                         continue;
                     }
 
-                    float currentG = node->g + std::abs(glm::distance(node->position, neighborNode->position));
+                    float currentG = node->g + std::abs(node->position.Distance(neighborNode->position));
 
                     bool isNewPath = false;
 
@@ -198,7 +198,7 @@ namespace Canis
 
                     if (isNewPath)
                     {
-                        neighborNode->h = std::abs(glm::distance(neighborNode->position, graph[idTo].position));
+                        neighborNode->h = std::abs(neighborNode->position.Distance(graph[idTo].position));
                         neighborNode->f = neighborNode->g + neighborNode->h;
                         neighborNode->predecessorID = graphNodeIndex;
                     }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cfloat>
 
 typedef std::int8_t  i8;
 typedef std::int16_t i16;
@@ -19,3 +20,5 @@ typedef std::uint64_t u64; // 18,446,744,073,709,551,615
 
 typedef float f32;
 typedef double d64;
+
+#define f32_max     (FLT_MAX)

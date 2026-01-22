@@ -253,7 +253,6 @@ namespace Canis
     extern void Clamp(float &_value, float _min, float _max);
 
     extern void Clamp(size_t &_value, size_t _min, size_t _max);
-
 }
 
 namespace std {

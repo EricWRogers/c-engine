@@ -81,7 +81,7 @@ namespace Canis
 
         while (inputManager.Update((void *)&window))
         {
-            float deltaTime = Time::StartFrame();
+            f32 deltaTime = Time::StartFrame();
 
             bool runGameTick = true;
             #if CANIS_EDITOR
@@ -90,7 +90,7 @@ namespace Canis
 
             if (runGameTick)
             {
-                Uint64 updateStart = SDL_GetTicksNS();
+                i64 updateStart = SDL_GetTicksNS();
                 scene.Update(deltaTime);
                 // call the dynamically loaded function
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);

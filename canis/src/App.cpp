@@ -231,6 +231,8 @@ namespace Canis
                     YAML::Node comp;
                     comp["color"] = sprite.color;
                     comp["uv"] = sprite.uv;
+                    comp["flipX"] = sprite.flipX;
+                    comp["flipY"] = sprite.flipY;
 
                     YAML::Node textureAsset;
                     textureAsset["uuid"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::Get<TextureAsset>(sprite.textureHandle.id)->GetPath())->uuid;
@@ -240,12 +242,14 @@ namespace Canis
                 }
             },
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
-                if (auto sprite2DComponent = _node["Canis::Sprite2D"])
+                if (auto comp = _node["Canis::Sprite2D"])
                 {
                     auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
-                    sprite.color = sprite2DComponent["color"].as<Vector4>();
-                    sprite.uv = sprite2DComponent["uv"].as<Vector4>();
-                    if (auto textureAsset = sprite2DComponent["TextureAsset"])
+                    sprite.color = comp["color"].as<Vector4>();
+                    sprite.uv = comp["uv"].as<Vector4>();
+                    sprite.flipX = comp["flipX"].as<bool>(false);
+                    sprite.flipY = comp["flipY"].as<bool>(false);
+                    if (auto textureAsset = comp["TextureAsset"])
                     {
                         UUID uuid = textureAsset["uuid"].as<uint64_t>();
                         std::string path = AssetManager::GetPath(uuid);
@@ -263,6 +267,34 @@ namespace Canis
                     // textureHandle
                     ImGui::ColorEdit4("color", &sprite->color.r);
                     ImGui::InputFloat4("uv", &sprite->uv.x, "%.3f");
+
+                    bool updateUV = false;
+                    
+                    if (ImGui::Checkbox("flipX", &sprite->flipX))
+                        updateUV = true;
+                    if (ImGui::Checkbox("flipY", &sprite->flipY))
+                        updateUV = true;
+                    
+                    if (updateUV)
+                    {
+                        if (SpriteAnimation* animation = _entity.GetScript<SpriteAnimation>())
+                        {
+                            if (SpriteAnimationAsset* animationAsset = AssetManager::Get<SpriteAnimationAsset>(animation->id))
+                            {
+                                sprite->GetSpriteFromTextureAtlas(
+                                    animationAsset->frames[animation->index].offsetX,
+                                    animationAsset->frames[animation->index].offsetY,
+                                    animationAsset->frames[animation->index].row,
+                                    animationAsset->frames[animation->index].col,
+                                    animationAsset->frames[animation->index].width,
+                                    animationAsset->frames[animation->index].height);
+                            }
+                        }
+                        else
+                        {
+                            sprite->GetSpriteFromTextureAtlas(0, 0, 0, 0, sprite->textureHandle.texture.width, sprite->textureHandle.texture.height);
+                        }
+                    }
 
                     ImGui::Text("texture");
 
@@ -361,8 +393,6 @@ namespace Canis
 
                     YAML::Node comp;
                     comp["id"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::GetPath(animation.id))->uuid;
-                    comp["flipX"] = animation.flipX;
-                    comp["flipY"] = animation.flipY;
                     comp["speed"] = animation.speed;
 
                     _node["Canis::SpriteAnimation"] = comp;
@@ -376,8 +406,6 @@ namespace Canis
                     Canis::UUID uuid = comp["id"].as<u64>();
                     AssetManager::GetSpriteAnimation(AssetManager::GetPath(uuid));
                     animation.id = AssetManager::GetID(uuid);
-                    animation.flipX = comp["flipX"].as<bool>(false);
-                    animation.flipY = comp["flipY"].as<bool>(false);
                     animation.speed = comp["speed"].as<f32>(1.0f);
                     
                     if (_callCreate)
@@ -390,8 +418,6 @@ namespace Canis
                 {
                     
                     _editor.InputAnimationClip("animation", animation->id);
-                    ImGui::Checkbox("flipX", &animation->flipX);
-                    ImGui::Checkbox("flipY", &animation->flipY);
                     ImGui::InputFloat("speed", &animation->speed);
                 }
             },

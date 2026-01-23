@@ -473,17 +473,19 @@ namespace Canis
             // textureHandle
         }
 
-        void GetSpriteFromTextureAtlas(u8 _offsetX, u8 _offsetY, u16 &_indexX, u16 &_indexY, u16 _spriteWidth, u16 _spriteHeight, bool _flipX, bool _flipY)
+        void GetSpriteFromTextureAtlas(u8 _offsetX, u8 _offsetY, u16 _indexX, u16 _indexY, u16 _spriteWidth, u16 _spriteHeight)
         {
-            uv.x = (_flipX) ? (((_indexX+1) * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width : (_indexX == 0) ? 0.0f : ((_indexX * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width;
-            uv.y = (_flipY) ? (((_indexY+1) * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height : (_indexY == 0) ? 0.0f : ((_indexY * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height;
-            uv.z = (_flipX) ? (_spriteWidth*-1.0f)/(float)textureHandle.texture.width : _spriteWidth/(float)textureHandle.texture.width;
-            uv.w = (_flipY) ? (_spriteHeight*-1.0f)/(float)textureHandle.texture.height : _spriteHeight/(float)textureHandle.texture.height;
+            uv.x = (flipX) ? (((_indexX+1) * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width : (_indexX == 0) ? 0.0f : ((_indexX * _spriteWidth) + _offsetX)/(f32)textureHandle.texture.width;
+            uv.y = (flipY) ? (((_indexY+1) * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height : (_indexY == 0) ? 0.0f : ((_indexY * _spriteHeight) + _offsetY)/(f32)textureHandle.texture.height;
+            uv.z = (flipX) ? (_spriteWidth*-1.0f)/(float)textureHandle.texture.width : _spriteWidth/(float)textureHandle.texture.width;
+            uv.w = (flipY) ? (_spriteHeight*-1.0f)/(float)textureHandle.texture.height : _spriteHeight/(float)textureHandle.texture.height;
         }
 
         TextureHandle textureHandle;
         Color   color = Color(1.0f);
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        bool flipX = false;
+        bool flipY = false;
     };
 
     class Camera2D : public ScriptableEntity
@@ -564,10 +566,9 @@ namespace Canis
         }
 
         i32 id = 0u;
-        bool flipX = false;
-        bool flipY = false;
         f32 speed = 1.0f;
 
+        // hidden in editor
         f32 countDown = 0.0f;
         u16 index = 0u;
         bool redraw = true;

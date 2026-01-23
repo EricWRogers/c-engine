@@ -54,9 +54,7 @@ namespace Canis
                     spriteAnimationAsset->frames[animation->index].row,
                     spriteAnimationAsset->frames[animation->index].col,
                     spriteAnimationAsset->frames[animation->index].width,
-                    spriteAnimationAsset->frames[animation->index].height,
-                    animation->flipX,
-                    animation->flipY);
+                    spriteAnimationAsset->frames[animation->index].height);
             }
 
             if (animation->redraw)
@@ -82,9 +80,7 @@ namespace Canis
                     spriteAnimationAsset->frames[animation->index].row,
                     spriteAnimationAsset->frames[animation->index].col,
                     spriteAnimationAsset->frames[animation->index].width,
-                    spriteAnimationAsset->frames[animation->index].height,
-                    animation->flipX,
-                    animation->flipY);
+                    spriteAnimationAsset->frames[animation->index].height);
             }
         }
     }

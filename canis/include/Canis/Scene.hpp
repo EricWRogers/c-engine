@@ -42,6 +42,9 @@ namespace Canis
         Entity* GetEntityWithUUID(Canis::UUID _uuid);
         Entity* FindEntityWithName(std::string _name);
 
+        Entity* GetEntityWithTag(std::string _tag);
+        std::vector<Entity*> GetEntitiesWithTag(std::string _tag);
+
         void Destroy(int _id);
         void Destroy(Entity& _entity);
 

@@ -365,6 +365,36 @@ namespace Canis
         return nullptr;
     }
 
+    Entity* Scene::GetEntityWithTag(std::string _tag)
+    {
+        for (Entity* entity : m_entities)
+        {
+            if (entity == nullptr)
+                continue;
+            
+            if (entity->tag == _tag)
+                return entity;
+        }
+
+        return nullptr;
+    }
+
+    std::vector<Entity*> Scene::GetEntitiesWithTag(std::string _tag)
+    {
+        std::vector<Entity*> entities = {};
+
+        for (Entity* entity : m_entities)
+        {
+            if (entity == nullptr)
+                continue;
+            
+            if (entity->tag == _tag)
+                entities.push_back(entity);
+        }
+
+        return entities;
+    }
+
     void Scene::Destroy(int _id)
     {
         if (_id < 0 || m_entities.size() <= _id)

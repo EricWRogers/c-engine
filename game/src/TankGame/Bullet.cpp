@@ -52,8 +52,6 @@ namespace TankGame
 
         lifeTime -= _dt;
 
-        //Debug::Log("LifeTime: %f", lifeTime);
-
         if (lifeTime <= 0.0f) {
             entity.Destroy();
         }

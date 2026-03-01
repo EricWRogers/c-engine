@@ -26,8 +26,7 @@ namespace TankGame
 
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Bullet *bullet = nullptr;
-            if ((bullet = _entity.GetScript<TankGame::Bullet>()) != nullptr)
+            if (TankGame::Bullet *bullet = _entity.GetScript<TankGame::Bullet>())
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &bullet->speed);
                 ImGui::InputFloat(("lifeTime##" + _conf.name).c_str(), &bullet->lifeTime);
@@ -39,13 +38,13 @@ namespace TankGame
 
     DEFAULT_UNREGISTER_SCRIPT(conf, Bullet)
 
-    void Bullet::Create() { Debug::Log("Tank But No Bullet!"); }
+    void Bullet::Create() { }
 
     void Bullet::Ready() {
         m_transform = entity.GetScript<Canis::RectTransform>();
     }
 
-    void Bullet::Destroy() { /*Debug::Log("Kill Bullet But No Bullet!");*/ }
+    void Bullet::Destroy() { }
 
     void Bullet::Update(float _dt) {
         m_transform->Move(m_transform->GetUp() * speed * _dt);

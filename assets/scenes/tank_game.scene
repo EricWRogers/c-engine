@@ -35,6 +35,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -73,6 +75,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 15087449679467618189
@@ -92,6 +96,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 16611370360825807829
@@ -111,6 +117,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -135,6 +143,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 5118749165086371373
@@ -168,6 +178,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 4958588536653842851
@@ -187,6 +199,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -211,6 +225,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 6917854640719189628
@@ -244,6 +260,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 8492328651383827786
@@ -263,6 +281,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -287,6 +307,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 617481840782520639
@@ -320,6 +342,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 800124793432242757
@@ -339,6 +363,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -363,6 +389,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 3528561805190239064
@@ -396,6 +424,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 1838135398464780917
@@ -415,6 +445,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -439,6 +471,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 15893818186144117612
@@ -472,6 +506,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 6944955867833585068
@@ -491,6 +527,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -515,6 +553,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 15303246832803583309
@@ -548,6 +588,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 1462471409019720862
@@ -567,6 +609,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -591,6 +635,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 11599395425439727370
@@ -624,6 +670,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 1442666174029770511
@@ -643,6 +691,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -667,6 +717,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 16755556762434640823
@@ -700,6 +752,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 379038990728521365
@@ -719,6 +773,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -743,6 +799,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 4229967323680549968
@@ -776,6 +834,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 9096533325218016083
@@ -795,6 +855,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -819,6 +881,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 13847216860723592894
@@ -852,6 +916,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 5453529532579720274
@@ -871,6 +937,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -895,6 +963,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 2463794474443736296
@@ -928,6 +998,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 17806755019735576573
@@ -947,6 +1019,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -971,6 +1045,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 12033102433597975238
@@ -1004,6 +1080,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 2645517301687703622
@@ -1023,6 +1101,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -1047,6 +1127,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 15752109475281649839
@@ -1080,6 +1162,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 7467943235175539334
@@ -1099,6 +1183,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -1123,6 +1209,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 10687303280913093607
@@ -1156,6 +1244,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 7902984533329499902
@@ -1175,6 +1265,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.15039186, 0.45098037, 0.0066320705, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
     TankGame::Tank:
@@ -1199,6 +1291,8 @@ Entities:
     Canis::Sprite2D:
       color: [0.09198384, 0.64705884, 0.17361248, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 4910028481520290275
@@ -1232,10 +1326,12 @@ Entities:
     Canis::Sprite2D:
       color: [0.09206864, 0.45098037, 0.044213757, 1]
       uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 16060716090729117806
   - Entity: 13740007540238602761
-    Name: Square
+    Name: Bee
     Tag: ""
     Canis::RectTransform:
       active: true
@@ -1251,10 +1347,10 @@ Entities:
     Canis::Sprite2D:
       color: [1, 1, 1, 1]
       uv: [0, 0, 1, 0.5]
+      flipX: false
+      flipY: false
       TextureAsset:
         uuid: 2850763088579242438
     Canis::SpriteAnimation:
       id: 1715765879397189629
-      flipX: false
-      flipY: false
       speed: 1

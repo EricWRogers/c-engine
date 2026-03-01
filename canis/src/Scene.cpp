@@ -24,6 +24,8 @@ namespace Canis
 
     void Scene::Update(float _deltaTime)
     {
+        m_isUpdating = true;
+
         for (System* system : m_updateSystems)
         {
             //Canis::Debug::Log("Render Update for");
@@ -34,7 +36,7 @@ namespace Canis
         for (size_t i = 0; i < m_entities.size(); ++i)
         {
             Entity* e = m_entities[i];
-            if (e == nullptr)
+            if (e == nullptr || !e->active)
                 continue;
 
             auto& scripts = e->m_scriptComponents;
@@ -52,7 +54,7 @@ namespace Canis
         for (size_t i = 0; i < m_entities.size(); ++i)
         {
             Entity* e = m_entities[i];
-            if (e == nullptr)
+            if (e == nullptr || !e->active)
                 continue;
 
             auto& scripts = e->m_scriptComponents;
@@ -61,8 +63,18 @@ namespace Canis
                 ScriptableEntity* se = scripts[j];
                 if (se && se->m_onReadyCalled)
                     se->Update(_deltaTime);
+
+                if (!e->active)
+                    break;
             }
         }
+
+        m_isUpdating = false;
+        for (int id : m_entitiesToDestroy)
+        {
+            DestroyNow(id);
+        }
+        m_entitiesToDestroy.clear();
     }
 
     void Scene::Render(float _deltaTime)
@@ -402,28 +414,51 @@ namespace Canis
             Debug::Log("size %d, id %d", m_entities.size(), _id);
             return;
         }
-        
+
         if (m_entities[_id] == nullptr)
         {
             Debug::Log("Why are you NULL");
             return;
         }
 
-        for (ScriptableEntity* se : m_entities[_id]->m_scriptComponents)
+        if (m_isUpdating)
         {
-            se->Destroy();
+            if (m_entities[_id]->active)
+            {
+                m_entities[_id]->active = false;
+                m_entitiesToDestroy.push_back(_id);
+            }
+            return;
         }
 
-        
-        for (ScriptableEntity* se : m_entities[_id]->m_scriptComponents)
+        DestroyNow(_id);
+    }
+
+    void Scene::DestroyNow(int _id)
+    {
+        if (_id < 0 || m_entities.size() <= _id)
+            return;
+
+        Entity* entity = m_entities[_id];
+        if (entity == nullptr)
+            return;
+
+        // Clear slot first to prevent recursive self-destroy during callbacks.
+        m_entities[_id] = nullptr;
+
+        for (ScriptableEntity* se : entity->m_scriptComponents)
+        {
+            if (se)
+                se->Destroy();
+        }
+
+        for (ScriptableEntity* se : entity->m_scriptComponents)
         {
             delete se;
         }
 
-        m_entities[_id]->m_scriptComponents.clear();
-
-        delete m_entities[_id];
-        m_entities[_id] = nullptr;
+        entity->m_scriptComponents.clear();
+        delete entity;
     }
 
     void Scene::Destroy(Entity& _entity)

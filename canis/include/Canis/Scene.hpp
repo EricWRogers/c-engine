@@ -90,6 +90,8 @@ namespace Canis
         std::vector<System*> m_systems = {};
         std::vector<System*> m_updateSystems = {};
         std::vector<System*> m_renderSystems = {};
+        std::vector<int> m_entitiesToDestroy = {};
+        bool m_isUpdating = false;
 
         // this is used when duplicating entity
         std::unordered_map<UUID, UUID> m_targetUUIDNewUUID;
@@ -101,6 +103,7 @@ namespace Canis
 
         std::vector<EntityConnectInfo> m_entityConnectInfo = {};
 
+        void DestroyNow(int _id);
         void ReadySystem(System *_system);
     };
 }

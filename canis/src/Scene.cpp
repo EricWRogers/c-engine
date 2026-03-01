@@ -31,16 +31,19 @@ namespace Canis
             //Canis::Debug::Log("Render Update for");
             system->Update();
         }
-        // TODO: when an extity is created add its id to a list
-        // call ready just on that list then clear it for better performance
-        for (size_t i = 0; i < m_entities.size(); ++i)
+        // Run Ready only on entities created since the last frame.
+        for (size_t i = 0; i < m_entitiesToReady.size(); ++i)
         {
-            Entity* e = m_entities[i];
+            const int id = m_entitiesToReady[i];
+            if (id < 0 || id >= (int)m_entities.size())
+                continue;
+
+            Entity* e = m_entities[id];
             if (e == nullptr || !e->active)
                 continue;
 
             auto& scripts = e->m_scriptComponents;
-            for (size_t j = 0; j < scripts.size(); ++j)
+            for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
                 ScriptableEntity* se = scripts[j];
                 if (!se || se->m_onReadyCalled)
@@ -50,6 +53,7 @@ namespace Canis
                 se->m_onReadyCalled = true;
             }
         }
+        m_entitiesToReady.clear();
 
         for (size_t i = 0; i < m_entities.size(); ++i)
         {
@@ -58,14 +62,11 @@ namespace Canis
                 continue;
 
             auto& scripts = e->m_scriptComponents;
-            for (size_t j = 0; j < scripts.size(); ++j)
+            for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
                 ScriptableEntity* se = scripts[j];
                 if (se && se->m_onReadyCalled)
                     se->Update(_deltaTime);
-
-                if (!e->active)
-                    break;
             }
         }
 
@@ -334,11 +335,13 @@ namespace Canis
                     Debug::Log("The Camera Just Died");
                 m_entities[i] = entity;
                 entity->id = i;
+                QueueEntityForReady(entity->id);
                 return entity;
             }
         }
         
         m_entities.push_back(entity);
+        QueueEntityForReady(entity->id);
         return entity;
     }
 
@@ -464,6 +467,14 @@ namespace Canis
     void Scene::Destroy(Entity& _entity)
     {
         Destroy(_entity.id);
+    }
+
+    void Scene::QueueEntityForReady(int _id)
+    {
+        if (_id < 0 || _id >= (int)m_entities.size())
+            return;
+
+        m_entitiesToReady.push_back(_id);
     }
 
     void Scene::ReadySystem(System *_system)

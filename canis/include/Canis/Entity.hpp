@@ -2,18 +2,12 @@
 #include <map>
 #include <vector>
 #include <functional>
-#include <unordered_map>
 #include <algorithm>
 
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
-
-#include <imgui.h>
-#include <imgui_stdlib.h>
-
-#include <Canis/Yaml.hpp>
+#include <yaml-cpp/yaml.h>
 #include <Canis/UUID.hpp>
-#include <Canis/Debug.hpp>
 #include <Canis/Data/Types.hpp>
 
 namespace Canis
@@ -107,51 +101,12 @@ namespace Canis
         virtual void EditorInspectorDraw() {}
     };
 
-    using PropertySetter = std::function<void(YAML::Node&, void*)>;
-    using PropertyGetter = std::function<YAML::Node(void*)>;
-
-    struct PropertyRegistry {
-        std::map<std::string, PropertySetter> setters;
-        std::map<std::string, PropertyGetter> getters;
-        std::vector<std::string> propertyOrder;
-    };
-
-    struct ScriptConf {
-        std::string name;
-        PropertyRegistry registry;
-        std::function<void(Entity&)> Add = nullptr;
-        std::function<bool(Entity&)> Has = nullptr;
-        std::function<void(Entity&)> Remove = nullptr;
-        std::function<void*(Entity&)> Get = nullptr;
-        std::function<void(YAML::Node &_node, Entity &_entity)> Encode = nullptr;
-        std::function<void(YAML::Node &_node, Entity &_entity, bool _callCreate)> Decode = nullptr;
-        std::function<void(Editor&, Entity&, const ScriptConf&)> DrawInspector = nullptr;
-        //std::unordered_map<std::string, std::function<void>> exposedFunctions;
-    };
-
-    struct InspectorItemRightClick {
-        std::string name;
-        std::function<void(App&, Editor&, Entity&, std::vector<ScriptConf>&)> Func = nullptr;
-    };
-
     class RectTransform : public ScriptableEntity
     {
     public:
         RectTransform(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
-        void EditorInspectorDraw() {
-            std::string nameOfType = "RectTransform";
-            ImGui::Text("%s", nameOfType.c_str());
-            ImGui::InputFloat2("position", &position.x, "%.3f");
-            ImGui::InputFloat2("size", &size.x, "%.3f");
-            ImGui::InputFloat2("scale", &scale.x);
-            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
-            ImGui::InputFloat("depth", &depth);
-            // let user work with degrees
-            float degrees = RAD2DEG * rotation;
-            ImGui::InputFloat("rotation", &degrees);
-            rotation = DEG2RAD * degrees;
-        }
+        void EditorInspectorDraw();
 
         bool active = true;
         Vector2 position = Vector2(0.0f);
@@ -465,13 +420,7 @@ namespace Canis
     public:
         Sprite2D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
-        void EditorInspectorDraw() {
-            std::string nameOfType = "Sprite2D";
-            ImGui::Text("%s", nameOfType.c_str());
-            ImGui::ColorEdit4("color", &color.r);
-            ImGui::InputFloat4("uv", &uv.x, "%.3f");
-            // textureHandle
-        }
+        void EditorInspectorDraw();
 
         void GetSpriteFromTextureAtlas(u8 _offsetX, u8 _offsetY, u16 _indexX, u16 _indexY, u16 _spriteWidth, u16 _spriteHeight)
         {
@@ -495,9 +444,7 @@ namespace Canis
         ~Camera2D();
 
         void Create();
-        void Destroy() {
-            Debug::Log("DestroyCamera");
-        }
+        void Destroy();
 
         void Update(float _dt);
 
@@ -512,22 +459,7 @@ namespace Canis
             UpdateMatrix();
         }
 
-        void EditorInspectorDraw() {
-            std::string nameOfType = "Camera2D";
-            ImGui::Text("%s", nameOfType.c_str());
-
-            Vector2 lastPosition = GetPosition();
-            float lastScale = GetScale();
-
-            ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
-            ImGui::InputFloat("scale", &lastScale);
-
-            if (lastPosition != GetPosition())
-                SetPosition(lastPosition);
-            
-            if (lastScale != GetScale())
-                SetScale(lastScale);
-        }
+        void EditorInspectorDraw();
 
         Vector2 GetPosition() { return m_position; }
         Matrix4 GetCameraMatrix() { return m_cameraMatrix; }

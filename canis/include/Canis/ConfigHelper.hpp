@@ -3,8 +3,38 @@
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Editor.hpp>
+#include <Canis/Yaml.hpp>
 
 #include <algorithm>
+#include <imgui.h>
+#include <imgui_stdlib.h>
+
+using PropertySetter = std::function<void(YAML::Node&, void*)>;
+using PropertyGetter = std::function<YAML::Node(void*)>;
+
+struct PropertyRegistry {
+    std::map<std::string, PropertySetter> setters;
+    std::map<std::string, PropertyGetter> getters;
+    std::vector<std::string> propertyOrder;
+};
+
+struct ScriptConf {
+    std::string name;
+    PropertyRegistry registry;
+    std::function<void(Entity&)> Add = nullptr;
+    std::function<bool(Entity&)> Has = nullptr;
+    std::function<void(Entity&)> Remove = nullptr;
+    std::function<void*(Entity&)> Get = nullptr;
+    std::function<void(YAML::Node &_node, Entity &_entity)> Encode = nullptr;
+    std::function<void(YAML::Node &_node, Entity &_entity, bool _callCreate)> Decode = nullptr;
+    std::function<void(Editor&, Entity&, const ScriptConf&)> DrawInspector = nullptr;
+    //std::unordered_map<std::string, std::function<void>> exposedFunctions;
+};
+
+struct InspectorItemRightClick {
+    std::string name;
+    std::function<void(App&, Editor&, Entity&, std::vector<ScriptConf>&)> Func = nullptr;
+};
 
 using namespace Canis;
 

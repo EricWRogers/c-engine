@@ -9,12 +9,17 @@ message(STATUS "GAME_INCLUDE_DIRS ${GAME_HEADERS}")
 add_library(GameCode SHARED
     ${GAME_HEADERS}
     ${GAME_SOURCES}
+    src/Pong/RegisterPong.cpp
 )
 
 # Include SDL3 headers if needed
 target_include_directories(GameCode PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CanisEngine
+)
+
+target_precompile_headers(GameCode PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/include/GamePCH.hpp>"
 )
 
 # Link to SDL3 (for logging or future rendering use)

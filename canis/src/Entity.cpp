@@ -3,11 +3,37 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/AssetManager.hpp>
+#include <Canis/Debug.hpp>
+
+#include <imgui.h>
 
 namespace Canis {
 
 void Entity::Destroy() {
     scene->Destroy(id);
+}
+
+void RectTransform::EditorInspectorDraw()
+{
+    std::string nameOfType = "RectTransform";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputFloat2("position", &position.x, "%.3f");
+    ImGui::InputFloat2("size", &size.x, "%.3f");
+    ImGui::InputFloat2("scale", &scale.x);
+    ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
+    ImGui::InputFloat("depth", &depth);
+    // let user work with degrees
+    float degrees = RAD2DEG * rotation;
+    ImGui::InputFloat("rotation", &degrees);
+    rotation = DEG2RAD * degrees;
+}
+
+void Sprite2D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Sprite2D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::ColorEdit4("color", &color.r);
+    ImGui::InputFloat4("uv", &uv.x, "%.3f");
 }
 
 Camera2D::Camera2D(Canis::Entity &_entity)
@@ -30,7 +56,29 @@ void Camera2D::Create() {
     SetScale(1.0f);
 }
 
+void Camera2D::Destroy() {
+    Debug::Log("DestroyCamera");
+}
+
 void Camera2D::Update(float _dt) {}
+
+void Camera2D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Camera2D";
+    ImGui::Text("%s", nameOfType.c_str());
+
+    Vector2 lastPosition = GetPosition();
+    float lastScale = GetScale();
+
+    ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
+    ImGui::InputFloat("scale", &lastScale);
+
+    if (lastPosition != GetPosition())
+        SetPosition(lastPosition);
+
+    if (lastScale != GetScale())
+        SetScale(lastScale);
+}
 
 void Camera2D::UpdateMatrix()
 {

@@ -41,6 +41,12 @@ target_link_libraries(${PROJECT_NAME}
     imguizmo
 )
 
+target_precompile_headers(${PROJECT_NAME}
+    PUBLIC
+    <string>
+    <vector>
+)
+
 #add_custom_command(TARGET CanisEngine POST_BUILD
 #    COMMAND ${CMAKE_COMMAND} -E copy_if_different
 #        $<TARGET_FILE:${PROJECT_NAME}>

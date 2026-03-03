@@ -1,5 +1,6 @@
 #include <Canis/Scene.hpp>
 #include <Canis/App.hpp>
+#include <Canis/Yaml.hpp>
 #include <Canis/Editor.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>

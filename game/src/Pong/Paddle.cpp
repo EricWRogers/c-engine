@@ -52,12 +52,6 @@ void Paddle::Update(float _dt)
     }
 }
 
-void Paddle::EditorInspectorDraw()
-{
-    ImGui::Text("%s", "Paddle");
-    ImGui::InputFloat2("direction", &direction.x, "%.3f");
-    ImGui::InputFloat("speed", &speed);
-    ImGui::InputInt("playerNum", &playerNum, 0, 100);
-}
+void Paddle::EditorInspectorDraw() {}
 
 } // namespace Pong

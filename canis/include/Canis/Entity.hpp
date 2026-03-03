@@ -1,12 +1,9 @@
 #pragma once
-#include <map>
 #include <vector>
-#include <functional>
 #include <algorithm>
 
 #include <Canis/Math.hpp>
 #include <Canis/AssetHandle.hpp>
-#include <yaml-cpp/yaml.h>
 #include <Canis/UUID.hpp>
 #include <Canis/Data/Types.hpp>
 

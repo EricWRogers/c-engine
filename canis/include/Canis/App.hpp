@@ -1,6 +1,6 @@
 #pragma once
 #include <Canis/Scene.hpp>
-#include <Canis/Entity.hpp>
+#include <Canis/ConfigData.hpp>
 
 namespace Canis
 {

@@ -27,14 +27,7 @@ namespace Pong
         CheckWalls();
     }
 
-    void Ball::EditorInspectorDraw()
-    {
-        std::string nameOfType = "Ball";
-        ImGui::Text("%s", nameOfType.c_str());
-        ImGui::InputFloat2("direction", &direction.x, "%.3f");
-        ImGui::InputFloat("speed", &speed);
-        ImGui::InputFloat("randomRotation", &randomRotation);
-    }
+    void Ball::EditorInspectorDraw() {}
 
     void Ball::CheckWalls()
     {

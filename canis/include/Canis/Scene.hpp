@@ -1,11 +1,17 @@
 #pragma once
-#include <vector>
+#include <Canis/UUID.hpp>
+
 #include <string>
-#include <Canis/Debug.hpp>
-#include <Canis/Yaml.hpp>
+#include <vector>
+
+namespace YAML
+{
+    class Node;
+}
 
 namespace Canis
 {
+    
     class App;
     class Window;
     class InputManager;
@@ -72,7 +78,6 @@ namespace Canis
         template <typename T>
         void CreateRenderSystem()
         {
-            Debug::Log("CreateRenderSystem");
             System *s = new T();
 
             m_renderSystems.push_back(s);

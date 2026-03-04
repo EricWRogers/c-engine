@@ -9,6 +9,9 @@ namespace Canis
 {
     class Shader;
     class Camera2D;
+    class Entity;
+    class RectTransform;
+    class Text;
 
     class RenderBatch
     {
@@ -69,6 +72,7 @@ namespace Canis
 
         void Update();
     private:
+        void DrawText(Entity* _entity, RectTransform* _transform, Text* _text, const Vector2& _cameraPosition, float _halfWidth, float _halfHeight);
         float m_time = 0.0f;
     };
 } // end of Canis namespace

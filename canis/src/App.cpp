@@ -323,6 +323,134 @@ namespace Canis
 
         RegisterScript(sprite2DConf);
 
+        ScriptConf textConf = {
+            .name = "Canis::Text",
+            .Add = [this](Entity& _entity) -> void {
+                if (_entity.GetScript<RectTransform>() == nullptr)
+                {
+                    _entity.AddScript<RectTransform>();
+                }
+
+                Text* text = _entity.AddScript<Text>();
+                text->assetId = AssetManager::LoadText("assets/fonts/Antonio-Bold.ttf", 32);
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Text>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Text>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Text>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Text>())
+                {
+                    Text& text = *_entity.GetScript<Text>();
+                    YAML::Node comp;
+                    comp["text"] = text.text;
+                    comp["color"] = text.color;
+                    comp["alignment"] = text.alignment;
+                    comp["horizontalBoundary"] = text.horizontalBoundary;
+
+                    if (text.assetId > -1)
+                    {
+                        if (TextAsset* textAsset = AssetManager::GetText(text.assetId))
+                        {
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(textAsset->GetPath()))
+                            {
+                                YAML::Node fontAsset;
+                                fontAsset["uuid"] = (uint64_t)meta->uuid;
+                                fontAsset["fontSize"] = textAsset->GetFontSize();
+                                comp["FontAsset"] = fontAsset;
+                            }
+                        }
+                    }
+
+                    _node["Canis::Text"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Text"])
+                {
+                    auto &text = *_entity.AddScript<Canis::Text>(false);
+                    text.text = comp["text"].as<std::string>("");
+                    text.color = comp["color"].as<Vector4>(Color(1.0f));
+                    text.alignment = comp["alignment"].as<unsigned int>(Canis::TextAlignment::LEFT);
+                    text.horizontalBoundary = comp["horizontalBoundary"].as<unsigned int>(Canis::TextBoundary::OVERFLOW);
+                    text._status = BIT::ONE;
+
+                    if (auto fontAsset = comp["FontAsset"])
+                    {
+                        UUID uuid = fontAsset["uuid"].as<uint64_t>();
+                        std::string path = AssetManager::GetPath(uuid);
+                        const unsigned int fontSize = fontAsset["fontSize"].as<unsigned int>(32u);
+                        text.assetId = AssetManager::LoadText(path, fontSize);
+                    }
+
+                    if (_callCreate)
+                        text.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Text* text = nullptr;
+                if ((text = _entity.GetScript<Text>()) != nullptr)
+                {
+                    static const char *alignmentLabels[] = {"Left", "Right", "Center"};
+                    static const char *horizontalBoundaryLabels[] = {"Overflow", "Wrap"};
+
+                    if (ImGui::InputText("text", &text->text))
+                    {
+                        text->_status |= BIT::ONE;
+                    }
+
+                    ImGui::ColorEdit4("color", &text->color.r);
+
+                    int alignment = (int)text->alignment;
+                    if (ImGui::Combo("alignment", &alignment, alignmentLabels, IM_ARRAYSIZE(alignmentLabels)))
+                    {
+                        text->alignment = (unsigned int)alignment;
+                        text->_status |= BIT::ONE;
+                    }
+
+                    int boundary = (int)text->horizontalBoundary;
+                    if (ImGui::Combo("horizontalBoundary", &boundary, horizontalBoundaryLabels, IM_ARRAYSIZE(horizontalBoundaryLabels)))
+                    {
+                        text->horizontalBoundary = (unsigned int)boundary;
+                        text->_status |= BIT::ONE;
+                    }
+
+                    if (text->assetId > -1)
+                    {
+                        ImGui::Text("font");
+                        ImGui::SameLine();
+                        TextAsset* textAsset = AssetManager::GetText(text->assetId);
+
+                        if (textAsset != nullptr)
+                        {
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(textAsset->GetPath()))
+                            {
+                                ImGui::Button(meta->name.c_str(), ImVec2(150, 0));
+                            }
+                            else
+                            {
+                                ImGui::Button("Missing Font", ImVec2(150, 0));
+                            }
+                        }
+
+                        if (ImGui::BeginDragDropTarget())
+                        {
+                            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                            {
+                                const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                                std::string path = AssetManager::GetPath(dropped.uuid);
+                                const unsigned int fontSize = (textAsset == nullptr) ? 32u : textAsset->GetFontSize();
+                                text->assetId = AssetManager::LoadText(path, fontSize);
+                                text->_status |= BIT::ONE;
+                            }
+                            ImGui::EndDragDropTarget();
+                        }
+                    }
+                }
+            },
+        };
+
+        RegisterScript(textConf);
+
         ScriptConf camera2DConf = {
             .name = "Canis::Camera2D",
             .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },

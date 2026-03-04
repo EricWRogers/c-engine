@@ -6,6 +6,7 @@
 #include <Canis/AssetHandle.hpp>
 #include <Canis/UUID.hpp>
 #include <Canis/Data/Types.hpp>
+#include <Canis/Data/Bit.hpp>
 
 namespace Canis
 {
@@ -97,6 +98,24 @@ namespace Canis
         virtual void Update(float _dt) {}
         virtual void EditorInspectorDraw() {}
     };
+
+    enum RectAnchor
+	{
+		TOPLEFT = 0,
+		TOPCENTER = 1,
+		TOPRIGHT = 2,
+		CENTERLEFT = 3,
+		CENTER = 4,
+		CENTERRIGHT = 5,
+		BOTTOMLEFT = 6,
+		BOTTOMCENTER = 7,
+		BOTTOMRIGHT = 8
+	};
+
+    static const char *RectAnchorLabels[] = {
+		"Top Left", "Top Center", "Top Right",
+		"Center Left", "Center", "Center Right",
+		"Bottom Left", "Bottom Center", "Bottom Right"};
 
     class RectTransform : public ScriptableEntity
     {
@@ -380,6 +399,52 @@ namespace Canis
             children.clear();
         }
 
+        Vector2 static GetAnchor(const RectAnchor &_anchor, const float &_windowWidth, const float &_windowHeight)
+        {
+            switch (_anchor)
+            {
+            case RectAnchor::TOPLEFT:
+            {
+                return Vector2(0.0f, _windowHeight);
+            }
+            case RectAnchor::TOPCENTER:
+            {
+                return Vector2(_windowWidth / 2.0f, _windowHeight);
+            }
+            case RectAnchor::TOPRIGHT:
+            {
+                return Vector2(_windowWidth, _windowHeight);
+            }
+            case RectAnchor::CENTERLEFT:
+            {
+                return Vector2(0.0f, _windowHeight / 2.0f);
+            }
+            case RectAnchor::CENTER:
+            {
+                return Vector2(_windowWidth / 2.0f, _windowHeight / 2.0f);
+            }
+            case RectAnchor::CENTERRIGHT:
+            {
+                return Vector2(_windowWidth, _windowHeight / 2.0f);
+            }
+            case RectAnchor::BOTTOMLEFT:
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+            case RectAnchor::BOTTOMCENTER:
+            {
+                return Vector2(_windowWidth / 2.0f, 0.0f);
+            }
+            case RectAnchor::BOTTOMRIGHT:
+            {
+                return Vector2(_windowWidth, 0.0f);
+            }
+            default:
+            {
+                return Vector2(0.0f);
+            }
+            }
+        }
     };
 
     class Transform : public ScriptableEntity
@@ -432,6 +497,40 @@ namespace Canis
         Vector4 uv = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
         bool flipX = false;
         bool flipY = false;
+    };
+
+    namespace TextAlignment
+    {
+        constexpr unsigned int LEFT = 0u;
+        constexpr unsigned int RIGHT = 1u;
+        constexpr unsigned int CENTER = 2u;
+    }
+
+    namespace TextBoundary
+    {
+        constexpr unsigned int OVERFLOW = 0u;
+        constexpr unsigned int WRAP = 1u;
+    }
+
+    class Text : public ScriptableEntity
+    {
+    public:
+        Text(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        void SetText(const std::string &_text)
+        {
+            text = _text;
+            _status |= BIT::ONE;
+        }
+
+        i32 assetId = -1;
+        std::string text = "";
+        Color color = Color(1.0f);
+        unsigned int alignment = TextAlignment::LEFT;
+        unsigned int horizontalBoundary = TextBoundary::OVERFLOW;
+        unsigned int _status = BIT::ONE;
     };
 
     class Camera2D : public ScriptableEntity

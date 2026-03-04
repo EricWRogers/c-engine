@@ -119,6 +119,10 @@ namespace Canis
         TextureHandle GetTextureHandle(const std::string &_path);
         TextureHandle GetTextureHandle(const int _textureID);
 
+        int LoadText(const std::string &_path, unsigned int _fontSize);
+        TextAsset *GetText(const std::string &_path, unsigned int _fontSize);
+        TextAsset *GetText(i32 _textID);
+
         int LoadShader(const std::string &_pathWithOutExtension);
 
         int LoadMetaFile(const std::string &_path);

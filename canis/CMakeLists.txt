@@ -15,6 +15,15 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
 target_include_directories(${CANIS_ENGINE_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include imgui yaml-cpp PRIVATE SDL3::SDL3 stb imguizmo libglew_static)
 target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC imgui yaml-cpp PRIVATE SDL3::SDL3 stb imguizmo libglew_static)
 
+find_package(Freetype QUIET)
+if (Freetype_FOUND)
+    target_link_libraries(${CANIS_ENGINE_LIB} PRIVATE Freetype::Freetype)
+    target_compile_definitions(${CANIS_ENGINE_LIB} PRIVATE CANIS_HAS_FREETYPE)
+    message(STATUS "CanisEngine: FreeType enabled")
+else()
+    message(WARNING "CanisEngine: FreeType not found. TextAsset loading will be disabled.")
+endif()
+
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_include_directories(${PROJECT_NAME}

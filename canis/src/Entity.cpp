@@ -6,6 +6,7 @@
 #include <Canis/Debug.hpp>
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 
 namespace Canis {
 
@@ -34,6 +35,14 @@ void Sprite2D::EditorInspectorDraw()
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::ColorEdit4("color", &color.r);
     ImGui::InputFloat4("uv", &uv.x, "%.3f");
+}
+
+void Text::EditorInspectorDraw()
+{
+    std::string nameOfType = "Text";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputText("text", &text);
+    ImGui::InputInt("font asset id", &assetId);
 }
 
 Camera2D::Camera2D(Canis::Entity &_entity)

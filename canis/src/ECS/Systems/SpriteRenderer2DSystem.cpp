@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <cfloat>
+#include <cmath>
 
 #include <Canis/Math.hpp>
 #include <Canis/Time.hpp>
@@ -16,6 +18,151 @@
 
 namespace Canis
 {
+    void SpriteRenderer2DSystem::DrawText(Entity* _entity, RectTransform* _transform, Text* _text, const Vector2& _cameraPosition, float _halfWidth, float _halfHeight)
+    {
+        if (_entity == nullptr || _transform == nullptr || _text == nullptr || _text->assetId < 0)
+            return;
+
+        TextAsset* font = AssetManager::GetText(_text->assetId);
+
+        if (font == nullptr || _text->text.empty())
+            return;
+
+        Vector2 transformPos = _transform->GetPosition();
+        Vector2 transformScale = _transform->GetScale();
+        const float scaleX = transformScale.x;
+        const float scaleY = transformScale.y;
+
+        //if (!(transformPos.x > _cameraPosition.x - _halfWidth &&
+        //      transformPos.x < _cameraPosition.x + _halfWidth &&
+        //      transformPos.y > _cameraPosition.y - _halfHeight &&
+        //      transformPos.y < _cameraPosition.y + _halfHeight &&
+        //      _entity->active))
+        //{
+        //    return;
+        //}
+
+        const float maxWidth = _transform->size.x * scaleX;
+        const bool wrap = (_text->horizontalBoundary == TextBoundary::WRAP) && (maxWidth > 0.0f);
+        const float wrapWidth = (maxWidth > 0.0f) ? maxWidth : 0.0f;
+
+        float lineHeight = 0.0f;
+        for (unsigned char c = 32; c < 127; c++)
+            lineHeight = std::max(lineHeight, (float)font->characters[c].sizeY * scaleY);
+
+        if (lineHeight <= 0.0f)
+            lineHeight = 16.0f * std::max(scaleY, 1.0f);
+
+        std::vector<float> lineWidths = {};
+        lineWidths.reserve(8);
+        float currentLineWidth = 0.0f;
+
+        for (const unsigned char c : _text->text)
+        {
+            if (c == '\n')
+            {
+                lineWidths.push_back(currentLineWidth);
+                currentLineWidth = 0.0f;
+                continue;
+            }
+
+            if (c < 32 || c >= 127)
+                continue;
+
+            const float advance = (font->characters[c].advance >> 6) * scaleX;
+
+            if (wrap && currentLineWidth > 0.0f && (currentLineWidth + advance) > wrapWidth)
+            {
+                lineWidths.push_back(currentLineWidth);
+                currentLineWidth = 0.0f;
+            }
+
+            currentLineWidth += advance;
+        }
+
+        lineWidths.push_back(currentLineWidth);
+
+        float layoutWidth = 0.0f;
+        for (float width : lineWidths)
+            layoutWidth = std::max(layoutWidth, width);
+
+        const float layoutHeight = std::max(lineHeight, lineHeight * (float)lineWidths.size());
+
+        if ((_text->_status & BIT::ONE) > 0)
+        {
+            if (_text->horizontalBoundary == TextBoundary::OVERFLOW && scaleX != 0.0f)
+                _transform->size.x = layoutWidth / std::abs(scaleX);
+            if (scaleY != 0.0f)
+                _transform->size.y = layoutHeight / std::abs(scaleY);
+            _text->_status &= ~BIT::ONE;
+        }
+
+        auto computeLineStart = [&](float _lineWidth) -> float
+        {
+            float sx = transformPos.x + _transform->originOffset.x;
+            if (_text->alignment == TextAlignment::RIGHT)
+                sx -= _lineWidth;
+            else if (_text->alignment == TextAlignment::CENTER)
+                sx -= _lineWidth * 0.5f;
+            return sx;
+        };
+
+        const Vector2 textRotationPivot = transformPos + _transform->rotationOriginOffset;
+
+        i32 lineIndex = 0;
+        float x = computeLineStart(lineWidths[0]);
+        float y = transformPos.y + _transform->originOffset.y;
+
+        for (const unsigned char c : _text->text)
+        {
+            if (c == '\n')
+            {
+                lineIndex++;
+                if (lineIndex >= (i32)lineWidths.size())
+                    break;
+                x = computeLineStart(lineWidths[lineIndex]);
+                y -= lineHeight;
+                continue;
+            }
+
+            if (c < 32 || c >= 127)
+                continue;
+
+            Character ch = font->characters[c];
+            const float advance = (ch.advance >> 6) * scaleX;
+
+            if (wrap && (x + advance) > (computeLineStart(lineWidths[lineIndex]) + wrapWidth))
+            {
+                lineIndex++;
+                if (lineIndex >= (i32)lineWidths.size())
+                    break;
+                x = computeLineStart(lineWidths[lineIndex]);
+                y -= lineHeight;
+            }
+
+            const float xpos = x + (ch.bearingX * scaleX);
+            const float ypos = y - ((ch.sizeY - ch.bearingY) * scaleY);
+            const float w = ch.sizeX * scaleX;
+            const float h = ch.sizeY * scaleY;
+
+            if (w > 0.0f && h > 0.0f)
+            {
+                const float uvY = 1.0f - ch.atlasPos.y - ch.atlasSize.y;
+                DrawUI(
+                    Vector4(xpos, ypos, w, h),
+                    Vector4(ch.atlasPos.x, uvY, ch.atlasSize.x, ch.atlasSize.y),
+                    GLTexture{font->GetTexture(), 0, 0},
+                    _transform->depth,
+                    _text->color,
+                    _transform->GetRotation(),
+                    Vector2(0.0f),
+                    textRotationPivot);
+            }
+
+            x += advance;
+        }
+    }
+
     SpriteRenderer2DSystem::~SpriteRenderer2DSystem()
     {
         for (int i = 0; i < glyphs.size(); i++)
@@ -146,12 +293,10 @@ namespace Canis
             glyphs.push_back(newGlyph);
         }
 
-        Vector2 halfDims(destRect.z / 2.0f, destRect.w / 2.0f);
-
-        Vector2 topLeft(origin.x, origin.y + destRect.w);
-        Vector2 bottomLeft(origin.x, origin.y);
-        Vector2 bottomRight(origin.x + destRect.z, origin.y);
-        Vector2 topRight(origin.x + destRect.z, origin.y + destRect.w);
+        Vector2 topLeft(destRect.x + origin.x, destRect.y + origin.y + destRect.w);
+        Vector2 bottomLeft(destRect.x + origin.x, destRect.y + origin.y);
+        Vector2 bottomRight(destRect.x + origin.x + destRect.z, destRect.y + origin.y);
+        Vector2 topRight(destRect.x + origin.x + destRect.z, destRect.y + origin.y + destRect.w);
 
          /*
 
@@ -186,42 +331,40 @@ namespace Canis
 
         if (angle != 0.0f)
         {
-            RotatePointAroundPivot(topLeft, rotationOriginOffset, angle);
-            RotatePointAroundPivot(bottomLeft, rotationOriginOffset, angle);
-            RotatePointAroundPivot(bottomRight, rotationOriginOffset, angle);
-            RotatePointAroundPivot(topRight, rotationOriginOffset, angle);
+            RotatePointAroundPivot(topLeft, rotationOriginOffset, -angle);
+            RotatePointAroundPivot(bottomLeft, rotationOriginOffset, -angle);
+            RotatePointAroundPivot(bottomRight, rotationOriginOffset, -angle);
+            RotatePointAroundPivot(topRight, rotationOriginOffset, -angle);
         }
 
         newGlyph->textureId = texture.id;
         newGlyph->depth = depth;
-        newGlyph->angle = angle;
+        newGlyph->angle = -angle;
 
-        newGlyph->topLeft.position.x = topLeft.x + destRect.x;
-        newGlyph->topLeft.position.y = topLeft.y + destRect.y;
+        newGlyph->topLeft.position.x = topLeft.x;
+        newGlyph->topLeft.position.y = topLeft.y;
         newGlyph->topLeft.position.z = depth;
         newGlyph->topLeft.color = color;
         newGlyph->topLeft.uv = Vector2(uvRect.x, uvRect.y + uvRect.w);
 
-        newGlyph->bottomLeft.position.x = bottomLeft.x + destRect.x;
-        newGlyph->bottomLeft.position.y = bottomLeft.y + destRect.y;
+        newGlyph->bottomLeft.position.x = bottomLeft.x;
+        newGlyph->bottomLeft.position.y = bottomLeft.y;
         newGlyph->bottomLeft.position.z = depth;
         newGlyph->bottomLeft.color = color;
         newGlyph->bottomLeft.uv = Vector2(uvRect.x, uvRect.y);
 
-        newGlyph->bottomRight.position.x = bottomRight.x + destRect.x;
-        newGlyph->bottomRight.position.y = bottomRight.y + destRect.y;
+        newGlyph->bottomRight.position.x = bottomRight.x;
+        newGlyph->bottomRight.position.y = bottomRight.y;
         newGlyph->bottomRight.position.z = depth;
         newGlyph->bottomRight.color = color;
         newGlyph->bottomRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y);
 
-        newGlyph->topRight.position.x = topRight.x + destRect.x;
-        newGlyph->topRight.position.y = topRight.y + destRect.y;
+        newGlyph->topRight.position.x = topRight.x;
+        newGlyph->topRight.position.y = topRight.y;
         newGlyph->topRight.position.z = depth;
         newGlyph->topRight.color = color;
         newGlyph->topRight.uv = Vector2(uvRect.x + uvRect.z, uvRect.y + uvRect.w);
-
-       
-
+        
         glyphsCurrentIndex++;
     }
 
@@ -451,29 +594,36 @@ namespace Canis
             
             RectTransform* transform = entity->GetScript<RectTransform>();
             Sprite2D* sprite = entity->GetScript<Sprite2D>();
+            Text* text = entity->GetScript<Text>();
 
-            if (transform == nullptr || sprite == nullptr)
+            if (transform == nullptr)
                 continue;
-            
-            p = transform->GetPosition();// + anchorTable[rect_transform.anchor];
-            s = transform->GetScale();
-            s.x = s.x * transform->size.x;// + halfWidth;
-            s.y = s.y * transform->size.y;// + halfHeight;
-            if (p.x > camPos.x - s.x - halfWidth  &&
-                p.x < camPos.x + s.x + halfWidth  &&
-                p.y > camPos.y - s.y - halfHeight &&
-                p.y < camPos.y + s.y + halfHeight &&
-                entity->active)
+
+            if (sprite != nullptr)
             {
-                Draw(
-                    Vector4(p.x, p.y, s.x, s.y),// transform->size.x * transform->scale.x, transform->size.y * transform->scale.y),
-                    sprite->uv,
-                    sprite->textureHandle.texture,
-                    transform->depth,
-                    sprite->color,
-                    transform->GetRotation(),
-                    transform->originOffset);
+                p = transform->GetPosition();
+                s = transform->GetScale();
+                s.x = s.x * transform->size.x;
+                s.y = s.y * transform->size.y;
+                if (p.x > camPos.x - s.x - halfWidth  &&
+                    p.x < camPos.x + s.x + halfWidth  &&
+                    p.y > camPos.y - s.y - halfHeight &&
+                    p.y < camPos.y + s.y + halfHeight &&
+                    entity->active)
+                {
+                    Draw(
+                        Vector4(p.x, p.y, s.x, s.y),
+                        sprite->uv,
+                        sprite->textureHandle.texture,
+                        transform->depth,
+                        sprite->color,
+                        transform->GetRotation(),
+                        transform->originOffset);
+                }
             }
+
+            if (text != nullptr && entity->active)
+                DrawText(entity, transform, text, camPos, halfWidth, halfHeight);
         }
 
         End();

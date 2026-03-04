@@ -119,6 +119,43 @@ namespace Canis
             return handle;
         }
 
+        int LoadText(const std::string &_path, unsigned int _fontSize)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+            const std::string key = _path + std::to_string(_fontSize);
+
+            std::map<std::string, int>::iterator it;
+            it = assetLibrary.assetPath.find(key);
+
+            if (it != assetLibrary.assetPath.end())
+            {
+                return it->second;
+            }
+
+            Asset *text = new TextAsset(_fontSize);
+            text->Load(_path);
+            int id = assetLibrary.nextId;
+
+            assetLibrary.assets[id] = text;
+            assetLibrary.assetPath[key] = id;
+            assetLibrary.nextId++;
+
+            return id;
+        }
+
+        TextAsset *GetText(const std::string &_path, unsigned int _fontSize)
+        {
+            return GetText(LoadText(_path, _fontSize));
+        }
+
+        TextAsset *GetText(i32 _textID)
+        {
+            if (GetAssetLibrary().assets.contains(_textID))
+                return (TextAsset *)GetAssetLibrary().assets[_textID];
+
+            return nullptr;
+        }
+
         int LoadShader(const std::string &_pathWithOutExtension)
         {
             auto &assetLibrary = GetAssetLibrary();

@@ -1550,17 +1550,30 @@ namespace Canis
                 RotatePointAroundPivot(
                     mouse,
                     globalPos /* + rect_transform.rotationOriginOffset */,
-                    -globalRotation);
+                    globalRotation);
             }
 
             Vector2 globalScale = transform->GetScale();
-            if (mouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
-                mouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
-                mouse.y > globalPos.y - transform->size.x * 0.5f * globalScale.y &&
-                mouse.y < globalPos.y + transform->size.x * 0.5f * globalScale.y &&
-                !mouseLock)
+
+            if (m_scene->GetEntities()[i]->GetScript<Text>() == nullptr)
             {
-                m_index = i;
+                if (mouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
+                    mouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
+                    mouse.y > globalPos.y - transform->size.y * 0.5f * globalScale.y &&
+                    mouse.y < globalPos.y + transform->size.y * 0.5f * globalScale.y &&
+                    !mouseLock)
+                {
+                    m_index = i;
+                }
+            } else {
+                if (mouse.x > globalPos.x &&
+                    mouse.x < globalPos.x + transform->size.x * globalScale.x &&
+                    mouse.y > globalPos.y &&
+                    mouse.y < globalPos.y + transform->size.y * globalScale.y &&
+                    !mouseLock)
+                {
+                    m_index = i;
+                }
             }
         }
     }
@@ -1577,16 +1590,24 @@ namespace Canis
         RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
         Vector2 pos = rtc.GetPosition();
         Vector2 scale = rtc.GetScale();
-        // Vector2 vertices[] = {
-        //     {pos.x, pos.y},
-        //     {pos.x + (rtc.size.x * rtc.scale), pos.y},
-        //     {pos.x + (rtc.size.x * rtc.scale), pos.y + (rtc.size.y * rtc.scale)},
-        //     {pos.x, pos.y + (rtc.size.y * rtc.scale)}};
-        Vector2 vertices[] = {
-            {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)},
-            {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)},
-            {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)},
-            {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)}};
+        Vector2 vertices[4];
+
+        Text* textComponent = debugRectTransformEntity.GetScript<Text>();
+        if (textComponent) {
+            vertices[0] = {pos.x, pos.y};
+            vertices[1] = {pos.x + (rtc.size.x * scale.x), pos.y};
+            vertices[2] = {pos.x + (rtc.size.x * scale.x), pos.y + (rtc.size.y * scale.x)};
+            vertices[3] = {pos.x, pos.y + (rtc.size.y * scale.y)};
+        } 
+        else
+        {
+            vertices[0] = {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)};
+            vertices[1] = {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y - (rtc.size.y * scale.y * 0.5f)};
+            vertices[2] = {pos.x + (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)};
+            vertices[3] = {pos.x - (rtc.size.x * scale.x * 0.5f), pos.y + (rtc.size.y * scale.y * 0.5f)};
+        }
+
+        
 
         for (Vector2 &v : vertices)
             RotatePointAroundPivot(

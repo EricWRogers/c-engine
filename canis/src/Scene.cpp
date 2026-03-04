@@ -152,7 +152,6 @@ namespace Canis
 
     void Scene::LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root)
     {
-        //CreateRenderSystem<Canis::SpriteAnimationSystem>();
         CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
         CreateSystem<Canis::SpriteAnimationSystem>();
         

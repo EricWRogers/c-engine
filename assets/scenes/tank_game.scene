@@ -1354,3 +1354,25 @@ Entities:
     Canis::SpriteAnimation:
       id: 1715765879397189629
       speed: 1
+  - Entity: 2799020996286209661
+    Name: UI
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [-239.78502, 210.30325]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.001
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Text:
+      text: Hello, World!
+      color: [1, 1, 1, 1]
+      alignment: 0
+      horizontalBoundary: 0
+      FontAsset:
+        uuid: 17943956253491084457
+        fontSize: 32

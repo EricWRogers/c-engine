@@ -4,6 +4,7 @@
 
 #include <Canis/Shader.hpp>
 #include <Canis/Data/GLTexture.hpp>
+#include <Canis/Data/Character.hpp>
 
 #include <Canis/UUID.hpp>
 #include <Canis/Data/Types.hpp>
@@ -51,6 +52,31 @@ namespace Canis
         bool Free() override;
 
         Canis::Shader *GetShader() { return m_shader; }
+    };
+
+    class TextAsset : public Asset
+    {
+    private:
+        std::string m_path = "";
+        unsigned int m_texture = 0;
+        unsigned int m_vao = 0;
+        unsigned int m_vbo = 0;
+        unsigned int m_fontSize = 0;
+        static const int atlasWidth = 1024;
+        static const int atlasHeight = 1024;
+        unsigned char m_atlasData[atlasWidth * atlasHeight] = {};
+    public:
+        explicit TextAsset(unsigned int _fontSize) : m_fontSize(_fontSize) {}
+
+        Character characters[127];
+
+        bool Load(std::string _path) override;
+        bool Free() override;
+        unsigned int GetTexture() { return m_texture; }
+        unsigned int GetVAO() { return m_vao; }
+        unsigned int GetVBO() { return m_vbo; }
+        unsigned int GetFontSize() { return m_fontSize; }
+        std::string GetPath() { return m_path; }
     };
 
     class MetaFileAsset : public Asset

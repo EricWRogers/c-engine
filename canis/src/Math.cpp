@@ -446,6 +446,31 @@ namespace Canis
         m[14] = -(_far + _near) / fn;   // (2,3)
     }
 
+    void Matrix4::Perspective(float _fovRadians, float _aspect, float _near, float _far)
+    {
+        for (int i = 0; i < 16; ++i)
+            m[i] = 0.0f;
+
+        if (_aspect == 0.0f || _near == _far)
+        {
+            Identity();
+            return;
+        }
+
+        const float tanHalfFov = std::tan(_fovRadians * 0.5f);
+        if (tanHalfFov == 0.0f)
+        {
+            Identity();
+            return;
+        }
+
+        m[0] = 1.0f / (_aspect * tanHalfFov);
+        m[5] = 1.0f / tanHalfFov;
+        m[10] = -(_far + _near) / (_far - _near);
+        m[11] = -1.0f;
+        m[14] = -(2.0f * _far * _near) / (_far - _near);
+    }
+
     Vector2 RotatePoint(Vector2 _vector, float _radian)
     {
         float c = std::cos(_radian);
@@ -512,5 +537,160 @@ namespace Canis
         
         if (_value > _max)
             _value = _max;
+    }
+
+    float Dot(const Vector3 &_a, const Vector3 &_b)
+    {
+        return _a.x * _b.x + _a.y * _b.y + _a.z * _b.z;
+    }
+
+    Vector3 Cross(const Vector3 &_a, const Vector3 &_b)
+    {
+        return Vector3(
+            _a.y * _b.z - _a.z * _b.y,
+            _a.z * _b.x - _a.x * _b.z,
+            _a.x * _b.y - _a.y * _b.x
+        );
+    }
+
+    Vector3 Normalize(const Vector3 &_vector)
+    {
+        const float length = std::sqrt(_vector.x * _vector.x + _vector.y * _vector.y + _vector.z * _vector.z);
+        if (length <= 1e-8f)
+            return Vector3(0.0f);
+
+        return _vector / length;
+    }
+
+    Vector4 NormalizeQuaternion(const Vector4 &_quat)
+    {
+        const float length = std::sqrt(
+            _quat.x * _quat.x +
+            _quat.y * _quat.y +
+            _quat.z * _quat.z +
+            _quat.w * _quat.w
+        );
+
+        if (length <= 1e-8f)
+            return Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        return _quat / length;
+    }
+
+    Vector4 SlerpQuaternion(const Vector4 &_a, const Vector4 &_b, float _t)
+    {
+        Vector4 qa = NormalizeQuaternion(_a);
+        Vector4 qb = NormalizeQuaternion(_b);
+
+        float dot = qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w;
+        if (dot < 0.0f)
+        {
+            dot = -dot;
+            qb = qb * -1.0f;
+        }
+
+        if (dot > 0.9995f)
+        {
+            Vector4 linear = qa + ((qb - qa) * _t);
+            return NormalizeQuaternion(linear);
+        }
+
+        dot = std::fmax(-1.0f, std::fmin(1.0f, dot));
+
+        const float theta = std::acos(dot);
+        const float sinTheta = std::sin(theta);
+        if (sinTheta <= 1e-6f)
+            return qa;
+
+        const float aScale = std::sin((1.0f - _t) * theta) / sinTheta;
+        const float bScale = std::sin(_t * theta) / sinTheta;
+
+        return (qa * aScale) + (qb * bScale);
+    }
+
+    static Matrix4 QuaternionToMatrix(const Vector4 &_quat)
+    {
+        const Vector4 q = NormalizeQuaternion(_quat);
+        const float xx = q.x * q.x;
+        const float yy = q.y * q.y;
+        const float zz = q.z * q.z;
+        const float xy = q.x * q.y;
+        const float xz = q.x * q.z;
+        const float yz = q.y * q.z;
+        const float wx = q.w * q.x;
+        const float wy = q.w * q.y;
+        const float wz = q.w * q.z;
+
+        Matrix4 matrix;
+        matrix.Identity();
+
+        matrix[0] = 1.0f - 2.0f * (yy + zz);
+        matrix[1] = 2.0f * (xy + wz);
+        matrix[2] = 2.0f * (xz - wy);
+        matrix[3] = 0.0f;
+
+        matrix[4] = 2.0f * (xy - wz);
+        matrix[5] = 1.0f - 2.0f * (xx + zz);
+        matrix[6] = 2.0f * (yz + wx);
+        matrix[7] = 0.0f;
+
+        matrix[8] = 2.0f * (xz + wy);
+        matrix[9] = 2.0f * (yz - wx);
+        matrix[10] = 1.0f - 2.0f * (xx + yy);
+        matrix[11] = 0.0f;
+
+        matrix[12] = 0.0f;
+        matrix[13] = 0.0f;
+        matrix[14] = 0.0f;
+        matrix[15] = 1.0f;
+
+        return matrix;
+    }
+
+    Matrix4 TRS(const Vector3 &_translation, const Vector4 &_rotation, const Vector3 &_scale)
+    {
+        Matrix4 translationMatrix;
+        translationMatrix.Identity();
+        translationMatrix.Translate(_translation);
+
+        Matrix4 rotationMatrix = QuaternionToMatrix(_rotation);
+
+        Matrix4 scaleMatrix;
+        scaleMatrix.Identity();
+        scaleMatrix.Scale(_scale);
+
+        return translationMatrix * rotationMatrix * scaleMatrix;
+    }
+
+    Matrix4 LookAt(const Vector3 &_eye, const Vector3 &_target, const Vector3 &_up)
+    {
+        const Vector3 f = Normalize(_target - _eye);
+        const Vector3 s = Normalize(Cross(f, _up));
+        const Vector3 u = Cross(s, f);
+
+        Matrix4 matrix;
+        matrix.Identity();
+
+        matrix[0] = s.x;
+        matrix[1] = u.x;
+        matrix[2] = -f.x;
+        matrix[3] = 0.0f;
+
+        matrix[4] = s.y;
+        matrix[5] = u.y;
+        matrix[6] = -f.y;
+        matrix[7] = 0.0f;
+
+        matrix[8] = s.z;
+        matrix[9] = u.z;
+        matrix[10] = -f.z;
+        matrix[11] = 0.0f;
+
+        matrix[12] = -Dot(s, _eye);
+        matrix[13] = -Dot(u, _eye);
+        matrix[14] = Dot(f, _eye);
+        matrix[15] = 1.0f;
+
+        return matrix;
     }
 }

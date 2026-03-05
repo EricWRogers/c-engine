@@ -234,6 +234,7 @@ namespace Canis
         void Orthographic(float _left, float _right,
                           float _bottom, float _top,
                           float _near, float _far);
+        void Perspective(float _fovRadians, float _aspect, float _near, float _far);
     };
 
     static Matrix4 IdentitiyMatrix4() {
@@ -253,6 +254,20 @@ namespace Canis
     extern void Clamp(float &_value, float _min, float _max);
 
     extern void Clamp(size_t &_value, size_t _min, size_t _max);
+
+    extern float Dot(const Vector3 &_a, const Vector3 &_b);
+
+    extern Vector3 Cross(const Vector3 &_a, const Vector3 &_b);
+
+    extern Vector3 Normalize(const Vector3 &_vector);
+
+    extern Vector4 NormalizeQuaternion(const Vector4 &_quat);
+
+    extern Vector4 SlerpQuaternion(const Vector4 &_a, const Vector4 &_b, float _t);
+
+    extern Matrix4 TRS(const Vector3 &_translation, const Vector4 &_rotation, const Vector3 &_scale);
+
+    extern Matrix4 LookAt(const Vector3 &_eye, const Vector3 &_target, const Vector3 &_up);
 }
 
 namespace std {

@@ -12,6 +12,7 @@
 namespace Canis
 {
     typedef i32 AnimationClip2DID;
+    typedef i32 ModelID;
 
     class Asset
     {
@@ -90,6 +91,7 @@ namespace Canis
             TEXTURE,
             SCENE,
             ANIMATIONCLIP2D,
+            MODEL,
         };
 
         MetaFileAsset() {}
@@ -133,5 +135,110 @@ namespace Canis
         bool Free() override;
 
         std::vector<SpriteFrame> frames = {};
+    };
+
+    class ModelAsset : public Asset
+    {
+    public:
+        struct Vertex3D
+        {
+            Vector3 position = Vector3(0.0f);
+            Vector3 normal = Vector3(0.0f, 1.0f, 0.0f);
+            Vector2 uv = Vector2(0.0f);
+            Vector4 joints = Vector4(0.0f);
+            Vector4 weights = Vector4(0.0f);
+        };
+
+        struct Primitive3D
+        {
+            unsigned int vao = 0;
+            unsigned int vbo = 0;
+            unsigned int ebo = 0;
+            std::vector<Vertex3D> bindVertices = {};
+            std::vector<Vertex3D> skinnedVertices = {};
+            std::vector<unsigned int> indices = {};
+            i32 nodeIndex = -1;
+            i32 skinIndex = -1;
+            i32 textureId = -1;
+            bool hasSkinning = false;
+        };
+
+        struct Node3D
+        {
+            i32 parent = -1;
+            std::vector<i32> children = {};
+            i32 mesh = -1;
+            i32 skin = -1;
+            Vector3 translation = Vector3(0.0f);
+            Vector4 rotation = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            Vector3 scale = Vector3(1.0f);
+            Matrix4 localMatrix = IdentitiyMatrix4();
+            Matrix4 globalMatrix = IdentitiyMatrix4();
+            bool hasMatrix = false;
+        };
+
+        struct Skin3D
+        {
+            std::vector<i32> joints = {};
+            std::vector<Matrix4> inverseBindMatrices = {};
+        };
+
+        enum AnimationPath3D
+        {
+            TRANSLATION = 0,
+            ROTATION = 1,
+            SCALE = 2,
+        };
+
+        struct AnimationSampler3D
+        {
+            std::vector<float> inputs = {};
+            std::vector<Vector4> outputs = {};
+            std::string interpolation = "LINEAR";
+            bool cubicSpline = false;
+        };
+
+        struct AnimationChannel3D
+        {
+            i32 sampler = -1;
+            i32 targetNode = -1;
+            AnimationPath3D path = AnimationPath3D::TRANSLATION;
+        };
+
+        struct AnimationClip3D
+        {
+            std::string name = "";
+            float duration = 0.0f;
+            std::vector<AnimationSampler3D> samplers = {};
+            std::vector<AnimationChannel3D> channels = {};
+        };
+
+        bool Load(std::string _path) override;
+        bool Free() override;
+
+        bool UpdateAnimation(i32 _clipIndex, float _timeSeconds);
+        void ResetPose();
+        void Draw(Shader &_shader, const Matrix4 &_modelMatrix);
+
+        i32 GetAnimationCount() const { return (i32)m_animations.size(); }
+        std::string GetAnimationName(i32 _index) const;
+        float GetAnimationDuration(i32 _index) const;
+
+        std::string GetPath() const { return m_path; }
+
+    private:
+        std::string m_path = "";
+        std::vector<Node3D> m_nodes = {};
+        std::vector<i32> m_sceneRoots = {};
+        std::vector<Skin3D> m_skins = {};
+        std::vector<AnimationClip3D> m_animations = {};
+        std::vector<Primitive3D> m_primitives = {};
+        std::vector<Vector3> m_bindTranslations = {};
+        std::vector<Vector4> m_bindRotations = {};
+        std::vector<Vector3> m_bindScales = {};
+        std::vector<Matrix4> m_bindLocalMatrices = {};
+
+        void UpdateGlobalMatrices();
+        void UpdateSkinning();
     };
 } // end of Canis namespace

@@ -132,5 +132,9 @@ namespace Canis
         int LoadSpriteAnimation(const std::string &_path);
         SpriteAnimationAsset* GetSpriteAnimation(const std::string &_path);
         SpriteAnimationAsset* GetSpriteAnimation(i32 _animationID);
+
+        int LoadModel(const std::string &_path);
+        ModelAsset* GetModel(const std::string &_path);
+        ModelAsset* GetModel(i32 _modelID);
     } // end of AssetManager namespace
 } // end of Canis namespace

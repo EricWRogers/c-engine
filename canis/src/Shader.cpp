@@ -168,38 +168,34 @@ namespace Canis
     {
         SetVec2(_name, Vector2(_x, _y));
     }
-    
-    /*void Shader::SetVec3(const std::string &_name, const Vector3 &_value) const
+
+    void Shader::SetVec3(const std::string &_name, const Vector3 &_value) const
     {
-        size_t valueHash = std::hash<Vector3>{}(_value);
+        size_t valueHash = _value.Hash();
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
-            glUniform3fv( location, 1, &_value[0]); 
+            glUniform3f(location, _value.x, _value.y, _value.z);
     }
 
     void Shader::SetVec3(const std::string &_name, float _x, float _y, float _z) const
     {
-        size_t valueHash = std::hash<Vector3>{}(Vector3(_x,_y,_z));
-        int location = GetUniformLocation(_name, valueHash);
-        if (location > -1)
-            glUniform3f( location, _x, _y, _z); 
-    }
-    
-    void Shader::SetVec4(const std::string &_name, const Vector4 &_value) const
-    {
-        size_t valueHash = std::hash<Vector4>{}(_value);
-        int location = GetUniformLocation(_name, valueHash);
-        if (location > -1)
-            glUniform4fv( location, 1, &_value[0]); 
+        SetVec3(_name, Vector3(_x, _y, _z));
     }
 
-    void Shader::SetVec4(const std::string &_name, float _x, float _y, float _z, float _w) 
+    void Shader::SetVec4(const std::string &_name, const Vector4 &_value) const
     {
-        size_t valueHash = std::hash<Vector4>{}(Vector4(_x,_y,_z,_w));
+        size_t valueHash = _value.Hash();
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
-            glUniform4f( location, _x, _y, _z, _w); 
+            glUniform4f(location, _value.x, _value.y, _value.z, _value.w);
     }
+
+    void Shader::SetVec4(const std::string &_name, float _x, float _y, float _z, float _w)
+    {
+        SetVec4(_name, Vector4(_x, _y, _z, _w));
+    }
+
+    /*
     
     void Shader::SetMat2(const std::string &_name, const glm::mat2 &_mat) const
     {

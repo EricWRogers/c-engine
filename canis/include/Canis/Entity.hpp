@@ -474,7 +474,83 @@ namespace Canis
 		Matrix4 modelMatrix = IdentitiyMatrix4();
 		bool isDirty = true;
         Entity  parent;
-		std::vector<Entity> children;
+			std::vector<Entity> children;
+    };
+
+    class Transform3D : public ScriptableEntity
+    {
+    public:
+        Transform3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        bool active = true;
+        Vector3 position = Vector3(0.0f);
+        Vector3 rotation = Vector3(0.0f);
+        Vector3 scale = Vector3(1.0f);
+
+        Matrix4 GetModelMatrix() const
+        {
+            Matrix4 matrix;
+            matrix.Identity();
+            matrix.Translate(position);
+            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
+            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
+            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            matrix.Scale(scale);
+            return matrix;
+        }
+
+        Vector3 GetForward() const
+        {
+            Matrix4 matrix;
+            matrix.Identity();
+            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
+            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
+            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            Vector4 forward4 = matrix * Vector4(0.0f, 0.0f, -1.0f, 0.0f);
+            return Normalize(Vector3(forward4.x, forward4.y, forward4.z));
+        }
+
+        Vector3 GetUp() const
+        {
+            Matrix4 matrix;
+            matrix.Identity();
+            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
+            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
+            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            Vector4 up4 = matrix * Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+            return Normalize(Vector3(up4.x, up4.y, up4.z));
+        }
+    };
+
+    class Camera3D : public ScriptableEntity
+    {
+    public:
+        Camera3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        bool primary = true;
+        float fovDegrees = 60.0f;
+        float nearClip = 0.1f;
+        float farClip = 1000.0f;
+    };
+
+    class Model3D : public ScriptableEntity
+    {
+    public:
+        Model3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        i32 modelId = -1;
+        Color color = Color(1.0f);
+        bool playAnimation = true;
+        bool loop = true;
+        float animationSpeed = 1.0f;
+        float animationTime = 0.0f;
+        i32 animationIndex = 0;
     };
 
     class Sprite2D : public ScriptableEntity

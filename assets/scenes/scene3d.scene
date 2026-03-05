@@ -1,0 +1,34 @@
+Environment:
+  ClearColor: [0.08, 0.1, 0.14, 1]
+Entities:
+  - Entity: 101
+    Name: Camera3D
+    Tag: MainCamera
+    Canis::Transform3D:
+      active: true
+      position: [0, 1.5, 10]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    Canis::Camera3D:
+      primary: true
+      fovDegrees: 60
+      nearClip: 0.1
+      farClip: 200
+  - Entity: 102
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592

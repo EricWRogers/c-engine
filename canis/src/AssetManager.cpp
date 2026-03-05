@@ -292,6 +292,49 @@ namespace Canis
         {
             return (SpriteAnimationAsset *)GetAssetLibrary().assets[_animationID];
         }
+
+        int LoadModel(const std::string &_path)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+            std::map<std::string, int>::iterator it;
+            it = assetLibrary.assetPath.find(_path);
+
+            if (it != assetLibrary.assetPath.end())
+            {
+                return it->second;
+            }
+
+            Asset *model = new ModelAsset();
+            if (!model->Load(_path))
+            {
+                delete model;
+                return -1;
+            }
+
+            int id = assetLibrary.nextId;
+            assetLibrary.assets[id] = model;
+            assetLibrary.assetPath[_path] = id;
+            assetLibrary.nextId++;
+
+            return id;
+        }
+
+        ModelAsset* GetModel(const std::string &_path)
+        {
+            int id = LoadModel(_path);
+            if (id < 0)
+                return nullptr;
+
+            return GetModel(id);
+        }
+
+        ModelAsset* GetModel(i32 _modelID)
+        {
+            if (GetAssetLibrary().assets.contains(_modelID))
+                return (ModelAsset *)GetAssetLibrary().assets[_modelID];
+
+            return nullptr;
+        }
     } // end of AssetManager namespace
 
 } // end of Canis namespace

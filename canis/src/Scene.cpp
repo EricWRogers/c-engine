@@ -8,6 +8,8 @@
 #include <Canis/Window.hpp>
 #include <Canis/ECS/Systems/SpriteAnimationSystem.hpp>
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
+#include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
+#include <Canis/ECS/Systems/MeshRenderer3DSystem.hpp>
 
 namespace Canis
 {
@@ -152,7 +154,9 @@ namespace Canis
 
     void Scene::LoadSceneNode(std::vector<ScriptConf>& _scriptRegistry, YAML::Node &_root)
     {
+        CreateRenderSystem<Canis::MeshRenderer3DSystem>();
         CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
+        CreateSystem<Canis::ModelAnimation3DSystem>();
         CreateSystem<Canis::SpriteAnimationSystem>();
         
         for (System* system : m_systems)

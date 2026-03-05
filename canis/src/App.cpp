@@ -70,7 +70,7 @@ namespace Canis
         Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
         #endif
 
-        scene.Init(this, &window, &inputManager, "assets/scenes/tank_game.scene");
+        scene.Init(this, &window, &inputManager, "assets/scenes/scene3d.scene");
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);
@@ -499,6 +499,246 @@ namespace Canis
         };
 
         RegisterScript(camera2DConf);
+
+        ScriptConf transform3DConf = {
+            .name = "Canis::Transform3D",
+            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Transform3D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Transform3D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Transform3D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Transform3D>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Transform3D>())
+                {
+                    Transform3D& transform = *_entity.GetScript<Transform3D>();
+                    YAML::Node comp;
+                    comp["active"] = transform.active;
+                    comp["position"] = transform.position;
+                    comp["rotation"] = transform.rotation;
+                    comp["scale"] = transform.scale;
+                    _node["Canis::Transform3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Transform3D"])
+                {
+                    auto &transform = *_entity.AddScript<Canis::Transform3D>(false);
+                    transform.active = comp["active"].as<bool>(true);
+                    transform.position = comp["position"].as<Vector3>(Vector3(0.0f));
+                    transform.rotation = comp["rotation"].as<Vector3>(Vector3(0.0f));
+                    transform.scale = comp["scale"].as<Vector3>(Vector3(1.0f));
+                    if (_callCreate)
+                        transform.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Transform3D* transform = nullptr;
+                if ((transform = _entity.GetScript<Transform3D>()) != nullptr)
+                {
+                    ImGui::InputFloat3("position", &transform->position.x, "%.3f");
+
+                    Vector3 degrees = transform->rotation * RAD2DEG;
+                    if (ImGui::InputFloat3("rotation", &degrees.x, "%.3f"))
+                    {
+                        transform->rotation = degrees * DEG2RAD;
+                    }
+
+                    ImGui::InputFloat3("scale", &transform->scale.x, "%.3f");
+                }
+            },
+        };
+
+        RegisterScript(transform3DConf);
+
+        ScriptConf camera3DConf = {
+            .name = "Canis::Camera3D",
+            .Add = [this](Entity& _entity) -> void {
+                if (_entity.GetScript<Transform3D>() == nullptr)
+                    _entity.AddScript<Transform3D>();
+
+                _entity.AddScript<Camera3D>();
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera3D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera3D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Camera3D>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Camera3D>())
+                {
+                    Camera3D& camera = *_entity.GetScript<Camera3D>();
+                    YAML::Node comp;
+                    comp["primary"] = camera.primary;
+                    comp["fovDegrees"] = camera.fovDegrees;
+                    comp["nearClip"] = camera.nearClip;
+                    comp["farClip"] = camera.farClip;
+                    _node["Canis::Camera3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Camera3D"])
+                {
+                    auto &camera = *_entity.AddScript<Canis::Camera3D>(false);
+                    camera.primary = comp["primary"].as<bool>(true);
+                    camera.fovDegrees = comp["fovDegrees"].as<float>(60.0f);
+                    camera.nearClip = comp["nearClip"].as<float>(0.1f);
+                    camera.farClip = comp["farClip"].as<float>(1000.0f);
+                    if (_callCreate)
+                        camera.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Camera3D* camera = nullptr;
+                if ((camera = _entity.GetScript<Camera3D>()) != nullptr)
+                {
+                    ImGui::Checkbox("primary", &camera->primary);
+                    ImGui::InputFloat("fovDegrees", &camera->fovDegrees);
+                    ImGui::InputFloat("nearClip", &camera->nearClip);
+                    ImGui::InputFloat("farClip", &camera->farClip);
+                }
+            },
+        };
+
+        RegisterScript(camera3DConf);
+
+        ScriptConf model3DConf = {
+            .name = "Canis::Model3D",
+            .Add = [this](Entity& _entity) -> void {
+                if (_entity.GetScript<Transform3D>() == nullptr)
+                    _entity.AddScript<Transform3D>();
+
+                Model3D* model = _entity.AddScript<Model3D>();
+                model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
+                model->animationIndex = 0;
+                model->animationTime = 0.0f;
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Model3D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Model3D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Model3D>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::Model3D>())
+                {
+                    Model3D& model = *_entity.GetScript<Model3D>();
+                    YAML::Node comp;
+                    comp["color"] = model.color;
+                    comp["playAnimation"] = model.playAnimation;
+                    comp["loop"] = model.loop;
+                    comp["animationSpeed"] = model.animationSpeed;
+                    comp["animationTime"] = model.animationTime;
+                    comp["animationIndex"] = model.animationIndex;
+
+                    if (model.modelId > -1)
+                    {
+                        if (ModelAsset* modelAsset = AssetManager::GetModel(model.modelId))
+                        {
+                            YAML::Node modelAssetNode;
+                            modelAssetNode["path"] = modelAsset->GetPath();
+
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(modelAsset->GetPath()))
+                                modelAssetNode["uuid"] = (uint64_t)meta->uuid;
+
+                            comp["ModelAsset"] = modelAssetNode;
+                        }
+                    }
+
+                    _node["Canis::Model3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Model3D"])
+                {
+                    auto &model = *_entity.AddScript<Canis::Model3D>(false);
+                    model.color = comp["color"].as<Vector4>(Color(1.0f));
+                    model.playAnimation = comp["playAnimation"].as<bool>(true);
+                    model.loop = comp["loop"].as<bool>(true);
+                    model.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
+                    model.animationTime = comp["animationTime"].as<float>(0.0f);
+                    model.animationIndex = comp["animationIndex"].as<i32>(0);
+
+                    std::string path = "";
+                    if (auto modelAsset = comp["ModelAsset"])
+                    {
+                        if (auto uuidNode = modelAsset["uuid"])
+                        {
+                            UUID uuid = uuidNode.as<uint64_t>(0);
+                            path = AssetManager::GetPath(uuid);
+                            if (path.rfind("Path was not found", 0) == 0)
+                                path.clear();
+                        }
+
+                        if (path.empty())
+                            path = modelAsset["path"].as<std::string>("");
+                    }
+
+                    if (!path.empty())
+                        model.modelId = AssetManager::LoadModel(path);
+
+                    if (_callCreate)
+                        model.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Model3D* model = nullptr;
+                if ((model = _entity.GetScript<Model3D>()) != nullptr)
+                {
+                    ImGui::ColorEdit4("color", &model->color.r);
+                    ImGui::Checkbox("playAnimation", &model->playAnimation);
+                    ImGui::Checkbox("loop", &model->loop);
+                    ImGui::InputFloat("animationSpeed", &model->animationSpeed);
+                    ImGui::InputFloat("animationTime", &model->animationTime);
+
+                    std::string modelLabel = "[ empty ]";
+                    ModelAsset* modelAsset = nullptr;
+                    if (model->modelId > -1)
+                    {
+                        modelAsset = AssetManager::GetModel(model->modelId);
+                        if (modelAsset != nullptr)
+                        {
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(modelAsset->GetPath()))
+                                modelLabel = meta->name;
+                            else
+                                modelLabel = modelAsset->GetPath();
+                        }
+                    }
+
+                    ImGui::Text("model");
+                    ImGui::SameLine();
+                    ImGui::Button(modelLabel.c_str(), ImVec2(150, 0));
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                        {
+                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                            std::string path = AssetManager::GetPath(dropped.uuid);
+                            std::string extension = GetFileExtension(path);
+
+                            if (extension == "gltf" || extension == "glb")
+                            {
+                                model->modelId = AssetManager::LoadModel(path);
+                                model->animationTime = 0.0f;
+                                model->animationIndex = 0;
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+
+                    if (modelAsset != nullptr)
+                    {
+                        const i32 animationCount = modelAsset->GetAnimationCount();
+                        ImGui::Text("animations: %d", animationCount);
+
+                        if (animationCount > 0)
+                        {
+                            Clamp(model->animationIndex, 0, animationCount - 1);
+                            ImGui::InputInt("animationIndex", &model->animationIndex);
+                            Clamp(model->animationIndex, 0, animationCount - 1);
+
+                            ImGui::Text("clip: %s", modelAsset->GetAnimationName(model->animationIndex).c_str());
+                        }
+                    }
+                }
+            },
+        };
+
+        RegisterScript(model3DConf);
 
         ScriptConf spriteAnimationConf = {
             .name = "Canis::SpriteAnimation",

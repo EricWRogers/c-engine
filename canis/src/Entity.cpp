@@ -45,6 +45,42 @@ void Text::EditorInspectorDraw()
     ImGui::InputInt("font asset id", &assetId);
 }
 
+void Transform3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Transform3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputFloat3("position", &position.x, "%.3f");
+
+    Vector3 degrees = rotation * RAD2DEG;
+    ImGui::InputFloat3("rotation", &degrees.x, "%.3f");
+    rotation = degrees * DEG2RAD;
+
+    ImGui::InputFloat3("scale", &scale.x, "%.3f");
+}
+
+void Camera3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Camera3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("primary", &primary);
+    ImGui::InputFloat("fovDegrees", &fovDegrees);
+    ImGui::InputFloat("nearClip", &nearClip);
+    ImGui::InputFloat("farClip", &farClip);
+}
+
+void Model3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Model3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputInt("modelId", &modelId);
+    ImGui::ColorEdit4("color", &color.r);
+    ImGui::Checkbox("playAnimation", &playAnimation);
+    ImGui::Checkbox("loop", &loop);
+    ImGui::InputFloat("animationSpeed", &animationSpeed);
+    ImGui::InputFloat("animationTime", &animationTime);
+    ImGui::InputInt("animationIndex", &animationIndex);
+}
+
 Camera2D::Camera2D(Canis::Entity &_entity)
     : Canis::ScriptableEntity(_entity), m_position(0.0f, 0.0f), m_scale(8.0f),
       m_needsMatrixUpdate(true), m_screenWidth(500), m_screenHeight(500) {

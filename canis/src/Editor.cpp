@@ -708,6 +708,7 @@ namespace Canis
         }
 
         // context menu
+        bool removeRequested = false;
         if (ImGui::BeginPopupContextItem())
         {
             int idx = -1;
@@ -754,10 +755,7 @@ namespace Canis
                 if (m_index == idx)
                     m_index = -1;
                 _refresh = true;
-                if (nodeOpen)
-                    ImGui::TreePop();
-                ImGui::EndPopup();
-                return;
+                removeRequested = true;
             }
 
             for (auto &item : m_app->GetInspectorItemRegistry())
@@ -767,6 +765,13 @@ namespace Canis
             }
 
             ImGui::EndPopup();
+        }
+
+        if (removeRequested)
+        {
+            if (nodeOpen)
+                ImGui::TreePop();
+            return;
         }
 
         // children + single per-gap drop slots
@@ -823,6 +828,8 @@ namespace Canis
 
                     // actual child row
                     DrawHierarchyNode(child, _entities, _refresh);
+                    if (_refresh)
+                        break;
                 }
             }
 
@@ -949,6 +956,8 @@ namespace Canis
                 continue;
 
             DrawHierarchyNode(entity, entities, refresh);
+            if (refresh)
+                break;
 
             // drop slot AFTER this root -> position ri+1
             ImGui::PushID((void *)((uintptr_t)entity ^ 0xABCDEF));
@@ -1026,9 +1035,30 @@ namespace Canis
 
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
-        Clamp(m_index, 0, entities.size() - 1);
+        if (entities.empty())
+        {
+            m_index = -1;
+            ImGui::End();
+            return;
+        }
 
-        if (entities.size() != 0 && entities[m_index] != nullptr)
+        if (m_index < 0 || m_index >= (int)entities.size())
+            m_index = 0;
+
+        if (entities[m_index] == nullptr)
+        {
+            m_index = -1;
+            for (int i = 0; i < (int)entities.size(); ++i)
+            {
+                if (entities[i] != nullptr)
+                {
+                    m_index = i;
+                    break;
+                }
+            }
+        }
+
+        if (m_index >= 0 && entities[m_index] != nullptr)
         {
             Entity &entity = *entities[m_index];
 
@@ -1071,7 +1101,14 @@ namespace Canis
 
     void Editor::DrawAddComponentDropDown(bool _refresh)
     {
-        Entity &entity = *m_scene->GetEntities()[m_index];
+        if (m_index < 0 || m_index >= (int)m_scene->GetEntities().size())
+            return;
+
+        Entity *selectedEntity = m_scene->GetEntities()[m_index];
+        if (selectedEntity == nullptr)
+            return;
+
+        Entity &entity = *selectedEntity;
 
         static int componentToAdd = 0;
 

@@ -1,7 +1,5 @@
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 
-#include <unordered_set>
-
 #include <Canis/AssetManager.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
@@ -12,7 +10,6 @@ namespace Canis
     void ModelAnimation3DSystem::Update()
     {
         const float deltaTime = Time::DeltaTime();
-        std::unordered_set<i32> updatedModelIds = {};
 
         for (Entity *entity : scene->GetEntities())
         {
@@ -20,47 +17,50 @@ namespace Canis
                 continue;
 
             Model3D *modelRenderer = entity->GetScript<Model3D>();
-            if (modelRenderer == nullptr || modelRenderer->modelId < 0)
-                continue;
-
-            if (updatedModelIds.contains(modelRenderer->modelId))
+            ModelAnimation3D *modelAnimation = entity->GetScript<ModelAnimation3D>();
+            if (modelRenderer == nullptr || modelAnimation == nullptr || modelRenderer->modelId < 0)
                 continue;
 
             ModelAsset *model = AssetManager::GetModel(modelRenderer->modelId);
             if (model == nullptr)
                 continue;
 
+            if (modelAnimation->poseModelId != modelRenderer->modelId)
+            {
+                modelAnimation->poseModelId = modelRenderer->modelId;
+                model->ResetPose(modelAnimation->pose);
+            }
+
             const i32 animationCount = model->GetAnimationCount();
             if (animationCount <= 0)
             {
-                model->ResetPose();
-                updatedModelIds.insert(modelRenderer->modelId);
+                model->ResetPose(modelAnimation->pose);
                 continue;
             }
 
-            Clamp(modelRenderer->animationIndex, 0, animationCount - 1);
-            const float animationDuration = model->GetAnimationDuration(modelRenderer->animationIndex);
+            Clamp(modelAnimation->animationIndex, 0, animationCount - 1);
+            const float animationDuration = model->GetAnimationDuration(modelAnimation->animationIndex);
 
-            if (modelRenderer->playAnimation && animationDuration > 0.0f)
+            if (modelAnimation->playAnimation && animationDuration > 0.0f)
             {
-                modelRenderer->animationTime += deltaTime * modelRenderer->animationSpeed;
+                modelAnimation->animationTime += deltaTime * modelAnimation->animationSpeed;
 
-                if (modelRenderer->loop)
+                if (modelAnimation->loop)
                 {
-                    while (modelRenderer->animationTime < 0.0f)
-                        modelRenderer->animationTime += animationDuration;
+                    while (modelAnimation->animationTime < 0.0f)
+                        modelAnimation->animationTime += animationDuration;
 
-                    while (modelRenderer->animationTime >= animationDuration)
-                        modelRenderer->animationTime -= animationDuration;
+                    while (modelAnimation->animationTime >= animationDuration)
+                        modelAnimation->animationTime -= animationDuration;
                 }
                 else
                 {
-                    Clamp(modelRenderer->animationTime, 0.0f, animationDuration);
+                    Clamp(modelAnimation->animationTime, 0.0f, animationDuration);
                 }
             }
 
-            model->UpdateAnimation(modelRenderer->animationIndex, modelRenderer->animationTime);
-            updatedModelIds.insert(modelRenderer->modelId);
+            if (!model->UpdateAnimation(modelAnimation->pose, modelAnimation->animationIndex, modelAnimation->animationTime))
+                model->ResetPose(modelAnimation->pose);
         }
     }
 } // end of Canis namespace

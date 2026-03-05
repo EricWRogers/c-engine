@@ -95,8 +95,15 @@ namespace Canis
             if (model == nullptr)
                 continue;
 
+            const ModelAsset::Pose3D *pose = nullptr;
+            if (ModelAnimation3D *animation = entity->GetScript<ModelAnimation3D>())
+            {
+                if (animation->poseModelId == modelRenderer->modelId)
+                    pose = &animation->pose;
+            }
+
             m_shader->SetVec4("baseColor", modelRenderer->color);
-            model->Draw(*m_shader, transform->GetModelMatrix());
+            model->Draw(*m_shader, transform->GetModelMatrix(), pose);
         }
 
         m_shader->UnUse();

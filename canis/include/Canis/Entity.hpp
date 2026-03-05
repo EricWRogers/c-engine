@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <Canis/Math.hpp>
+#include <Canis/Asset.hpp>
 #include <Canis/AssetHandle.hpp>
 #include <Canis/UUID.hpp>
 #include <Canis/Data/Types.hpp>
@@ -546,11 +547,24 @@ namespace Canis
 
         i32 modelId = -1;
         Color color = Color(1.0f);
+    };
+
+    class ModelAnimation3D : public ScriptableEntity
+    {
+    public:
+        ModelAnimation3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
         bool playAnimation = true;
         bool loop = true;
         float animationSpeed = 1.0f;
         float animationTime = 0.0f;
         i32 animationIndex = 0;
+
+        // Runtime pose cache for this entity's model instance.
+        i32 poseModelId = -1;
+        ModelAsset::Pose3D pose = {};
     };
 
     class Sprite2D : public ScriptableEntity

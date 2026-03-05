@@ -213,12 +213,21 @@ namespace Canis
             std::vector<AnimationChannel3D> channels = {};
         };
 
+        struct Pose3D
+        {
+            std::vector<Matrix4> localNodeMatrices = {};
+            std::vector<Matrix4> globalNodeMatrices = {};
+            std::vector<std::vector<Vertex3D>> skinnedVertices = {};
+        };
+
         bool Load(std::string _path) override;
         bool Free() override;
 
         bool UpdateAnimation(i32 _clipIndex, float _timeSeconds);
+        bool UpdateAnimation(Pose3D &_pose, i32 _clipIndex, float _timeSeconds) const;
         void ResetPose();
-        void Draw(Shader &_shader, const Matrix4 &_modelMatrix);
+        void ResetPose(Pose3D &_pose) const;
+        void Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose = nullptr);
 
         i32 GetAnimationCount() const { return (i32)m_animations.size(); }
         std::string GetAnimationName(i32 _index) const;
@@ -237,8 +246,10 @@ namespace Canis
         std::vector<Vector4> m_bindRotations = {};
         std::vector<Vector3> m_bindScales = {};
         std::vector<Matrix4> m_bindLocalMatrices = {};
+        Pose3D m_sharedPose = {};
 
-        void UpdateGlobalMatrices();
-        void UpdateSkinning();
+        void EnsurePose(Pose3D &_pose) const;
+        void UpdateGlobalMatrices(Pose3D &_pose) const;
+        void UpdateSkinning(Pose3D &_pose) const;
     };
 } // end of Canis namespace

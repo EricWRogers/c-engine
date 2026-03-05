@@ -606,11 +606,19 @@ namespace Canis
 
                 Model3D* model = _entity.AddScript<Model3D>();
                 model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
-                model->animationIndex = 0;
-                model->animationTime = 0.0f;
+
+                if (_entity.GetScript<ModelAnimation3D>() == nullptr)
+                {
+                    ModelAnimation3D* animation = _entity.AddScript<ModelAnimation3D>();
+                    animation->animationIndex = 0;
+                    animation->animationTime = 0.0f;
+                }
             },
             .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Model3D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Model3D>(); },
+            .Remove = [this](Entity& _entity) -> void {
+                _entity.RemoveScript<ModelAnimation3D>();
+                _entity.RemoveScript<Model3D>();
+            },
             .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Model3D>(); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
                 if (_entity.GetScript<Canis::Model3D>())
@@ -618,11 +626,6 @@ namespace Canis
                     Model3D& model = *_entity.GetScript<Model3D>();
                     YAML::Node comp;
                     comp["color"] = model.color;
-                    comp["playAnimation"] = model.playAnimation;
-                    comp["loop"] = model.loop;
-                    comp["animationSpeed"] = model.animationSpeed;
-                    comp["animationTime"] = model.animationTime;
-                    comp["animationIndex"] = model.animationIndex;
 
                     if (model.modelId > -1)
                     {
@@ -646,11 +649,6 @@ namespace Canis
                 {
                     auto &model = *_entity.AddScript<Canis::Model3D>(false);
                     model.color = comp["color"].as<Vector4>(Color(1.0f));
-                    model.playAnimation = comp["playAnimation"].as<bool>(true);
-                    model.loop = comp["loop"].as<bool>(true);
-                    model.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
-                    model.animationTime = comp["animationTime"].as<float>(0.0f);
-                    model.animationIndex = comp["animationIndex"].as<i32>(0);
 
                     std::string path = "";
                     if (auto modelAsset = comp["ModelAsset"])
@@ -670,6 +668,30 @@ namespace Canis
                     if (!path.empty())
                         model.modelId = AssetManager::LoadModel(path);
 
+                    // Backward compatibility: migrate legacy animation fields on Canis::Model3D.
+                    if (!_node["Canis::ModelAnimation3D"])
+                    {
+                        const bool hasLegacyAnimation =
+                            comp["playAnimation"].IsDefined() ||
+                            comp["loop"].IsDefined() ||
+                            comp["animationSpeed"].IsDefined() ||
+                            comp["animationTime"].IsDefined() ||
+                            comp["animationIndex"].IsDefined();
+
+                        if (hasLegacyAnimation && _entity.GetScript<Canis::ModelAnimation3D>() == nullptr)
+                        {
+                            auto &animation = *_entity.AddScript<Canis::ModelAnimation3D>(false);
+                            animation.playAnimation = comp["playAnimation"].as<bool>(true);
+                            animation.loop = comp["loop"].as<bool>(true);
+                            animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
+                            animation.animationTime = comp["animationTime"].as<float>(0.0f);
+                            animation.animationIndex = comp["animationIndex"].as<i32>(0);
+
+                            if (_callCreate)
+                                animation.Create();
+                        }
+                    }
+
                     if (_callCreate)
                         model.Create();
                 }
@@ -679,10 +701,6 @@ namespace Canis
                 if ((model = _entity.GetScript<Model3D>()) != nullptr)
                 {
                     ImGui::ColorEdit4("color", &model->color.r);
-                    ImGui::Checkbox("playAnimation", &model->playAnimation);
-                    ImGui::Checkbox("loop", &model->loop);
-                    ImGui::InputFloat("animationSpeed", &model->animationSpeed);
-                    ImGui::InputFloat("animationTime", &model->animationTime);
 
                     std::string modelLabel = "[ empty ]";
                     ModelAsset* modelAsset = nullptr;
@@ -713,8 +731,12 @@ namespace Canis
                             if (extension == "gltf" || extension == "glb")
                             {
                                 model->modelId = AssetManager::LoadModel(path);
-                                model->animationTime = 0.0f;
-                                model->animationIndex = 0;
+                                if (ModelAnimation3D* animation = _entity.GetScript<ModelAnimation3D>())
+                                {
+                                    animation->animationTime = 0.0f;
+                                    animation->animationIndex = 0;
+                                    animation->poseModelId = -1;
+                                }
                             }
                         }
                         ImGui::EndDragDropTarget();
@@ -724,21 +746,98 @@ namespace Canis
                     {
                         const i32 animationCount = modelAsset->GetAnimationCount();
                         ImGui::Text("animations: %d", animationCount);
-
-                        if (animationCount > 0)
-                        {
-                            Clamp(model->animationIndex, 0, animationCount - 1);
-                            ImGui::InputInt("animationIndex", &model->animationIndex);
-                            Clamp(model->animationIndex, 0, animationCount - 1);
-
-                            ImGui::Text("clip: %s", modelAsset->GetAnimationName(model->animationIndex).c_str());
-                        }
                     }
                 }
             },
         };
 
         RegisterScript(model3DConf);
+
+        ScriptConf modelAnimation3DConf = {
+            .name = "Canis::ModelAnimation3D",
+            .Add = [this](Entity& _entity) -> void {
+                if (_entity.GetScript<Model3D>() == nullptr)
+                {
+                    if (_entity.GetScript<Transform3D>() == nullptr)
+                        _entity.AddScript<Transform3D>();
+
+                    Model3D* model = _entity.AddScript<Model3D>();
+                    model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
+                }
+
+                ModelAnimation3D* animation = _entity.AddScript<ModelAnimation3D>();
+                animation->animationIndex = 0;
+                animation->animationTime = 0.0f;
+            },
+            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<ModelAnimation3D>() != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<ModelAnimation3D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<ModelAnimation3D>(); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (_entity.GetScript<Canis::ModelAnimation3D>())
+                {
+                    ModelAnimation3D& animation = *_entity.GetScript<ModelAnimation3D>();
+                    YAML::Node comp;
+                    comp["playAnimation"] = animation.playAnimation;
+                    comp["loop"] = animation.loop;
+                    comp["animationSpeed"] = animation.animationSpeed;
+                    comp["animationTime"] = animation.animationTime;
+                    comp["animationIndex"] = animation.animationIndex;
+                    _node["Canis::ModelAnimation3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::ModelAnimation3D"])
+                {
+                    auto &animation = *_entity.AddScript<Canis::ModelAnimation3D>(false);
+                    animation.playAnimation = comp["playAnimation"].as<bool>(true);
+                    animation.loop = comp["loop"].as<bool>(true);
+                    animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
+                    animation.animationTime = comp["animationTime"].as<float>(0.0f);
+                    animation.animationIndex = comp["animationIndex"].as<i32>(0);
+
+                    if (_callCreate)
+                        animation.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                ModelAnimation3D* animation = nullptr;
+                if ((animation = _entity.GetScript<ModelAnimation3D>()) != nullptr)
+                {
+                    ImGui::Checkbox("playAnimation", &animation->playAnimation);
+                    ImGui::Checkbox("loop", &animation->loop);
+                    ImGui::InputFloat("animationSpeed", &animation->animationSpeed);
+                    ImGui::InputFloat("animationTime", &animation->animationTime);
+
+                    ModelAsset* modelAsset = nullptr;
+                    if (Model3D* model = _entity.GetScript<Model3D>())
+                    {
+                        if (model->modelId > -1)
+                            modelAsset = AssetManager::GetModel(model->modelId);
+                    }
+
+                    if (modelAsset != nullptr)
+                    {
+                        const i32 animationCount = modelAsset->GetAnimationCount();
+                        ImGui::Text("animations: %d", animationCount);
+
+                        if (animationCount > 0)
+                        {
+                            Clamp(animation->animationIndex, 0, animationCount - 1);
+                            ImGui::InputInt("animationIndex", &animation->animationIndex);
+                            Clamp(animation->animationIndex, 0, animationCount - 1);
+
+                            ImGui::Text("clip: %s", modelAsset->GetAnimationName(animation->animationIndex).c_str());
+                        }
+                    }
+                    else
+                    {
+                        ImGui::Text("Model3D is required.");
+                    }
+                }
+            },
+        };
+
+        RegisterScript(modelAnimation3DConf);
 
         ScriptConf spriteAnimationConf = {
             .name = "Canis::SpriteAnimation",

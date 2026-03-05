@@ -951,17 +951,27 @@ namespace Canis
         m_bindRotations.clear();
         m_bindScales.clear();
         m_bindLocalMatrices.clear();
+        m_sharedPose.localNodeMatrices.clear();
+        m_sharedPose.globalNodeMatrices.clear();
+        m_sharedPose.skinnedVertices.clear();
 
         return true;
     }
 
     bool ModelAsset::UpdateAnimation(i32 _clipIndex, float _timeSeconds)
     {
+        return UpdateAnimation(m_sharedPose, _clipIndex, _timeSeconds);
+    }
+
+    bool ModelAsset::UpdateAnimation(Pose3D &_pose, i32 _clipIndex, float _timeSeconds) const
+    {
         if (_clipIndex < 0 || _clipIndex >= (i32)m_animations.size())
             return false;
 
         if (m_nodes.empty())
             return false;
+
+        EnsurePose(_pose);
 
         const AnimationClip3D &clip = m_animations[_clipIndex];
         std::vector<Vector3> translations = m_bindTranslations;
@@ -1002,46 +1012,64 @@ namespace Canis
         {
             if (m_nodes[nodeIndex].hasMatrix && !trsChanged[nodeIndex])
             {
-                m_nodes[nodeIndex].localMatrix = m_bindLocalMatrices[nodeIndex];
+                _pose.localNodeMatrices[nodeIndex] = m_bindLocalMatrices[nodeIndex];
             }
             else
             {
-                m_nodes[nodeIndex].localMatrix = TRS(
+                _pose.localNodeMatrices[nodeIndex] = TRS(
                     translations[nodeIndex],
                     rotations[nodeIndex],
                     scales[nodeIndex]);
             }
         }
 
-        UpdateGlobalMatrices();
-        UpdateSkinning();
+        UpdateGlobalMatrices(_pose);
+        UpdateSkinning(_pose);
         return true;
     }
 
     void ModelAsset::ResetPose()
     {
+        ResetPose(m_sharedPose);
+    }
+
+    void ModelAsset::ResetPose(Pose3D &_pose) const
+    {
+        if (m_nodes.empty())
+            return;
+
+        EnsurePose(_pose);
+
         for (size_t nodeIndex = 0; nodeIndex < m_nodes.size(); ++nodeIndex)
         {
             if (m_nodes[nodeIndex].hasMatrix)
-                m_nodes[nodeIndex].localMatrix = m_bindLocalMatrices[nodeIndex];
+                _pose.localNodeMatrices[nodeIndex] = m_bindLocalMatrices[nodeIndex];
             else
-                m_nodes[nodeIndex].localMatrix = TRS(
+                _pose.localNodeMatrices[nodeIndex] = TRS(
                     m_bindTranslations[nodeIndex],
                     m_bindRotations[nodeIndex],
                     m_bindScales[nodeIndex]);
         }
 
-        UpdateGlobalMatrices();
-        UpdateSkinning();
+        UpdateGlobalMatrices(_pose);
+        UpdateSkinning(_pose);
     }
 
-    void ModelAsset::Draw(Shader &_shader, const Matrix4 &_modelMatrix)
+    void ModelAsset::Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose)
     {
-        for (Primitive3D &primitive : m_primitives)
+        const Pose3D *pose = (_pose == nullptr) ? &m_sharedPose : _pose;
+
+        for (size_t primitiveIndex = 0; primitiveIndex < m_primitives.size(); ++primitiveIndex)
         {
+            Primitive3D &primitive = m_primitives[primitiveIndex];
             Matrix4 model = _modelMatrix;
             if (primitive.nodeIndex >= 0 && primitive.nodeIndex < (i32)m_nodes.size())
-                model = _modelMatrix * m_nodes[primitive.nodeIndex].globalMatrix;
+            {
+                if (pose != nullptr && pose->globalNodeMatrices.size() == m_nodes.size())
+                    model = _modelMatrix * pose->globalNodeMatrices[primitive.nodeIndex];
+                else
+                    model = _modelMatrix * m_nodes[primitive.nodeIndex].globalMatrix;
+            }
 
             _shader.SetMat4("M", model);
             _shader.SetBool("useTexture", primitive.textureId >= 0);
@@ -1060,10 +1088,29 @@ namespace Canis
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
 
+            if (primitive.hasSkinning && !primitive.bindVertices.empty())
+            {
+                const std::vector<Vertex3D> *vertices = &primitive.bindVertices;
+                if (pose != nullptr &&
+                    primitiveIndex < pose->skinnedVertices.size() &&
+                    pose->skinnedVertices[primitiveIndex].size() == primitive.bindVertices.size())
+                {
+                    vertices = &pose->skinnedVertices[primitiveIndex];
+                }
+
+                glBindBuffer(GL_ARRAY_BUFFER, primitive.vbo);
+                glBufferSubData(
+                    GL_ARRAY_BUFFER,
+                    0,
+                    vertices->size() * sizeof(Vertex3D),
+                    vertices->data());
+            }
+
             glBindVertexArray(primitive.vao);
             glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(primitive.indices.size()), GL_UNSIGNED_INT, nullptr);
         }
 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
 
@@ -1086,10 +1133,38 @@ namespace Canis
         return m_animations[_index].duration;
     }
 
-    void ModelAsset::UpdateGlobalMatrices()
+    void ModelAsset::EnsurePose(Pose3D &_pose) const
+    {
+        if (_pose.localNodeMatrices.size() != m_nodes.size())
+            _pose.localNodeMatrices.resize(m_nodes.size(), IdentitiyMatrix4());
+
+        if (_pose.globalNodeMatrices.size() != m_nodes.size())
+            _pose.globalNodeMatrices.resize(m_nodes.size(), IdentitiyMatrix4());
+
+        if (_pose.skinnedVertices.size() != m_primitives.size())
+            _pose.skinnedVertices.resize(m_primitives.size());
+
+        for (size_t primitiveIndex = 0; primitiveIndex < m_primitives.size(); ++primitiveIndex)
+        {
+            const Primitive3D &primitive = m_primitives[primitiveIndex];
+            if (!primitive.hasSkinning)
+            {
+                _pose.skinnedVertices[primitiveIndex].clear();
+                continue;
+            }
+
+            std::vector<Vertex3D> &poseVertices = _pose.skinnedVertices[primitiveIndex];
+            if (poseVertices.size() != primitive.bindVertices.size())
+                poseVertices = primitive.bindVertices;
+        }
+    }
+
+    void ModelAsset::UpdateGlobalMatrices(Pose3D &_pose) const
     {
         if (m_nodes.empty())
             return;
+
+        EnsurePose(_pose);
 
         std::vector<bool> visited(m_nodes.size(), false);
         std::function<void(i32, const Matrix4&)> visit = [&](i32 _nodeIndex, const Matrix4 &_parentMatrix)
@@ -1097,12 +1172,12 @@ namespace Canis
             if (_nodeIndex < 0 || _nodeIndex >= (i32)m_nodes.size())
                 return;
 
-            Node3D &node = m_nodes[_nodeIndex];
-            node.globalMatrix = _parentMatrix * node.localMatrix;
+            const Node3D &node = m_nodes[_nodeIndex];
+            _pose.globalNodeMatrices[_nodeIndex] = _parentMatrix * _pose.localNodeMatrices[_nodeIndex];
             visited[_nodeIndex] = true;
 
             for (i32 child : node.children)
-                visit(child, node.globalMatrix);
+                visit(child, _pose.globalNodeMatrices[_nodeIndex]);
         };
 
         Matrix4 identity;
@@ -1118,16 +1193,23 @@ namespace Canis
         }
     }
 
-    void ModelAsset::UpdateSkinning()
+    void ModelAsset::UpdateSkinning(Pose3D &_pose) const
     {
-        for (Primitive3D &primitive : m_primitives)
+        EnsurePose(_pose);
+
+        for (size_t primitiveIndex = 0; primitiveIndex < m_primitives.size(); ++primitiveIndex)
         {
+            const Primitive3D &primitive = m_primitives[primitiveIndex];
             if (!primitive.hasSkinning || primitive.skinIndex < 0 || primitive.skinIndex >= (i32)m_skins.size())
                 continue;
 
             const Skin3D &skin = m_skins[primitive.skinIndex];
             if (skin.joints.empty())
                 continue;
+
+            std::vector<Vertex3D> &poseVertices = _pose.skinnedVertices[primitiveIndex];
+            if (poseVertices.size() != primitive.bindVertices.size())
+                poseVertices = primitive.bindVertices;
 
             std::vector<Matrix4> skinMatrices(skin.joints.size(), IdentitiyMatrix4());
             for (size_t jointIndex = 0; jointIndex < skin.joints.size(); ++jointIndex)
@@ -1136,13 +1218,16 @@ namespace Canis
                 if (nodeIndex < 0 || nodeIndex >= (i32)m_nodes.size())
                     continue;
 
-                skinMatrices[jointIndex] = m_nodes[nodeIndex].globalMatrix * skin.inverseBindMatrices[jointIndex];
+                if (jointIndex >= skin.inverseBindMatrices.size())
+                    continue;
+
+                skinMatrices[jointIndex] = _pose.globalNodeMatrices[nodeIndex] * skin.inverseBindMatrices[jointIndex];
             }
 
             for (size_t vertexIndex = 0; vertexIndex < primitive.bindVertices.size(); ++vertexIndex)
             {
                 const Vertex3D &bindVertex = primitive.bindVertices[vertexIndex];
-                Vertex3D &skinnedVertex = primitive.skinnedVertices[vertexIndex];
+                Vertex3D &skinnedVertex = poseVertices[vertexIndex];
                 skinnedVertex = bindVertex;
 
                 const float weights[4] = {bindVertex.weights.x, bindVertex.weights.y, bindVertex.weights.z, bindVertex.weights.w};
@@ -1189,16 +1274,7 @@ namespace Canis
                 skinnedVertex.position = Vector3(position.x, position.y, position.z);
                 skinnedVertex.normal = Normalize(Vector3(normal.x, normal.y, normal.z));
             }
-
-            glBindBuffer(GL_ARRAY_BUFFER, primitive.vbo);
-            glBufferSubData(
-                GL_ARRAY_BUFFER,
-                0,
-                primitive.skinnedVertices.size() * sizeof(Vertex3D),
-                primitive.skinnedVertices.data());
         }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     bool SpriteAnimationAsset::Load(std::string _path)

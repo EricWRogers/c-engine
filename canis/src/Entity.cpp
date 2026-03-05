@@ -74,6 +74,12 @@ void Model3D::EditorInspectorDraw()
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::InputInt("modelId", &modelId);
     ImGui::ColorEdit4("color", &color.r);
+}
+
+void ModelAnimation3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "ModelAnimation3D";
+    ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("playAnimation", &playAnimation);
     ImGui::Checkbox("loop", &loop);
     ImGui::InputFloat("animationSpeed", &animationSpeed);

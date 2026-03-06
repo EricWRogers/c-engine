@@ -515,6 +515,15 @@ namespace Canis
                     comp["position"] = transform.position;
                     comp["rotation"] = transform.rotation;
                     comp["scale"] = transform.scale;
+                    comp["parent"] = (transform.parent == nullptr) ? Canis::UUID(0) : transform.parent->uuid;
+
+                    YAML::Node children = YAML::Node(YAML::NodeType::Sequence);
+                    for (Canis::Entity* child : transform.children)
+                    {
+                        children.push_back(child ? child->uuid : Canis::UUID(0));
+                    }
+                    comp["children"] = children;
+
                     _node["Canis::Transform3D"] = comp;
                 }
             },
@@ -526,6 +535,24 @@ namespace Canis
                     transform.position = comp["position"].as<Vector3>(Vector3(0.0f));
                     transform.rotation = comp["rotation"].as<Vector3>(Vector3(0.0f));
                     transform.scale = comp["scale"].as<Vector3>(Vector3(1.0f));
+
+                    if (comp["parent"].as<Canis::UUID>(0) != Canis::UUID(0))
+                        _entity.scene->GetEntityAfterLoad(comp["parent"].as<Canis::UUID>(0), transform.parent);
+
+                    if (auto children = comp["children"]; children && children.IsSequence())
+                    {
+                        const std::size_t count = children.size();
+                        transform.children.clear();
+                        transform.children.resize(count);
+
+                        std::size_t i = 0;
+                        for (const auto &entry : children)
+                        {
+                            auto uuid = entry.as<Canis::UUID>(Canis::UUID(0));
+                            _entity.scene->GetEntityAfterLoad(uuid, transform.children[i++]);
+                        }
+                    }
+
                     if (_callCreate)
                         transform.Create();
                 }
@@ -543,6 +570,17 @@ namespace Canis
                     }
 
                     ImGui::InputFloat3("scale", &transform->scale.x, "%.3f");
+
+                    if (transform->parent != nullptr)
+                    {
+                        ImGui::Text("parent: %s", transform->parent->name.c_str());
+                        if (ImGui::Button("Unparent##Transform3D"))
+                            transform->Unparent();
+                    }
+                    else
+                    {
+                        ImGui::Text("parent: [none]");
+                    }
                 }
             },
         };

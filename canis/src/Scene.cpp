@@ -10,6 +10,7 @@
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 #include <Canis/ECS/Systems/MeshRenderer3DSystem.hpp>
+#include <algorithm>
 
 namespace Canis
 {
@@ -204,6 +205,65 @@ namespace Canis
                     uuid = m_targetUUIDNewUUID[uuid];
                 
                 (*eci.variable) = GetEntityWithUUID(uuid);
+            }
+
+            // Keep bidirectional hierarchy links in sync after pointer remapping.
+            for (Canis::Entity* entity : newEntitys)
+            {
+                if (entity == nullptr)
+                    continue;
+
+                if (RectTransform* transform = entity->GetScript<RectTransform>())
+                {
+                    if (transform->parent != nullptr)
+                    {
+                        if (RectTransform* parentTransform = transform->parent->GetScript<RectTransform>())
+                        {
+                            auto& siblings = parentTransform->children;
+                            if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
+                                siblings.push_back(entity);
+                        }
+                        else
+                        {
+                            transform->parent = nullptr;
+                        }
+                    }
+
+                    for (Canis::Entity*& child : transform->children)
+                    {
+                        if (child == nullptr)
+                            continue;
+
+                        if (RectTransform* childTransform = child->GetScript<RectTransform>())
+                            childTransform->parent = entity;
+                    }
+                }
+
+                if (Transform3D* transform = entity->GetScript<Transform3D>())
+                {
+                    if (transform->parent != nullptr)
+                    {
+                        if (Transform3D* parentTransform = transform->parent->GetScript<Transform3D>())
+                        {
+                            auto& siblings = parentTransform->children;
+                            if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
+                                siblings.push_back(entity);
+                        }
+                        else
+                        {
+                            transform->parent = nullptr;
+                        }
+                    }
+
+                    for (Canis::Entity*& child : transform->children)
+                    {
+                        if (child == nullptr)
+                            continue;
+
+                        if (Transform3D* childTransform = child->GetScript<Transform3D>())
+                            childTransform->parent = entity;
+                    }
+                }
             }
 
             for (auto e : newEntitys)

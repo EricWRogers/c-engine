@@ -67,7 +67,7 @@ namespace Canis
             : 1.0f;
         projection.Perspective(DEG2RAD * camera->fovDegrees, aspect, camera->nearClip, camera->farClip);
 
-        const Vector3 eye = cameraTransform->position;
+        const Vector3 eye = cameraTransform->GetGlobalPosition();
         const Vector3 target = eye + cameraTransform->GetForward();
         const Vector3 up = cameraTransform->GetUp();
         const Matrix4 view = LookAt(eye, target, up);

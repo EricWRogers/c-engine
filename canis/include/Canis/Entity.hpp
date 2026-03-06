@@ -484,13 +484,20 @@ namespace Canis
         Transform3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
+        void Destroy() override
+        {
+            Unparent();
+            RemoveAllChildren();
+        }
 
         bool active = true;
         Vector3 position = Vector3(0.0f);
         Vector3 rotation = Vector3(0.0f);
         Vector3 scale = Vector3(1.0f);
+        Entity* parent = nullptr;
+        std::vector<Entity*> children = {};
 
-        Matrix4 GetModelMatrix() const
+        Matrix4 GetLocalMatrix() const
         {
             Matrix4 matrix;
             matrix.Identity();
@@ -502,26 +509,214 @@ namespace Canis
             return matrix;
         }
 
+        Matrix4 GetModelMatrix() const
+        {
+            Matrix4 local = GetLocalMatrix();
+
+            if (parent != nullptr)
+            {
+                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                    return parentTransform->GetModelMatrix() * local;
+            }
+
+            return local;
+        }
+
+        Vector3 GetGlobalPosition() const
+        {
+            const Matrix4 model = GetModelMatrix();
+            const Vector4 world = model * Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            return Vector3(world.x, world.y, world.z);
+        }
+
+        Vector3 GetGlobalRotation() const
+        {
+            if (parent != nullptr)
+            {
+                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                    return rotation + parentTransform->GetGlobalRotation();
+            }
+
+            return rotation;
+        }
+
+        Vector3 GetGlobalScale() const
+        {
+            if (parent != nullptr)
+            {
+                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                {
+                    const Vector3 parentScale = parentTransform->GetGlobalScale();
+                    return Vector3(
+                        parentScale.x * scale.x,
+                        parentScale.y * scale.y,
+                        parentScale.z * scale.z);
+                }
+            }
+
+            return scale;
+        }
+
         Vector3 GetForward() const
         {
-            Matrix4 matrix;
-            matrix.Identity();
-            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
-            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
-            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            const Matrix4 matrix = GetModelMatrix();
             Vector4 forward4 = matrix * Vector4(0.0f, 0.0f, -1.0f, 0.0f);
             return Normalize(Vector3(forward4.x, forward4.y, forward4.z));
         }
 
         Vector3 GetUp() const
         {
-            Matrix4 matrix;
-            matrix.Identity();
-            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
-            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
-            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            const Matrix4 matrix = GetModelMatrix();
             Vector4 up4 = matrix * Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             return Normalize(Vector3(up4.x, up4.y, up4.z));
+        }
+
+        bool HasParent() const
+        {
+            return parent != nullptr;
+        }
+
+        void SetParentAtIndex(Entity* newParent, std::size_t index)
+        {
+            Entity* self = &entity;
+
+            if (parent == newParent)
+            {
+                if (!parent)
+                    return;
+
+                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                {
+                    auto& list = parentTransform->children;
+                    auto it = std::find(list.begin(), list.end(), self);
+                    if (it == list.end())
+                        return;
+
+                    std::size_t currentIndex = std::distance(list.begin(), it);
+                    if (currentIndex == index)
+                        return;
+
+                    list.erase(it);
+                    Clamp(index, 0, list.size());
+                    list.insert(list.begin() + index, self);
+                }
+                return;
+            }
+
+            const Vector3 oldWorldPosition = GetGlobalPosition();
+            const Vector3 oldWorldRotation = GetGlobalRotation();
+            const Vector3 oldWorldScale = GetGlobalScale();
+
+            if (parent)
+            {
+                if (auto* oldParentTransform = parent->GetScript<Transform3D>())
+                {
+                    auto& list = oldParentTransform->children;
+                    list.erase(std::remove(list.begin(), list.end(), self), list.end());
+                }
+            }
+
+            parent = newParent;
+
+            if (newParent)
+            {
+                if (auto* newParentTransform = newParent->GetScript<Transform3D>())
+                {
+                    auto& list = newParentTransform->children;
+                    Clamp(index, 0, list.size());
+                    list.insert(list.begin() + index, self);
+
+                    const Vector3 parentWorldPosition = newParentTransform->GetGlobalPosition();
+                    const Vector3 parentWorldRotation = newParentTransform->GetGlobalRotation();
+                    const Vector3 parentWorldScale = newParentTransform->GetGlobalScale();
+
+                    Vector3 parentSpacePosition = oldWorldPosition - parentWorldPosition;
+                    Matrix4 inverseParentRotation;
+                    inverseParentRotation.Identity();
+                    inverseParentRotation.Rotate(-parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
+                    inverseParentRotation.Rotate(-parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
+                    inverseParentRotation.Rotate(-parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
+                    Vector4 localPosition4 = inverseParentRotation * Vector4(
+                        parentSpacePosition.x,
+                        parentSpacePosition.y,
+                        parentSpacePosition.z,
+                        0.0f);
+
+                    position.x = (parentWorldScale.x != 0.0f) ? (localPosition4.x / parentWorldScale.x) : localPosition4.x;
+                    position.y = (parentWorldScale.y != 0.0f) ? (localPosition4.y / parentWorldScale.y) : localPosition4.y;
+                    position.z = (parentWorldScale.z != 0.0f) ? (localPosition4.z / parentWorldScale.z) : localPosition4.z;
+                    rotation = oldWorldRotation - parentWorldRotation;
+                    scale.x = (parentWorldScale.x != 0.0f) ? (oldWorldScale.x / parentWorldScale.x) : oldWorldScale.x;
+                    scale.y = (parentWorldScale.y != 0.0f) ? (oldWorldScale.y / parentWorldScale.y) : oldWorldScale.y;
+                    scale.z = (parentWorldScale.z != 0.0f) ? (oldWorldScale.z / parentWorldScale.z) : oldWorldScale.z;
+                    return;
+                }
+            }
+
+            position = oldWorldPosition;
+            rotation = oldWorldRotation;
+            scale = oldWorldScale;
+        }
+
+        void SetParent(Entity* newParent)
+        {
+            if (auto* transform = newParent ? newParent->GetScript<Transform3D>() : nullptr)
+            {
+                SetParentAtIndex(newParent, transform->children.size());
+            }
+            else
+            {
+                Unparent();
+            }
+        }
+
+        void Unparent()
+        {
+            SetParentAtIndex(nullptr, 0);
+        }
+
+        bool IsChildOf(Entity* potentialParent) const
+        {
+            return parent == potentialParent;
+        }
+
+        bool HasChildren() const
+        {
+            return !children.empty();
+        }
+
+        void AddChild(Entity* child)
+        {
+            if (!child)
+                return;
+
+            auto* transform = child->GetScript<Transform3D>();
+            if (!transform)
+                return;
+
+            transform->SetParent(&entity);
+        }
+
+        void RemoveChild(Entity* child)
+        {
+            if (!child)
+                return;
+
+            children.erase(std::remove(children.begin(), children.end(), child), children.end());
+
+            if (auto* transform = child->GetScript<Transform3D>())
+                transform->parent = nullptr;
+        }
+
+        void RemoveAllChildren()
+        {
+            for (auto* child : children)
+            {
+                if (auto* transform = child ? child->GetScript<Transform3D>() : nullptr)
+                    transform->parent = nullptr;
+            }
+
+            children.clear();
         }
     };
 

@@ -600,11 +600,16 @@ namespace Canis
         if (!_parent || !_potentialChild)
             return false;
 
-        auto *parentRT = _parent->GetScript<RectTransform>();
-        if (!parentRT)
+        std::vector<Canis::Entity*>* children = nullptr;
+        if (auto *parentRT = _parent->GetScript<RectTransform>())
+            children = &parentRT->children;
+        else if (auto *parentTransform = _parent->GetScript<Transform3D>())
+            children = &parentTransform->children;
+
+        if (children == nullptr)
             return false;
 
-        for (auto *child : parentRT->children)
+        for (auto *child : *children)
         {
             if (!child)
                 continue;
@@ -617,16 +622,127 @@ namespace Canis
         return false;
     }
 
-    void GetRectTransformChildren(Canis::Entity* _entity, std::vector<Canis::Entity*> &_entities)
+    static std::vector<Canis::Entity*>* GetHierarchyChildren(Canis::Entity *_entity)
     {
-        Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>();
+        if (_entity == nullptr)
+            return nullptr;
 
-        for (int i = 0; i < transform->children.size(); i++)
+        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+            return &transform->children;
+
+        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+            return &transform->children;
+
+        return nullptr;
+    }
+
+    static Canis::Entity* GetHierarchyParent(Canis::Entity *_entity)
+    {
+        if (_entity == nullptr)
+            return nullptr;
+
+        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+            return transform->parent;
+
+        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+            return transform->parent;
+
+        return nullptr;
+    }
+
+    static bool SetHierarchyParent(Canis::Entity *_child, Canis::Entity *_parent)
+    {
+        if (_child == nullptr)
+            return false;
+
+        if (Canis::RectTransform* childTransform = _child->GetScript<Canis::RectTransform>())
         {
-            Canis::Entity* e = transform->children[i];
+            if (_parent != nullptr && _parent->GetScript<Canis::RectTransform>() == nullptr)
+                return false;
+
+            childTransform->SetParent(_parent);
+            return true;
+        }
+
+        if (Canis::Transform3D* childTransform = _child->GetScript<Canis::Transform3D>())
+        {
+            if (_parent != nullptr && _parent->GetScript<Canis::Transform3D>() == nullptr)
+                return false;
+
+            childTransform->SetParent(_parent);
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool SetHierarchyParentAtIndex(Canis::Entity *_child, Canis::Entity *_parent, std::size_t _index)
+    {
+        if (_child == nullptr)
+            return false;
+
+        if (Canis::RectTransform* childTransform = _child->GetScript<Canis::RectTransform>())
+        {
+            if (_parent != nullptr && _parent->GetScript<Canis::RectTransform>() == nullptr)
+                return false;
+
+            childTransform->SetParentAtIndex(_parent, _index);
+            return true;
+        }
+
+        if (Canis::Transform3D* childTransform = _child->GetScript<Canis::Transform3D>())
+        {
+            if (_parent != nullptr && _parent->GetScript<Canis::Transform3D>() == nullptr)
+                return false;
+
+            childTransform->SetParentAtIndex(_parent, _index);
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool UnparentHierarchyEntity(Canis::Entity *_entity)
+    {
+        if (_entity == nullptr)
+            return false;
+
+        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+        {
+            if (transform->parent == nullptr)
+                return false;
+
+            transform->SetParent(nullptr);
+            return true;
+        }
+
+        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+        {
+            if (transform->parent == nullptr)
+                return false;
+
+            transform->SetParent(nullptr);
+            return true;
+        }
+
+        return false;
+    }
+
+    static void GetHierarchyChildrenRecursive(Canis::Entity* _entity, std::vector<Canis::Entity*> &_entities)
+    {
+        std::vector<Canis::Entity*>* children = GetHierarchyChildren(_entity);
+        if (children == nullptr)
+            return;
+
+        for (std::size_t i = 0; i < children->size(); ++i)
+        {
+            Canis::Entity* e = (*children)[i];
+            if (!e)
+                continue;
+
             _entities.push_back(e);
 
-            GetRectTransformChildren(e, _entities);
+            GetHierarchyChildrenRecursive(e, _entities);
         }
     }
 
@@ -635,12 +751,12 @@ namespace Canis
         if (!_entity)
             return;
 
-        auto *rt = _entity->GetScript<RectTransform>();
+        std::vector<Canis::Entity*> *children = GetHierarchyChildren(_entity);
 
         bool isSelected = (m_index >= 0 && m_index < (int)_entities.size() &&
                            _entities[m_index] == _entity);
 
-        bool hasChildren = (rt && !rt->children.empty());
+        bool hasChildren = (children != nullptr && !children->empty());
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         if (!hasChildren)
@@ -693,13 +809,9 @@ namespace Canis
 
                 if (droppedEntity && droppedEntity != _entity)
                 {
-                    auto *droppedRT = droppedEntity->GetScript<RectTransform>();
-                    auto *targetRT = _entity->GetScript<RectTransform>();
-
-                    if (droppedRT && targetRT && !IsDescendantOf(droppedEntity, _entity))
+                    if (!IsDescendantOf(droppedEntity, _entity) &&
+                        SetHierarchyParent(droppedEntity, _entity))
                     {
-                        // append as last child
-                        droppedRT->SetParent(_entity);
                         _refresh = true;
                     }
                 }
@@ -733,10 +845,7 @@ namespace Canis
                 entities.push_back(selected);
 
                 // get all entities to duplicate
-                if (selected->GetScript<Canis::RectTransform>())
-                {
-                    GetRectTransformChildren(selected, entities);
-                }
+                GetHierarchyChildrenRecursive(selected, entities);
 
                 // encode entities into sequence of nodes
                 YAML::Node nodes;
@@ -777,13 +886,11 @@ namespace Canis
         // children + single per-gap drop slots
         if (nodeOpen)
         {
-            if (rt)
+            if (children != nullptr)
             {
-                auto &children = rt->children;
-
-                for (std::size_t ci = 0; ci < children.size(); ++ci)
+                for (std::size_t ci = 0; ci < children->size(); ++ci)
                 {
-                    Canis::Entity *child = children[ci];
+                    Canis::Entity *child = (*children)[ci];
                     if (!child)
                         continue;
 
@@ -811,12 +918,9 @@ namespace Canis
 
                                 if (droppedEntity && droppedEntity != _entity)
                                 {
-                                    auto *droppedRT = droppedEntity->GetScript<RectTransform>();
-                                    auto *targetRT = _entity->GetScript<RectTransform>();
-
-                                    if (droppedRT && targetRT && !IsDescendantOf(droppedEntity, _entity))
+                                    if (!IsDescendantOf(droppedEntity, _entity) &&
+                                        SetHierarchyParentAtIndex(droppedEntity, _entity, ci))
                                     {
-                                        droppedRT->SetParentAtIndex(_entity, ci);
                                         _refresh = true;
                                     }
                                 }
@@ -854,10 +958,7 @@ namespace Canis
             if (!entity)
                 continue;
 
-            auto *rt = entity->GetScript<RectTransform>();
-
-            // If it has a RectTransform and a parent, it's not a root
-            if (rt && rt->parent != nullptr)
+            if (GetHierarchyParent(entity) != nullptr)
                 continue;
 
             rootEntities.push_back(entity);
@@ -869,12 +970,8 @@ namespace Canis
             if (!droppedEntity)
                 return;
 
-            // If it was a child, unparent it first so it becomes a root
-            if (auto *droppedRT = droppedEntity->GetScript<RectTransform>())
-            {
-                if (droppedRT->parent != nullptr)
-                    droppedRT->SetParent(nullptr);
-            }
+            // If it was a child, unparent it first so it becomes a root.
+            UnparentHierarchyEntity(droppedEntity);
 
             // Find its index in the flat entities array
             int from = -1;
@@ -1010,15 +1107,8 @@ namespace Canis
 
                 if (droppedEntity)
                 {
-                    if (auto *droppedRT = droppedEntity->GetScript<RectTransform>())
-                    {
-                        // Only unparent if it *has* a parent
-                        if (droppedRT->parent != nullptr)
-                        {
-                            droppedRT->SetParent(nullptr);
-                            refresh = true;
-                        }
-                    }
+                    if (UnparentHierarchyEntity(droppedEntity))
+                        refresh = true;
                 }
             }
             ImGui::EndDragDropTarget();

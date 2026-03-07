@@ -218,6 +218,12 @@ namespace Canis
             std::vector<Matrix4> localNodeMatrices = {};
             std::vector<Matrix4> globalNodeMatrices = {};
             std::vector<std::vector<Vertex3D>> skinnedVertices = {};
+            std::vector<std::vector<Matrix4>> skinMatricesScratch = {};
+            std::vector<Vector3> translationsScratch = {};
+            std::vector<Vector4> rotationsScratch = {};
+            std::vector<Vector3> scalesScratch = {};
+            std::vector<bool> trsChangedScratch = {};
+            std::vector<bool> visitedScratch = {};
         };
 
         bool Load(std::string _path) override;
@@ -249,6 +255,7 @@ namespace Canis
         Pose3D m_sharedPose = {};
 
         void EnsurePose(Pose3D &_pose) const;
+        void VisitNodeRecursive(i32 _nodeIndex, const Matrix4 &_parentMatrix, Pose3D &_pose, std::vector<bool> &_visited) const;
         void UpdateGlobalMatrices(Pose3D &_pose) const;
         void UpdateSkinning(Pose3D &_pose) const;
     };

@@ -350,6 +350,137 @@ namespace Canis
         if (!selected)
             return;
 
+        float rectW = (m_gameViewportDrawWidth > 0.0f) ? m_gameViewportDrawWidth : static_cast<float>(m_gameViewportWidth);
+        float rectH = (m_gameViewportDrawHeight > 0.0f) ? m_gameViewportDrawHeight : static_cast<float>(m_gameViewportHeight);
+
+        ImGuizmo::BeginFrame();
+        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+        ImGuizmo::SetAlternativeWindow(ImGui::GetCurrentWindow());
+        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
+        ImGuizmo::Enable(true);
+
+        if (Transform3D *transform3D = selected->GetScript<Transform3D>())
+        {
+            Camera3D *camera3D = nullptr;
+            Transform3D *cameraTransform = nullptr;
+            std::vector<Entity *> &entities = m_scene->GetEntities();
+
+            for (Entity *entity : entities)
+            {
+                if (entity == nullptr || !entity->active)
+                    continue;
+
+                Camera3D *candidateCamera = entity->GetScript<Camera3D>();
+                Transform3D *candidateTransform = entity->GetScript<Transform3D>();
+                if (candidateCamera == nullptr || candidateTransform == nullptr)
+                    continue;
+
+                if (candidateCamera->primary)
+                {
+                    camera3D = candidateCamera;
+                    cameraTransform = candidateTransform;
+                    break;
+                }
+
+                if (camera3D == nullptr)
+                {
+                    camera3D = candidateCamera;
+                    cameraTransform = candidateTransform;
+                }
+            }
+
+            if (camera3D == nullptr || cameraTransform == nullptr)
+                return;
+
+            Matrix4 projection;
+            projection.Identity();
+            const float aspect = (m_window->GetScreenHeight() > 0)
+                ? (static_cast<float>(m_window->GetScreenWidth()) / static_cast<float>(m_window->GetScreenHeight()))
+                : 1.0f;
+            projection.Perspective(DEG2RAD * camera3D->fovDegrees, aspect, camera3D->nearClip, camera3D->farClip);
+
+            const Vector3 eye = cameraTransform->GetGlobalPosition();
+            const Vector3 target = eye + cameraTransform->GetForward();
+            const Vector3 up = cameraTransform->GetUp();
+            Matrix4 view = LookAt(eye, target, up);
+
+            Matrix4 model = transform3D->GetModelMatrix();
+
+            ImGuizmo::SetOrthographic(false);
+            static ImGuizmo::OPERATION operation3D = ImGuizmo::TRANSLATE;
+            if (!ImGui::GetIO().WantTextInput)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey_W))
+                    operation3D = ImGuizmo::TRANSLATE;
+                if (ImGui::IsKeyPressed(ImGuiKey_E))
+                    operation3D = ImGuizmo::ROTATE;
+                if (ImGui::IsKeyPressed(ImGuiKey_R))
+                    operation3D = ImGuizmo::SCALE;
+            }
+
+            ImGuizmo::Manipulate(
+                &view[0],
+                &projection[0],
+                operation3D,
+                (ImGuizmo::MODE)m_guizmoMode,
+                &model[0]);
+
+            if (ImGuizmo::IsUsing())
+            {
+                float t[3], r[3], s[3];
+                ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
+
+                const Vector3 worldPosition(t[0], t[1], t[2]);
+                const Vector3 worldRotation(DEG2RAD * r[0], DEG2RAD * r[1], DEG2RAD * r[2]);
+                const Vector3 worldScale(s[0], s[1], s[2]);
+
+                if (transform3D->parent != nullptr)
+                {
+                    if (Transform3D *parentTransform = transform3D->parent->GetScript<Transform3D>())
+                    {
+                        const Vector3 parentWorldPosition = parentTransform->GetGlobalPosition();
+                        const Vector3 parentWorldRotation = parentTransform->GetGlobalRotation();
+                        const Vector3 parentWorldScale = parentTransform->GetGlobalScale();
+
+                        const Vector3 parentSpacePosition = worldPosition - parentWorldPosition;
+                        Matrix4 inverseParentRotation;
+                        inverseParentRotation.Identity();
+                        inverseParentRotation.Rotate(-parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
+                        inverseParentRotation.Rotate(-parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
+                        inverseParentRotation.Rotate(-parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
+                        const Vector4 localPosition4 = inverseParentRotation * Vector4(
+                            parentSpacePosition.x,
+                            parentSpacePosition.y,
+                            parentSpacePosition.z,
+                            0.0f);
+
+                        transform3D->position.x = (parentWorldScale.x != 0.0f) ? (localPosition4.x / parentWorldScale.x) : localPosition4.x;
+                        transform3D->position.y = (parentWorldScale.y != 0.0f) ? (localPosition4.y / parentWorldScale.y) : localPosition4.y;
+                        transform3D->position.z = (parentWorldScale.z != 0.0f) ? (localPosition4.z / parentWorldScale.z) : localPosition4.z;
+
+                        transform3D->rotation = worldRotation - parentWorldRotation;
+                        transform3D->scale.x = (parentWorldScale.x != 0.0f) ? (worldScale.x / parentWorldScale.x) : worldScale.x;
+                        transform3D->scale.y = (parentWorldScale.y != 0.0f) ? (worldScale.y / parentWorldScale.y) : worldScale.y;
+                        transform3D->scale.z = (parentWorldScale.z != 0.0f) ? (worldScale.z / parentWorldScale.z) : worldScale.z;
+                    }
+                    else
+                    {
+                        transform3D->position = worldPosition;
+                        transform3D->rotation = worldRotation;
+                        transform3D->scale = worldScale;
+                    }
+                }
+                else
+                {
+                    transform3D->position = worldPosition;
+                    transform3D->rotation = worldRotation;
+                    transform3D->scale = worldScale;
+                }
+            }
+
+            return;
+        }
+
         RectTransform *rtc = selected->GetScript<RectTransform>();
         if (!rtc)
             return;
@@ -388,26 +519,7 @@ namespace Canis
         // Keep camera's 2D behavior, but avoid zero Z scale for gizmo rendering.
         view[10] = 1.0f;
 
-        float rectW = (m_gameViewportDrawWidth > 0.0f) ? m_gameViewportDrawWidth : static_cast<float>(m_gameViewportWidth);
-        float rectH = (m_gameViewportDrawHeight > 0.0f) ? m_gameViewportDrawHeight : static_cast<float>(m_gameViewportHeight);
-
-        ImGui::SetNextWindowPos(ImVec2(m_gameViewportPosX, m_gameViewportPosY));
-        ImGui::SetNextWindowSize(ImVec2(rectW, rectH));
-        if (m_gameViewportId != 0)
-            ImGui::SetNextWindowViewport(m_gameViewportId);
-
-        ImGuizmo::BeginFrame();
-        if (ImGuiWindow *gizmoWindow = ImGui::FindWindowByName("gizmo"))
-        {
-            //if (gizmoWindow->Viewport)
-            //    gizmoWindow->Viewport->Flags |= ImGuiViewportFlags_NoTaskBarIcon;
-        }
-
-        ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-        ImGuizmo::SetAlternativeWindow(ImGui::GetCurrentWindow());
-        ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
         ImGuizmo::SetOrthographic(true);
-        ImGuizmo::Enable(true);
 
         static ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
         if (!ImGui::GetIO().WantTextInput)

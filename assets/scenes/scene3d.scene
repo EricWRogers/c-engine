@@ -254,3 +254,82 @@ Entities:
       animationSpeed: 1
       animationTime: 0
       animationIndex: 8
+  - Entity: 988755227823267231
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -6]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 16276368724089375476
+        - 2192363069171882109
+        - 17309028508724473995
+  - Entity: 16276368724089375476
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 988755227823267231
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 6
+  - Entity: 2192363069171882109
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 988755227823267231
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 7
+  - Entity: 17309028508724473995
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 988755227823267231
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 8

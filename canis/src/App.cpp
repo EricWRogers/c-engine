@@ -90,15 +90,22 @@ namespace Canis
 
             if (runGameTick)
             {
-                i64 updateStart = SDL_GetTicksNS();
+                Uint64 sceneUpdateStart = SDL_GetTicksNS();
                 scene.Update(deltaTime);
+                m_sceneUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - sceneUpdateStart) / 1000000.0f;
+
+                Uint64 gameCodeUpdateStart = SDL_GetTicksNS();
                 // call the dynamically loaded function
                 GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
-                m_updateTimeMs = static_cast<float>(SDL_GetTicksNS() - updateStart) / 1000000.0f;
+                m_gameCodeUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - gameCodeUpdateStart) / 1000000.0f;
+
+                m_updateTimeMs = m_sceneUpdateTimeMs + m_gameCodeUpdateTimeMs;
             }
             else
             {
                 m_updateTimeMs = 0.0f;
+                m_sceneUpdateTimeMs = 0.0f;
+                m_gameCodeUpdateTimeMs = 0.0f;
             }
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);

@@ -1,5 +1,7 @@
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 
+#include <cmath>
+
 #include <Canis/AssetManager.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
@@ -28,13 +30,19 @@ namespace Canis
             if (modelAnimation->poseModelId != modelRenderer->modelId)
             {
                 modelAnimation->poseModelId = modelRenderer->modelId;
-                model->ResetPose(modelAnimation->pose);
+                modelAnimation->poseInitialized = false;
+                modelAnimation->lastEvaluatedAnimationIndex = -1;
+                modelAnimation->lastEvaluatedAnimationTime = 0.0f;
             }
 
             const i32 animationCount = model->GetAnimationCount();
             if (animationCount <= 0)
             {
-                model->ResetPose(modelAnimation->pose);
+                if (!modelAnimation->poseInitialized)
+                {
+                    model->ResetPose(modelAnimation->pose);
+                    modelAnimation->poseInitialized = true;
+                }
                 continue;
             }
 
@@ -59,8 +67,19 @@ namespace Canis
                 }
             }
 
-            if (!model->UpdateAnimation(modelAnimation->pose, modelAnimation->animationIndex, modelAnimation->animationTime))
-                model->ResetPose(modelAnimation->pose);
+            const bool animationChanged =
+                (modelAnimation->lastEvaluatedAnimationIndex != modelAnimation->animationIndex) ||
+                (std::fabs(modelAnimation->lastEvaluatedAnimationTime - modelAnimation->animationTime) > 1e-6f);
+
+            if (!modelAnimation->poseInitialized || animationChanged)
+            {
+                if (!model->UpdateAnimation(modelAnimation->pose, modelAnimation->animationIndex, modelAnimation->animationTime))
+                    model->ResetPose(modelAnimation->pose);
+
+                modelAnimation->poseInitialized = true;
+                modelAnimation->lastEvaluatedAnimationIndex = modelAnimation->animationIndex;
+                modelAnimation->lastEvaluatedAnimationTime = modelAnimation->animationTime;
+            }
         }
     }
 } // end of Canis namespace

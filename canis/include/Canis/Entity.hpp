@@ -760,6 +760,11 @@ namespace Canis
         // Runtime pose cache for this entity's model instance.
         i32 poseModelId = -1;
         ModelAsset::Pose3D pose = {};
+
+        // Runtime caching to skip redundant animation evaluation.
+        bool poseInitialized = false;
+        i32 lastEvaluatedAnimationIndex = -1;
+        float lastEvaluatedAnimationTime = 0.0f;
     };
 
     class Sprite2D : public ScriptableEntity

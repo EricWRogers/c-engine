@@ -974,10 +974,25 @@ namespace Canis
         EnsurePose(_pose);
 
         const AnimationClip3D &clip = m_animations[_clipIndex];
-        std::vector<Vector3> translations = m_bindTranslations;
-        std::vector<Vector4> rotations = m_bindRotations;
-        std::vector<Vector3> scales = m_bindScales;
-        std::vector<bool> trsChanged(m_nodes.size(), false);
+        std::vector<Vector3> &translations = _pose.translationsScratch;
+        std::vector<Vector4> &rotations = _pose.rotationsScratch;
+        std::vector<Vector3> &scales = _pose.scalesScratch;
+        std::vector<bool> &trsChanged = _pose.trsChangedScratch;
+
+        if (translations.size() != m_bindTranslations.size())
+            translations.resize(m_bindTranslations.size());
+        if (rotations.size() != m_bindRotations.size())
+            rotations.resize(m_bindRotations.size());
+        if (scales.size() != m_bindScales.size())
+            scales.resize(m_bindScales.size());
+        if (trsChanged.size() != m_nodes.size())
+            trsChanged.resize(m_nodes.size(), false);
+        else
+            std::fill(trsChanged.begin(), trsChanged.end(), false);
+
+        std::copy(m_bindTranslations.begin(), m_bindTranslations.end(), translations.begin());
+        std::copy(m_bindRotations.begin(), m_bindRotations.end(), rotations.begin());
+        std::copy(m_bindScales.begin(), m_bindScales.end(), scales.begin());
 
         for (const AnimationChannel3D &channel : clip.channels)
         {
@@ -1144,12 +1159,16 @@ namespace Canis
         if (_pose.skinnedVertices.size() != m_primitives.size())
             _pose.skinnedVertices.resize(m_primitives.size());
 
+        if (_pose.skinMatricesScratch.size() != m_primitives.size())
+            _pose.skinMatricesScratch.resize(m_primitives.size());
+
         for (size_t primitiveIndex = 0; primitiveIndex < m_primitives.size(); ++primitiveIndex)
         {
             const Primitive3D &primitive = m_primitives[primitiveIndex];
             if (!primitive.hasSkinning)
             {
                 _pose.skinnedVertices[primitiveIndex].clear();
+                _pose.skinMatricesScratch[primitiveIndex].clear();
                 continue;
             }
 
@@ -1159,6 +1178,19 @@ namespace Canis
         }
     }
 
+    void ModelAsset::VisitNodeRecursive(i32 _nodeIndex, const Matrix4 &_parentMatrix, Pose3D &_pose, std::vector<bool> &_visited) const
+    {
+        if (_nodeIndex < 0 || _nodeIndex >= (i32)m_nodes.size())
+            return;
+
+        const Node3D &node = m_nodes[_nodeIndex];
+        _pose.globalNodeMatrices[_nodeIndex] = _parentMatrix * _pose.localNodeMatrices[_nodeIndex];
+        _visited[_nodeIndex] = true;
+
+        for (i32 child : node.children)
+            VisitNodeRecursive(child, _pose.globalNodeMatrices[_nodeIndex], _pose, _visited);
+    }
+
     void ModelAsset::UpdateGlobalMatrices(Pose3D &_pose) const
     {
         if (m_nodes.empty())
@@ -1166,30 +1198,22 @@ namespace Canis
 
         EnsurePose(_pose);
 
-        std::vector<bool> visited(m_nodes.size(), false);
-        std::function<void(i32, const Matrix4&)> visit = [&](i32 _nodeIndex, const Matrix4 &_parentMatrix)
-        {
-            if (_nodeIndex < 0 || _nodeIndex >= (i32)m_nodes.size())
-                return;
-
-            const Node3D &node = m_nodes[_nodeIndex];
-            _pose.globalNodeMatrices[_nodeIndex] = _parentMatrix * _pose.localNodeMatrices[_nodeIndex];
-            visited[_nodeIndex] = true;
-
-            for (i32 child : node.children)
-                visit(child, _pose.globalNodeMatrices[_nodeIndex]);
-        };
+        std::vector<bool> &visited = _pose.visitedScratch;
+        if (visited.size() != m_nodes.size())
+            visited.resize(m_nodes.size(), false);
+        else
+            std::fill(visited.begin(), visited.end(), false);
 
         Matrix4 identity;
         identity.Identity();
 
         for (i32 root : m_sceneRoots)
-            visit(root, identity);
+            VisitNodeRecursive(root, identity, _pose, visited);
 
         for (size_t nodeIndex = 0; nodeIndex < m_nodes.size(); ++nodeIndex)
         {
             if (!visited[nodeIndex])
-                visit(static_cast<i32>(nodeIndex), identity);
+                VisitNodeRecursive(static_cast<i32>(nodeIndex), identity, _pose, visited);
         }
     }
 
@@ -1211,7 +1235,12 @@ namespace Canis
             if (poseVertices.size() != primitive.bindVertices.size())
                 poseVertices = primitive.bindVertices;
 
-            std::vector<Matrix4> skinMatrices(skin.joints.size(), IdentitiyMatrix4());
+            std::vector<Matrix4> &skinMatrices = _pose.skinMatricesScratch[primitiveIndex];
+            if (skinMatrices.size() != skin.joints.size())
+                skinMatrices.resize(skin.joints.size(), IdentitiyMatrix4());
+            else
+                std::fill(skinMatrices.begin(), skinMatrices.end(), IdentitiyMatrix4());
+
             for (size_t jointIndex = 0; jointIndex < skin.joints.size(); ++jointIndex)
             {
                 const i32 nodeIndex = skin.joints[jointIndex];

@@ -24,8 +24,11 @@
 
 #include <ImGuizmo.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <filesystem>
 #include <cstdint>
+#include <algorithm>
 
 namespace Canis
 {
@@ -161,7 +164,7 @@ namespace Canis
         bool refresh = DrawHierarchyPanel();
         DrawInspectorPanel(refresh);
         DrawEnvironment();
-        // DrawSystemPanel();
+        DrawSystemPanel();
         DrawAssetsPanel();
         DrawProjectSettings();
         DrawSceneView();
@@ -184,7 +187,7 @@ namespace Canis
                 if (entity == nullptr)
                     continue;
 
-                Camera2D *camera = entity->GetScript<Camera2D>();
+                Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
 
                 if (camera == nullptr)
                     continue;
@@ -192,7 +195,7 @@ namespace Canis
                 camera2D = camera;
             }
 
-            if (entity.GetScript<RectTransform>() && camera2D)
+            if (CANIS_GET_SCRIPT(entity, RectTransform) && camera2D)
             {
                 m_debugDraw = DebugDraw::RECT;
             }
@@ -240,7 +243,7 @@ namespace Canis
             if (entity == nullptr)
                 continue;
 
-            Camera2D *camera = entity->GetScript<Camera2D>();
+            Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
             if (camera)
             {
                 camera2D = camera;
@@ -252,7 +255,7 @@ namespace Canis
             return;
 
         Entity &selected = *m_scene->GetEntities()[m_index];
-        if (!selected.GetScript<RectTransform>())
+        if (!CANIS_GET_SCRIPT(selected, RectTransform))
             return;
 
         DrawBoundingBox(camera2D);
@@ -359,7 +362,7 @@ namespace Canis
         ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
         ImGuizmo::Enable(true);
 
-        if (Transform3D *transform3D = selected->GetScript<Transform3D>())
+        if (Transform3D *transform3D = CANIS_GET_SCRIPT(selected, Transform3D))
         {
             Camera3D *camera3D = nullptr;
             Transform3D *cameraTransform = nullptr;
@@ -370,8 +373,8 @@ namespace Canis
                 if (entity == nullptr || !entity->active)
                     continue;
 
-                Camera3D *candidateCamera = entity->GetScript<Camera3D>();
-                Transform3D *candidateTransform = entity->GetScript<Transform3D>();
+                Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
+                Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
                 if (candidateCamera == nullptr || candidateTransform == nullptr)
                     continue;
 
@@ -392,17 +395,16 @@ namespace Canis
             if (camera3D == nullptr || cameraTransform == nullptr)
                 return;
 
-            Matrix4 projection;
-            projection.Identity();
+            Matrix4 projection = Matrix4(1.0f);
             const float aspect = (m_window->GetScreenHeight() > 0)
                 ? (static_cast<float>(m_window->GetScreenWidth()) / static_cast<float>(m_window->GetScreenHeight()))
                 : 1.0f;
-            projection.Perspective(DEG2RAD * camera3D->fovDegrees, aspect, camera3D->nearClip, camera3D->farClip);
+            projection = glm::perspective(DEG2RAD * camera3D->fovDegrees, aspect, camera3D->nearClip, camera3D->farClip);
 
             const Vector3 eye = cameraTransform->GetGlobalPosition();
             const Vector3 target = eye + cameraTransform->GetForward();
             const Vector3 up = cameraTransform->GetUp();
-            Matrix4 view = LookAt(eye, target, up);
+            Matrix4 view = glm::lookAt(eye, target, up);
 
             Matrix4 model = transform3D->GetModelMatrix();
 
@@ -419,16 +421,16 @@ namespace Canis
             }
 
             ImGuizmo::Manipulate(
-                &view[0],
-                &projection[0],
+                glm::value_ptr(view),
+                glm::value_ptr(projection),
                 operation3D,
                 (ImGuizmo::MODE)m_guizmoMode,
-                &model[0]);
+                glm::value_ptr(model));
 
             if (ImGuizmo::IsUsing())
             {
                 float t[3], r[3], s[3];
-                ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), t, r, s);
 
                 const Vector3 worldPosition(t[0], t[1], t[2]);
                 const Vector3 worldRotation(DEG2RAD * r[0], DEG2RAD * r[1], DEG2RAD * r[2]);
@@ -436,18 +438,17 @@ namespace Canis
 
                 if (transform3D->parent != nullptr)
                 {
-                    if (Transform3D *parentTransform = transform3D->parent->GetScript<Transform3D>())
+                    if (Transform3D *parentTransform = CANIS_GET_SCRIPT(transform3D->parent, Transform3D))
                     {
                         const Vector3 parentWorldPosition = parentTransform->GetGlobalPosition();
                         const Vector3 parentWorldRotation = parentTransform->GetGlobalRotation();
                         const Vector3 parentWorldScale = parentTransform->GetGlobalScale();
 
                         const Vector3 parentSpacePosition = worldPosition - parentWorldPosition;
-                        Matrix4 inverseParentRotation;
-                        inverseParentRotation.Identity();
-                        inverseParentRotation.Rotate(-parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
-                        inverseParentRotation.Rotate(-parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
-                        inverseParentRotation.Rotate(-parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
+                        Matrix4 inverseParentRotation = Matrix4(1.0f);
+                        inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
+                        inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
+                        inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
                         const Vector4 localPosition4 = inverseParentRotation * Vector4(
                             parentSpacePosition.x,
                             parentSpacePosition.y,
@@ -481,7 +482,7 @@ namespace Canis
             return;
         }
 
-        RectTransform *rtc = selected->GetScript<RectTransform>();
+        RectTransform *rtc = CANIS_GET_SCRIPT(selected, RectTransform);
         if (!rtc)
             return;
 
@@ -491,7 +492,7 @@ namespace Canis
         {
             if (!entity)
                 continue;
-            Camera2D *camera = entity->GetScript<Camera2D>();
+            Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
             if (camera)
             {
                 camera2D = camera;
@@ -509,15 +510,14 @@ namespace Canis
         Vector2 pos = rtc->GetPosition();
         Vector2 globalScale = rtc->GetScale();
 
-        Matrix4 model;
-        model.Identity();
-        model.Translate(Vector3(pos.x, pos.y, 0.0f));
-        model.Rotate(rtc->rotation, Vector3(0.0f, 0.0f, 1.0f));
-        model.Scale(Vector3(rtc->size.x * globalScale.x, rtc->size.y * globalScale.y, 1.0f));
+        Matrix4 model = Matrix4(1.0f);
+        model = glm::translate(model, Vector3(pos.x, pos.y, 0.0f));
+        model = glm::rotate(model, rtc->rotation, Vector3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, Vector3(rtc->size.x * globalScale.x, rtc->size.y * globalScale.y, 1.0f));
 
         Matrix4 view = camera2D->GetViewMatrix();
         // Keep camera's 2D behavior, but avoid zero Z scale for gizmo rendering.
-        view[10] = 1.0f;
+        view[2][2] = 1.0f;
 
         ImGuizmo::SetOrthographic(true);
 
@@ -533,16 +533,16 @@ namespace Canis
         }
 
         ImGuizmo::Manipulate(
-            &view[0],
-            &projection[0],
+            glm::value_ptr(view),
+            glm::value_ptr(projection),
             operation,
             (ImGuizmo::MODE)m_guizmoMode,
-            &model[0]);
+            glm::value_ptr(model));
 
         if (ImGuizmo::IsUsing())
         {
             float t[3], r[3], s[3];
-            ImGuizmo::DecomposeMatrixToComponents(&model[0], t, r, s);
+            ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), t, r, s);
 
             Vector2 newPos(t[0], t[1]);
             rtc->SetPosition(newPos);
@@ -713,9 +713,9 @@ namespace Canis
             return false;
 
         std::vector<Canis::Entity*>* children = nullptr;
-        if (auto *parentRT = _parent->GetScript<RectTransform>())
+        if (auto *parentRT = CANIS_GET_SCRIPT(_parent, RectTransform))
             children = &parentRT->children;
-        else if (auto *parentTransform = _parent->GetScript<Transform3D>())
+        else if (auto *parentTransform = CANIS_GET_SCRIPT(_parent, Transform3D))
             children = &parentTransform->children;
 
         if (children == nullptr)
@@ -739,10 +739,10 @@ namespace Canis
         if (_entity == nullptr)
             return nullptr;
 
-        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
             return &transform->children;
 
-        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
             return &transform->children;
 
         return nullptr;
@@ -753,10 +753,10 @@ namespace Canis
         if (_entity == nullptr)
             return nullptr;
 
-        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
             return transform->parent;
 
-        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
             return transform->parent;
 
         return nullptr;
@@ -767,18 +767,18 @@ namespace Canis
         if (_child == nullptr)
             return false;
 
-        if (Canis::RectTransform* childTransform = _child->GetScript<Canis::RectTransform>())
+        if (Canis::RectTransform* childTransform = CANIS_GET_SCRIPT(_child, Canis::RectTransform))
         {
-            if (_parent != nullptr && _parent->GetScript<Canis::RectTransform>() == nullptr)
+            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::RectTransform) == nullptr)
                 return false;
 
             childTransform->SetParent(_parent);
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = _child->GetScript<Canis::Transform3D>())
+        if (Canis::Transform3D* childTransform = CANIS_GET_SCRIPT(_child, Canis::Transform3D))
         {
-            if (_parent != nullptr && _parent->GetScript<Canis::Transform3D>() == nullptr)
+            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::Transform3D) == nullptr)
                 return false;
 
             childTransform->SetParent(_parent);
@@ -793,18 +793,18 @@ namespace Canis
         if (_child == nullptr)
             return false;
 
-        if (Canis::RectTransform* childTransform = _child->GetScript<Canis::RectTransform>())
+        if (Canis::RectTransform* childTransform = CANIS_GET_SCRIPT(_child, Canis::RectTransform))
         {
-            if (_parent != nullptr && _parent->GetScript<Canis::RectTransform>() == nullptr)
+            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::RectTransform) == nullptr)
                 return false;
 
             childTransform->SetParentAtIndex(_parent, _index);
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = _child->GetScript<Canis::Transform3D>())
+        if (Canis::Transform3D* childTransform = CANIS_GET_SCRIPT(_child, Canis::Transform3D))
         {
-            if (_parent != nullptr && _parent->GetScript<Canis::Transform3D>() == nullptr)
+            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::Transform3D) == nullptr)
                 return false;
 
             childTransform->SetParentAtIndex(_parent, _index);
@@ -819,7 +819,7 @@ namespace Canis
         if (_entity == nullptr)
             return false;
 
-        if (Canis::RectTransform* transform = _entity->GetScript<Canis::RectTransform>())
+        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
         {
             if (transform->parent == nullptr)
                 return false;
@@ -828,7 +828,7 @@ namespace Canis
             return true;
         }
 
-        if (Canis::Transform3D* transform = _entity->GetScript<Canis::Transform3D>())
+        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
         {
             if (transform->parent == nullptr)
                 return false;
@@ -1321,7 +1321,7 @@ namespace Canis
 
         if (cStringItems.size() > 0)
         {
-            Clamp(componentToAdd, 0, cStringItems.size() - 1);
+            componentToAdd = std::clamp(componentToAdd, 0, static_cast<int>(cStringItems.size()) - 1);
             ImGui::Combo("##Components", &componentToAdd, cStringItems.data(), static_cast<int>(cStringItems.size()));
 
             ImGui::SameLine();
@@ -1548,12 +1548,91 @@ namespace Canis
         ImGui::End();
     }
 
+    void Editor::DrawSystemPanel()
+    {
+        ImGui::Begin("Systems");
+
+        if (m_scene == nullptr)
+        {
+            ImGui::TextUnformatted("No active scene.");
+            ImGui::End();
+            return;
+        }
+
+        const std::vector<Scene::SystemTiming>& timings = m_scene->GetSystemTimings();
+        if (timings.empty())
+        {
+            ImGui::TextUnformatted("No systems registered.");
+            ImGui::End();
+            return;
+        }
+
+        float totalUpdateMs = 0.0f;
+        float totalRenderMs = 0.0f;
+
+        if (ImGui::BeginTable("SystemTimingTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+        {
+            ImGui::TableSetupColumn("System");
+            ImGui::TableSetupColumn("Update (ms)");
+            ImGui::TableSetupColumn("Render (ms)");
+            ImGui::TableSetupColumn("Total (ms)");
+            ImGui::TableHeadersRow();
+
+            for (const Scene::SystemTiming& timing : timings)
+            {
+                const float totalMs = timing.updateMs + timing.renderMs;
+                totalUpdateMs += timing.updateMs;
+                totalRenderMs += timing.renderMs;
+
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%s", timing.name.c_str());
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%.3f", timing.updateMs);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::Text("%.3f", timing.renderMs);
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%.3f", totalMs);
+            }
+
+            ImGui::EndTable();
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Update Total: %.3f ms", totalUpdateMs);
+        ImGui::Text("Render Total: %.3f ms", totalRenderMs);
+        ImGui::Text("Frame System Total: %.3f ms", totalUpdateMs + totalRenderMs);
+
+        ImGui::End();
+    }
+
     void Editor::DrawProjectSettings()
     {
         ImGui::Begin("ProjectSettings");
 
         if (ImGui::Button("Save Project", ImVec2(-1.0f, 0.0f)))
         {
+            Canis::SaveProjectConfig();
+        }
+
+        // display sync mode
+        static const char* syncLabels[] = { "VSync On", "Sync Off", "Adaptive Sync" };
+        int syncIndex = 1;
+        switch (Canis::GetProjectConfig().syncMode)
+        {
+            case PROJECT_SYNC_VSYNC: syncIndex = 0; break;
+            case PROJECT_SYNC_ADAPTIVE: syncIndex = 2; break;
+            case PROJECT_SYNC_OFF:
+            default: syncIndex = 1; break;
+        }
+
+        ImGui::Text("display sync");
+        ImGui::SameLine();
+        if (ImGui::Combo("##displaySync", &syncIndex, syncLabels, IM_ARRAYSIZE(syncLabels)))
+        {
+            static const int indexToSyncMode[] = { PROJECT_SYNC_VSYNC, PROJECT_SYNC_OFF, PROJECT_SYNC_ADAPTIVE };
+            Canis::GetProjectConfig().syncMode = indexToSyncMode[syncIndex];
+            m_window->SetSync(static_cast<Window::Sync>(Canis::GetProjectConfig().syncMode));
             Canis::SaveProjectConfig();
         }
 
@@ -1630,6 +1709,7 @@ namespace Canis
             if (ImGui::Button("Play##ScenePanel") || (ImGui::IsKeyDown(ImGuiKey_P) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && hotKeyCoolDown < 0.0f))
             {
                 hotKeyCoolDown = HOTKEYRESET;
+                m_window->SetSync(static_cast<Window::Sync>(Canis::GetProjectConfig().syncMode));
                 if (Canis::GetProjectConfig().useFrameLimit)
                     Time::SetTargetFPS(Canis::GetProjectConfig().frameLimit + 0.0f);
                 else
@@ -1758,7 +1838,7 @@ namespace Canis
         {
             if (!entity)
                 continue;
-            if (Camera2D *camera = entity->GetScript<Camera2D>())
+            if (Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D))
             {
                 camPos = camera->GetPosition();
                 camScale = camera->GetScale();
@@ -1776,7 +1856,7 @@ namespace Canis
             if (m_scene->GetEntities()[i] == nullptr)
                 continue;
 
-            RectTransform *transform = m_scene->GetEntities()[i]->GetScript<RectTransform>();
+            RectTransform *transform = CANIS_GET_SCRIPT(m_scene->GetEntities()[i], RectTransform);
 
             if (transform == nullptr)
                 continue;
@@ -1794,7 +1874,7 @@ namespace Canis
 
             Vector2 globalScale = transform->GetScale();
 
-            if (m_scene->GetEntities()[i]->GetScript<Text>() == nullptr)
+            if (CANIS_GET_SCRIPT(m_scene->GetEntities()[i], Text) == nullptr)
             {
                 if (mouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
                     mouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
@@ -1819,19 +1899,18 @@ namespace Canis
 
     void Editor::DrawBoundingBox(Camera2D *_camera2D)
     {
-        Matrix4 projection;
-        projection.Identity();
+        Matrix4 projection = Matrix4(1.0f);
 
         projection = _camera2D->GetCameraMatrix();
 
         static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
-        RectTransform &rtc = *debugRectTransformEntity.GetScript<RectTransform>();
+        RectTransform &rtc = *CANIS_GET_SCRIPT(debugRectTransformEntity, RectTransform);
         Vector2 pos = rtc.GetPosition();
         Vector2 scale = rtc.GetScale();
         Vector2 vertices[4];
 
-        Text* textComponent = debugRectTransformEntity.GetScript<Text>();
+        Text* textComponent = CANIS_GET_SCRIPT(debugRectTransformEntity, Text);
         if (textComponent) {
             vertices[0] = {pos.x, pos.y};
             vertices[1] = {pos.x + (rtc.size.x * scale.x), pos.y};

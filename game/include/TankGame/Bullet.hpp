@@ -9,6 +9,8 @@ namespace TankGame
     private:
         Canis::RectTransform* m_transform = nullptr;
     public:
+        static constexpr const char* ScriptName = "TankGame::Bullet";
+
         float speed = 10.0f;
         float lifeTime = 25.0f;
 

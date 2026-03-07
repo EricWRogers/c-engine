@@ -13,39 +13,35 @@
 using namespace Canis;
 
 #define DEFAULT_NAME(type) \
-    name = #type \
+    name = type::ScriptName \
 
 #define DEFAULT_ADD(type) \
-    Add = [](Entity &_entity) -> void { _entity.AddScript<type>(); } \
+    Add = [](Entity &_entity) -> void { (void)CANIS_ADD_SCRIPT(_entity, type); } \
+
+#define DEFAULT_CONSTRUCT(type) \
+    Construct = [](Entity &_entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, type::ScriptName, new type(_entity), _callCreate); } \
 
 template<typename... Ts>
 inline void AddRequiredScripts(Entity& _entity)
 {
-    // Fold expression over the type pack Ts...
-    (
-        _entity.scene->app->AddRequiredScript(
-            _entity,
-            std::string(type_name<Ts>()) // convert string_view -> std::string
-        ),
-        ...
-    );
+    (_entity.scene->app->AddRequiredScript(_entity, Ts::ScriptName), ...);
 }
 
 #define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \
     Add = [](Entity &_entity)   -> void                                   \
     {                                                                     \
         AddRequiredScripts<__VA_ARGS__>(_entity);                         \
-        _entity.AddScript<type>();                                        \
+        (void)CANIS_ADD_SCRIPT(_entity, type);                            \
     }                                                                     \
 
 #define DEFAULT_HAS(type) \
-    Has = [](Entity &_entity) -> bool { return (_entity.GetScript<type>() != nullptr); } \
+    Has = [](Entity &_entity) -> bool { return CANIS_HAS_SCRIPT(_entity, type); } \
 
 #define DEFAULT_REMOVE(type) \
-    Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
+    Remove = [](Entity &_entity) -> void { CANIS_REMOVE_SCRIPT(_entity, type); } \
 
 #define DEFAULT_GET(type) \
-    Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<type>(); } \
+    Get = [](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, type); } \
 
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \
@@ -85,53 +81,52 @@ void UnRegister##type##Script(Canis::App& _app)  \
                 order.end());                                                       \
 }                                                                                   \
 
-template <typename ComponentType>
-void EncodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Entity &_entity)
+inline void EncodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Entity &_entity, const std::string& _scriptName)
 {
-    if (_entity.GetScript<ComponentType>())
+    if (ScriptableEntity* component = _entity.GetScript(_scriptName))
     {
-        ComponentType &component = *_entity.GetScript<ComponentType>();
-
         YAML::Node comp;
 
         for (const auto &propertyName : _registry.propertyOrder)
         {
-            comp[propertyName] = _registry.getters[propertyName](&component);
+            comp[propertyName] = _registry.getters[propertyName](component);
         }
 
-        _node[type_name<ComponentType>()] = comp;
+        _node[_scriptName] = comp;
     }
 }
 
 #define DEFAULT_ENCODE(config, type) \
-    Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent<type>(config.registry, _node, _entity); } \
+    Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent(config.registry, _node, _entity, type::ScriptName); } \
 
-template <typename ComponentType>
-void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Canis::Entity &_entity, bool _callCreate)
+inline void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Canis::Entity &_entity, const std::string& _scriptName, bool _callCreate)
 {
-    if (auto componentNode = _node[std::string(type_name<ComponentType>())])
+    if (auto componentNode = _node[_scriptName])
     {
-        auto &script = *_entity.AddScript<ComponentType>(false);
+        ScriptableEntity* script = _entity.AddScript(_scriptName, false);
+        if (script == nullptr)
+            return;
 
         for (const auto &[propertyName, setter] : _registry.setters)
         {
             if (componentNode[propertyName])
             {
                 YAML::Node propertyNode = componentNode[propertyName];
-                setter(propertyNode, &script);
+                setter(propertyNode, script);
             }
         }
         if (_callCreate)
-            script.Create();
+            script->Create();
     }
 }
 
 #define DEFAULT_DECODE(config, type) \
-    Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent<type>(config.registry, _node, _entity, _callCreate); } \
+    Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent(config.registry, _node, _entity, type::ScriptName, _callCreate); } \
 
 #define DEFAULT_CONFIG(config, type)                \
 {                                                   \
     config.DEFAULT_NAME(type);                      \
+    config.DEFAULT_CONSTRUCT(type);                 \
     config.DEFAULT_ADD(type);                       \
     config.DEFAULT_HAS(type);                       \
     config.DEFAULT_REMOVE(type);                    \
@@ -142,10 +137,11 @@ void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Canis::Enti
 #define DEFAULT_CONFIG_AND_REQUIRED(config, type, ...)  \
 {                                                       \
     config.DEFAULT_NAME(type);                          \
+    config.DEFAULT_CONSTRUCT(type);                     \
     config.Add = [](Entity &_entity) -> void            \
     {                                                   \
         AddRequiredScripts<__VA_ARGS__>(_entity);       \
-        _entity.AddScript<type>();                      \
+        (void)CANIS_ADD_SCRIPT(_entity, type);          \
     };                                                  \
     config.DEFAULT_HAS(type);                           \
     config.DEFAULT_REMOVE(type);                        \

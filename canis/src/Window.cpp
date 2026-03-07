@@ -167,13 +167,34 @@ namespace Canis
 
     Window::Sync Window::GetSync()
     {
-        int sync;
-        SDL_GL_GetSwapInterval(&sync);
-        return (Sync)sync;
+        int sync = 0;
+        if (!SDL_GL_GetSwapInterval(&sync))
+        {
+            Debug::Warning("SDL_GL_GetSwapInterval failed: %s", SDL_GetError());
+            return IMMEDIATE;
+        }
+
+        return static_cast<Sync>(sync);
     }
 
     void Window::SetSync(Sync _type)
     {
-        SDL_GL_SetSwapInterval(_type);
+        if (!SDL_GL_MakeCurrent(static_cast<SDL_Window*>(m_window), static_cast<SDL_GLContext>(m_context)))
+        {
+            Debug::Warning("SDL_GL_MakeCurrent failed while setting sync: %s", SDL_GetError());
+            return;
+        }
+
+        if (!SDL_GL_SetSwapInterval(static_cast<int>(_type)))
+        {
+            Debug::Warning("SDL_GL_SetSwapInterval(%d) failed: %s", static_cast<int>(_type), SDL_GetError());
+
+            // Adaptive sync is optional; fall back to normal VSync when unsupported.
+            if (_type == ADAPTIVE)
+            {
+                if (!SDL_GL_SetSwapInterval(static_cast<int>(VSYNC)))
+                    Debug::Warning("SDL_GL_SetSwapInterval(VSYNC) fallback failed: %s", SDL_GetError());
+            }
+        }
     }
 } // namespace Canis

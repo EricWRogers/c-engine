@@ -6,6 +6,7 @@
 //#include "glm/gtx/hash.hpp"
 
 #include <SDL3/SDL.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <vector>
 #include <fstream>
@@ -158,7 +159,7 @@ namespace Canis
     
     void Shader::SetVec2(const std::string &_name, const Vector2 &_value) const
     {
-        size_t valueHash = _value.Hash();
+        size_t valueHash = std::hash<Vector2>{}(_value);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform2fv( location, 1, &_value.x); 
@@ -171,7 +172,7 @@ namespace Canis
 
     void Shader::SetVec3(const std::string &_name, const Vector3 &_value) const
     {
-        size_t valueHash = _value.Hash();
+        size_t valueHash = std::hash<Vector3>{}(_value);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform3f(location, _value.x, _value.y, _value.z);
@@ -184,7 +185,7 @@ namespace Canis
 
     void Shader::SetVec4(const std::string &_name, const Vector4 &_value) const
     {
-        size_t valueHash = _value.Hash();
+        size_t valueHash = std::hash<Vector4>{}(_value);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
             glUniform4f(location, _value.x, _value.y, _value.z, _value.w);
@@ -215,10 +216,10 @@ namespace Canis
     
     void Shader::SetMat4(const std::string &_name, const Matrix4 &_mat) const
     {
-        size_t valueHash = _mat.Hash();
+        size_t valueHash = HashMatrix(_mat);
         int location = GetUniformLocation(_name, valueHash);
         if (location > -1)
-            glUniformMatrix4fv(location, 1, GL_FALSE, &_mat[0]);
+            glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(_mat));
     }
 
 

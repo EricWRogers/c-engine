@@ -13,6 +13,7 @@
 #include <Canis/Window.hpp>
 #include <Canis/AssetHandle.hpp>
 #include <Canis/AssetManager.hpp>
+#include <Canis/App.hpp>
 
 #include <Canis/OpenGL.hpp>
 
@@ -451,13 +452,12 @@ namespace Canis
         spriteShader->SetFloat("TIME", m_time);
         glBindVertexArray(vao);
 
-        Matrix4 projection;
-        projection.Identity();
+        Matrix4 projection = Matrix4(1.0f);
 
         if (use2DCamera) {
             projection = camera2D->GetCameraMatrix();
         } else {
-            projection.Orthographic(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()), 0.0f, 100.0f);
+            projection = glm::ortho(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()), 0.0f, 100.0f);
         }
 
         spriteShader->SetMat4("P", projection);
@@ -528,6 +528,24 @@ namespace Canis
         CreateVertexArray();
     }
 
+    void SpriteRenderer2DSystem::Ready()
+    {
+        u64 cameraMask = 0;
+        u64 drawablesMask = 0;
+
+        if (scene != nullptr && scene->app != nullptr)
+        {
+            if (ScriptConf *cameraConf = scene->app->GetScriptConf(Camera2D::ScriptName))
+                cameraMask |= cameraConf->componentMask;
+
+            if (ScriptConf *transformConf = scene->app->GetScriptConf(RectTransform::ScriptName))
+                drawablesMask |= transformConf->componentMask;
+        }
+
+        scene->InitECSView(m_cameraView, cameraMask);
+        scene->InitECSView(m_drawablesView, drawablesMask);
+    }
+
     void SpriteRenderer2DSystem::Update()
     {
         m_time += Canis::Time::DeltaTime();
@@ -540,19 +558,15 @@ namespace Canis
         Begin(glyphSortType);
 
         bool cameraFound = false;
+        scene->UpdateECSView(m_cameraView);
 
-        std::vector<Entity*>& entities = scene->GetEntities();
-
-        int g = 0;
-
-        for (Entity* entity : entities)
+        for (u32 entityId : m_cameraView.entities)
         {
-            g++;
-        
+            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
             
-            camera2D = entity->GetScript<Camera2D>();
+            camera2D = CANIS_GET_SCRIPT(entity, Camera2D);
 
             if (camera2D != nullptr)
             {
@@ -587,14 +601,16 @@ namespace Canis
         Vector2 p;
         Vector2 s;
 
-        for (Entity* entity : entities)
+        scene->UpdateECSView(m_drawablesView);
+        for (u32 entityId : m_drawablesView.entities)
         {
+            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
             
-            RectTransform* transform = entity->GetScript<RectTransform>();
-            Sprite2D* sprite = entity->GetScript<Sprite2D>();
-            Text* text = entity->GetScript<Text>();
+            RectTransform* transform = CANIS_GET_SCRIPT(entity, RectTransform);
+            Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
+            Text* text = CANIS_GET_SCRIPT(entity, Text);
 
             if (transform == nullptr)
                 continue;

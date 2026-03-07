@@ -7,6 +7,21 @@
 
 namespace Canis
 {
+    namespace
+    {
+        int NormalizeProjectSyncMode(int _value)
+        {
+            if (_value == PROJECT_SYNC_ADAPTIVE ||
+                _value == PROJECT_SYNC_OFF ||
+                _value == PROJECT_SYNC_VSYNC)
+            {
+                return _value;
+            }
+
+            return PROJECT_SYNC_OFF;
+        }
+    } // namespace
+
     ProjectConfig& GetProjectConfig()
     {
         static ProjectConfig projectConfig = {};
@@ -25,6 +40,7 @@ namespace Canis
         node["overrideSeed"] = projectConfig.overrideSeed;
         node["seed"] = projectConfig.seed;
         node["editor"] = projectConfig.editor;
+        node["syncMode"] = NormalizeProjectSyncMode(projectConfig.syncMode);
         node["iconUUID"] = std::to_string(projectConfig.iconUUID);
 
         std::ofstream fout("project.canis");
@@ -52,6 +68,10 @@ namespace Canis
         projectConfig.overrideSeed = node["overrideSeed"].as<bool>(projectConfig.overrideSeed);
         projectConfig.seed = node["useFrameLimit"].as<unsigned int>(projectConfig.seed);
         projectConfig.editor = node["editor"].as<bool>(projectConfig.editor);
+        projectConfig.syncMode = node["syncMode"].as<int>(projectConfig.syncMode);
+        if (!node["syncMode"] && node["vsync"])
+            projectConfig.syncMode = node["vsync"].as<bool>(false) ? PROJECT_SYNC_VSYNC : PROJECT_SYNC_OFF;
+        projectConfig.syncMode = NormalizeProjectSyncMode(projectConfig.syncMode);
         projectConfig.iconUUID = node["iconUUID"].as<uint64_t>(projectConfig.iconUUID);
         
         

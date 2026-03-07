@@ -18,6 +18,8 @@
 #include <Canis/AssetManager.hpp>
 #include <Canis/ConfigHelper.hpp>
 
+#include <algorithm>
+
 namespace Canis
 {
     void App::Run()
@@ -42,7 +44,7 @@ namespace Canis
         // init window
         Window window("Canis Beta", 512, 512);
         window.SetClearColor(Color(1.0f));
-        window.SetSync(Window::Sync::IMMEDIATE);
+        window.SetSync(static_cast<Window::Sync>(GetProjectConfig().syncMode));
         
         // get icon
         if (GetProjectConfig().iconUUID == UUID(0))
@@ -131,16 +133,17 @@ namespace Canis
     {
         ScriptConf rectTransformConf = {
             .name = "Canis::RectTransform",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::RectTransform::ScriptName, new Canis::RectTransform(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                _entity.AddScript<RectTransform>();
+                CANIS_ADD_SCRIPT(_entity, RectTransform);
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<RectTransform>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<RectTransform>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<RectTransform>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, RectTransform) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, RectTransform); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, RectTransform); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<RectTransform>())
+                if (CANIS_GET_SCRIPT(_entity, RectTransform))
                 {
-                    RectTransform& transform = *_entity.GetScript<RectTransform>();
+                    RectTransform& transform = *CANIS_GET_SCRIPT(_entity, RectTransform);
 
                     YAML::Node comp;
                     comp["active"] = transform.active;
@@ -167,7 +170,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto rectTransform = _node["Canis::RectTransform"])
                 {
-                    auto &rt = *_entity.AddScript<Canis::RectTransform>(false);
+                    auto &rt = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::RectTransform, false);
                     rt.active = rectTransform["active"].as<bool>();
                     //rt.anchor = (Canis::RectAnchor)rectTransform["anchor"].as<int>();
                     rt.position = rectTransform["position"].as<Vector2>();
@@ -201,7 +204,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 RectTransform* transform = nullptr;
-                if ((transform = _entity.GetScript<RectTransform>()) != nullptr)
+                if ((transform = CANIS_GET_SCRIPT(_entity, RectTransform)) != nullptr)
                 {
                     ImGui::InputFloat2("position", &transform->position.x, "%.3f");
                     ImGui::InputFloat2("size", &transform->size.x, "%.3f");
@@ -220,20 +223,21 @@ namespace Canis
 
         ScriptConf sprite2DConf = {
             .name = "Canis::Sprite2D",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Sprite2D::ScriptName, new Canis::Sprite2D(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
                 // TODO: require a RectTransform component
-                Sprite2D* sprite = _entity.AddScript<Sprite2D>();
+                Sprite2D* sprite = CANIS_ADD_SCRIPT(_entity, Sprite2D);
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 //sprite->size.x = sprite->textureHandle.texture.width;
                 //sprite->size.y = sprite->textureHandle.texture.height;
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Sprite2D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Sprite2D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Sprite2D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Sprite2D) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Sprite2D); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Sprite2D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Sprite2D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Sprite2D))
                 {
-                    Sprite2D& sprite = *_entity.GetScript<Sprite2D>();
+                    Sprite2D& sprite = *CANIS_GET_SCRIPT(_entity, Sprite2D);
 
                     YAML::Node comp;
                     comp["color"] = sprite.color;
@@ -251,7 +255,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Sprite2D"])
                 {
-                    auto &sprite = *_entity.AddScript<Canis::Sprite2D>(false);
+                    auto &sprite = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Sprite2D, false);
                     sprite.color = comp["color"].as<Vector4>();
                     sprite.uv = comp["uv"].as<Vector4>();
                     sprite.flipX = comp["flipX"].as<bool>(false);
@@ -269,7 +273,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Sprite2D* sprite = nullptr;
-                if ((sprite = _entity.GetScript<Sprite2D>()) != nullptr)
+                if ((sprite = CANIS_GET_SCRIPT(_entity, Sprite2D)) != nullptr)
                 {
                     // textureHandle
                     ImGui::ColorEdit4("color", &sprite->color.r);
@@ -284,7 +288,7 @@ namespace Canis
                     
                     if (updateUV)
                     {
-                        if (SpriteAnimation* animation = _entity.GetScript<SpriteAnimation>())
+                        if (SpriteAnimation* animation = CANIS_GET_SCRIPT(_entity, SpriteAnimation))
                         {
                             if (SpriteAnimationAsset* animationAsset = AssetManager::Get<SpriteAnimationAsset>(animation->id))
                             {
@@ -332,22 +336,23 @@ namespace Canis
 
         ScriptConf textConf = {
             .name = "Canis::Text",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Text::ScriptName, new Canis::Text(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                if (_entity.GetScript<RectTransform>() == nullptr)
+                if (CANIS_GET_SCRIPT(_entity, RectTransform) == nullptr)
                 {
-                    _entity.AddScript<RectTransform>();
+                    CANIS_ADD_SCRIPT(_entity, RectTransform);
                 }
 
-                Text* text = _entity.AddScript<Text>();
+                Text* text = CANIS_ADD_SCRIPT(_entity, Text);
                 text->assetId = AssetManager::LoadText("assets/fonts/Antonio-Bold.ttf", 32);
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Text>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Text>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Text>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Text) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Text); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Text); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Text>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Text))
                 {
-                    Text& text = *_entity.GetScript<Text>();
+                    Text& text = *CANIS_GET_SCRIPT(_entity, Text);
                     YAML::Node comp;
                     comp["text"] = text.text;
                     comp["color"] = text.color;
@@ -374,7 +379,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Text"])
                 {
-                    auto &text = *_entity.AddScript<Canis::Text>(false);
+                    auto &text = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Text, false);
                     text.text = comp["text"].as<std::string>("");
                     text.color = comp["color"].as<Vector4>(Color(1.0f));
                     text.alignment = comp["alignment"].as<unsigned int>(Canis::TextAlignment::LEFT);
@@ -395,7 +400,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Text* text = nullptr;
-                if ((text = _entity.GetScript<Text>()) != nullptr)
+                if ((text = CANIS_GET_SCRIPT(_entity, Text)) != nullptr)
                 {
                     static const char *alignmentLabels[] = {"Left", "Right", "Center"};
                     static const char *horizontalBoundaryLabels[] = {"Overflow", "Wrap"};
@@ -460,14 +465,15 @@ namespace Canis
 
         ScriptConf camera2DConf = {
             .name = "Canis::Camera2D",
-            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Camera2D>(); },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera2D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera2D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Camera2D>(); },
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Camera2D::ScriptName, new Canis::Camera2D(_entity), _callCreate); },
+            .Add = [this](Entity& _entity) -> void { CANIS_ADD_SCRIPT(_entity, Camera2D); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Camera2D) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Camera2D); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Camera2D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Camera2D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Camera2D))
                 {
-                    Camera2D& camera = *_entity.GetScript<Camera2D>();
+                    Camera2D& camera = *CANIS_GET_SCRIPT(_entity, Camera2D);
 
                     YAML::Node comp;
                     comp["position"] = camera.GetPosition();
@@ -479,7 +485,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto camera2DComponent = _node["Canis::Camera2D"])
                 {
-                    auto &camera = *_entity.AddScript<Canis::Camera2D>(false);
+                    auto &camera = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Camera2D, false);
                     camera.SetPosition(camera2DComponent["position"].as<Vector2>(camera.GetPosition()));
                     camera.SetScale(camera2DComponent["scale"].as<float>(camera.GetScale()));
                     if (_callCreate)
@@ -488,7 +494,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera2D* camera = nullptr;
-                if ((camera = _entity.GetScript<Camera2D>()) != nullptr)
+                if ((camera = CANIS_GET_SCRIPT(_entity, Camera2D)) != nullptr)
                 {
                     Vector2 lastPosition = camera->GetPosition();
                     float lastScale = camera->GetScale();
@@ -509,14 +515,15 @@ namespace Canis
 
         ScriptConf transform3DConf = {
             .name = "Canis::Transform3D",
-            .Add = [this](Entity& _entity) -> void { _entity.AddScript<Transform3D>(); },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Transform3D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Transform3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Transform3D>(); },
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Transform3D::ScriptName, new Canis::Transform3D(_entity), _callCreate); },
+            .Add = [this](Entity& _entity) -> void { CANIS_ADD_SCRIPT(_entity, Transform3D); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Transform3D) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Transform3D); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Transform3D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Transform3D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
                 {
-                    Transform3D& transform = *_entity.GetScript<Transform3D>();
+                    Transform3D& transform = *CANIS_GET_SCRIPT(_entity, Transform3D);
                     YAML::Node comp;
                     comp["active"] = transform.active;
                     comp["position"] = transform.position;
@@ -537,7 +544,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Transform3D"])
                 {
-                    auto &transform = *_entity.AddScript<Canis::Transform3D>(false);
+                    auto &transform = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Transform3D, false);
                     transform.active = comp["active"].as<bool>(true);
                     transform.position = comp["position"].as<Vector3>(Vector3(0.0f));
                     transform.rotation = comp["rotation"].as<Vector3>(Vector3(0.0f));
@@ -566,7 +573,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Transform3D* transform = nullptr;
-                if ((transform = _entity.GetScript<Transform3D>()) != nullptr)
+                if ((transform = CANIS_GET_SCRIPT(_entity, Transform3D)) != nullptr)
                 {
                     ImGui::InputFloat3("position", &transform->position.x, "%.3f");
 
@@ -596,19 +603,20 @@ namespace Canis
 
         ScriptConf camera3DConf = {
             .name = "Canis::Camera3D",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Camera3D::ScriptName, new Canis::Camera3D(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                if (_entity.GetScript<Transform3D>() == nullptr)
-                    _entity.AddScript<Transform3D>();
+                if (CANIS_GET_SCRIPT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_SCRIPT(_entity, Transform3D);
 
-                _entity.AddScript<Camera3D>();
+                CANIS_ADD_SCRIPT(_entity, Camera3D);
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Camera3D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<Camera3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Camera3D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Camera3D) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Camera3D); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Camera3D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Camera3D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Camera3D))
                 {
-                    Camera3D& camera = *_entity.GetScript<Camera3D>();
+                    Camera3D& camera = *CANIS_GET_SCRIPT(_entity, Camera3D);
                     YAML::Node comp;
                     comp["primary"] = camera.primary;
                     comp["fovDegrees"] = camera.fovDegrees;
@@ -620,7 +628,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Camera3D"])
                 {
-                    auto &camera = *_entity.AddScript<Canis::Camera3D>(false);
+                    auto &camera = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Camera3D, false);
                     camera.primary = comp["primary"].as<bool>(true);
                     camera.fovDegrees = comp["fovDegrees"].as<float>(60.0f);
                     camera.nearClip = comp["nearClip"].as<float>(0.1f);
@@ -631,7 +639,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera3D* camera = nullptr;
-                if ((camera = _entity.GetScript<Camera3D>()) != nullptr)
+                if ((camera = CANIS_GET_SCRIPT(_entity, Camera3D)) != nullptr)
                 {
                     ImGui::Checkbox("primary", &camera->primary);
                     ImGui::InputFloat("fovDegrees", &camera->fovDegrees);
@@ -645,30 +653,31 @@ namespace Canis
 
         ScriptConf model3DConf = {
             .name = "Canis::Model3D",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Model3D::ScriptName, new Canis::Model3D(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                if (_entity.GetScript<Transform3D>() == nullptr)
-                    _entity.AddScript<Transform3D>();
+                if (CANIS_GET_SCRIPT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_SCRIPT(_entity, Transform3D);
 
-                Model3D* model = _entity.AddScript<Model3D>();
+                Model3D* model = CANIS_ADD_SCRIPT(_entity, Model3D);
                 model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
 
-                if (_entity.GetScript<ModelAnimation3D>() == nullptr)
+                if (CANIS_GET_SCRIPT(_entity, ModelAnimation3D) == nullptr)
                 {
-                    ModelAnimation3D* animation = _entity.AddScript<ModelAnimation3D>();
+                    ModelAnimation3D* animation = CANIS_ADD_SCRIPT(_entity, ModelAnimation3D);
                     animation->animationIndex = 0;
                     animation->animationTime = 0.0f;
                 }
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<Model3D>() != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Model3D) != nullptr); },
             .Remove = [this](Entity& _entity) -> void {
-                _entity.RemoveScript<ModelAnimation3D>();
-                _entity.RemoveScript<Model3D>();
+                CANIS_REMOVE_SCRIPT(_entity, ModelAnimation3D);
+                CANIS_REMOVE_SCRIPT(_entity, Model3D);
             },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<Model3D>(); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Model3D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::Model3D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::Model3D))
                 {
-                    Model3D& model = *_entity.GetScript<Model3D>();
+                    Model3D& model = *CANIS_GET_SCRIPT(_entity, Model3D);
                     YAML::Node comp;
                     comp["color"] = model.color;
 
@@ -692,7 +701,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Model3D"])
                 {
-                    auto &model = *_entity.AddScript<Canis::Model3D>(false);
+                    auto &model = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Model3D, false);
                     model.color = comp["color"].as<Vector4>(Color(1.0f));
 
                     std::string path = "";
@@ -723,9 +732,9 @@ namespace Canis
                             comp["animationTime"].IsDefined() ||
                             comp["animationIndex"].IsDefined();
 
-                        if (hasLegacyAnimation && _entity.GetScript<Canis::ModelAnimation3D>() == nullptr)
+                        if (hasLegacyAnimation && CANIS_GET_SCRIPT(_entity, Canis::ModelAnimation3D) == nullptr)
                         {
-                            auto &animation = *_entity.AddScript<Canis::ModelAnimation3D>(false);
+                            auto &animation = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::ModelAnimation3D, false);
                             animation.playAnimation = comp["playAnimation"].as<bool>(true);
                             animation.loop = comp["loop"].as<bool>(true);
                             animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
@@ -743,7 +752,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Model3D* model = nullptr;
-                if ((model = _entity.GetScript<Model3D>()) != nullptr)
+                if ((model = CANIS_GET_SCRIPT(_entity, Model3D)) != nullptr)
                 {
                     ImGui::ColorEdit4("color", &model->color.r);
 
@@ -776,7 +785,7 @@ namespace Canis
                             if (extension == "gltf" || extension == "glb")
                             {
                                 model->modelId = AssetManager::LoadModel(path);
-                                if (ModelAnimation3D* animation = _entity.GetScript<ModelAnimation3D>())
+                                if (ModelAnimation3D* animation = CANIS_GET_SCRIPT(_entity, ModelAnimation3D))
                                 {
                                     animation->animationTime = 0.0f;
                                     animation->animationIndex = 0;
@@ -800,27 +809,28 @@ namespace Canis
 
         ScriptConf modelAnimation3DConf = {
             .name = "Canis::ModelAnimation3D",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::ModelAnimation3D::ScriptName, new Canis::ModelAnimation3D(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                if (_entity.GetScript<Model3D>() == nullptr)
+                if (CANIS_GET_SCRIPT(_entity, Model3D) == nullptr)
                 {
-                    if (_entity.GetScript<Transform3D>() == nullptr)
-                        _entity.AddScript<Transform3D>();
+                    if (CANIS_GET_SCRIPT(_entity, Transform3D) == nullptr)
+                        CANIS_ADD_SCRIPT(_entity, Transform3D);
 
-                    Model3D* model = _entity.AddScript<Model3D>();
+                    Model3D* model = CANIS_ADD_SCRIPT(_entity, Model3D);
                     model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
                 }
 
-                ModelAnimation3D* animation = _entity.AddScript<ModelAnimation3D>();
+                ModelAnimation3D* animation = CANIS_ADD_SCRIPT(_entity, ModelAnimation3D);
                 animation->animationIndex = 0;
                 animation->animationTime = 0.0f;
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<ModelAnimation3D>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<ModelAnimation3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<ModelAnimation3D>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, ModelAnimation3D) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, ModelAnimation3D); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, ModelAnimation3D); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::ModelAnimation3D>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::ModelAnimation3D))
                 {
-                    ModelAnimation3D& animation = *_entity.GetScript<ModelAnimation3D>();
+                    ModelAnimation3D& animation = *CANIS_GET_SCRIPT(_entity, ModelAnimation3D);
                     YAML::Node comp;
                     comp["playAnimation"] = animation.playAnimation;
                     comp["loop"] = animation.loop;
@@ -833,7 +843,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::ModelAnimation3D"])
                 {
-                    auto &animation = *_entity.AddScript<Canis::ModelAnimation3D>(false);
+                    auto &animation = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::ModelAnimation3D, false);
                     animation.playAnimation = comp["playAnimation"].as<bool>(true);
                     animation.loop = comp["loop"].as<bool>(true);
                     animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
@@ -846,7 +856,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 ModelAnimation3D* animation = nullptr;
-                if ((animation = _entity.GetScript<ModelAnimation3D>()) != nullptr)
+                if ((animation = CANIS_GET_SCRIPT(_entity, ModelAnimation3D)) != nullptr)
                 {
                     ImGui::Checkbox("playAnimation", &animation->playAnimation);
                     ImGui::Checkbox("loop", &animation->loop);
@@ -854,7 +864,7 @@ namespace Canis
                     ImGui::InputFloat("animationTime", &animation->animationTime);
 
                     ModelAsset* modelAsset = nullptr;
-                    if (Model3D* model = _entity.GetScript<Model3D>())
+                    if (Model3D* model = CANIS_GET_SCRIPT(_entity, Model3D))
                     {
                         if (model->modelId > -1)
                             modelAsset = AssetManager::GetModel(model->modelId);
@@ -867,9 +877,9 @@ namespace Canis
 
                         if (animationCount > 0)
                         {
-                            Clamp(animation->animationIndex, 0, animationCount - 1);
+                            animation->animationIndex = std::clamp(animation->animationIndex, 0, animationCount - 1);
                             ImGui::InputInt("animationIndex", &animation->animationIndex);
-                            Clamp(animation->animationIndex, 0, animationCount - 1);
+                            animation->animationIndex = std::clamp(animation->animationIndex, 0, animationCount - 1);
 
                             ImGui::Text("clip: %s", modelAsset->GetAnimationName(animation->animationIndex).c_str());
                         }
@@ -886,22 +896,23 @@ namespace Canis
 
         ScriptConf spriteAnimationConf = {
             .name = "Canis::SpriteAnimation",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::SpriteAnimation::ScriptName, new Canis::SpriteAnimation(_entity), _callCreate); },
             .Add = [this](Entity& _entity) -> void {
-                if (_entity.GetScript<Sprite2D>() == nullptr)
+                if (CANIS_GET_SCRIPT(_entity, Sprite2D) == nullptr)
                 {
-                    Sprite2D* sprite = _entity.AddScript<Sprite2D>();
+                    Sprite2D* sprite = CANIS_ADD_SCRIPT(_entity, Sprite2D);
                     sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 }
                 
-                SpriteAnimation* anim = _entity.AddScript<SpriteAnimation>();
+                SpriteAnimation* anim = CANIS_ADD_SCRIPT(_entity, SpriteAnimation);
             },
-            .Has = [this](Entity& _entity) -> bool { return (_entity.GetScript<SpriteAnimation>() != nullptr); },
-            .Remove = [this](Entity& _entity) -> void { _entity.RemoveScript<SpriteAnimation>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)_entity.GetScript<SpriteAnimation>(); },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, SpriteAnimation) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, SpriteAnimation); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, SpriteAnimation); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (_entity.GetScript<Canis::SpriteAnimation>())
+                if (CANIS_GET_SCRIPT(_entity, Canis::SpriteAnimation))
                 {
-                    SpriteAnimation& animation = *_entity.GetScript<SpriteAnimation>();
+                    SpriteAnimation& animation = *CANIS_GET_SCRIPT(_entity, SpriteAnimation);
 
                     YAML::Node comp;
                     comp["id"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::GetPath(animation.id))->uuid;
@@ -913,7 +924,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::SpriteAnimation"])
                 {
-                    auto &animation = *_entity.AddScript<Canis::SpriteAnimation>(false);
+                    auto &animation = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::SpriteAnimation, false);
                     
                     Canis::UUID uuid = comp["id"].as<u64>();
                     AssetManager::GetSpriteAnimation(AssetManager::GetPath(uuid));
@@ -926,7 +937,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 SpriteAnimation* animation = nullptr;
-                if ((animation = _entity.GetScript<SpriteAnimation>()) != nullptr)
+                if ((animation = CANIS_GET_SCRIPT(_entity, SpriteAnimation)) != nullptr)
                 {
                     
                     _editor.InputAnimationClip("animation", animation->id);
@@ -942,8 +953,8 @@ namespace Canis
             .name = "Create Square",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Square");
-                RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
-                Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
+                RectTransform * transform = CANIS_ADD_SCRIPT(entityOne, Canis::RectTransform);
+                Canis::Sprite2D *sprite = CANIS_ADD_SCRIPT(entityOne, Canis::Sprite2D);
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 transform->size = Vector2(64.0f);
@@ -956,8 +967,8 @@ namespace Canis
             .name = "Create Circle",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Circle");
-                RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
-                Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
+                RectTransform * transform = CANIS_ADD_SCRIPT(entityOne, Canis::RectTransform);
+                Canis::Sprite2D *sprite = CANIS_ADD_SCRIPT(entityOne, Canis::Sprite2D);
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
                 transform->size = Vector2(64.0f);
@@ -999,9 +1010,10 @@ namespace Canis
     {
         if (ScriptConf* sc = GetScriptConf(_name))
         {
-            if (sc->Has(_entity) == false)
+            if (sc->Has && sc->Has(_entity) == false)
             {
-                sc->Add(_entity);
+                if (sc->Add)
+                    sc->Add(_entity);
             }
 
             return true;
@@ -1018,7 +1030,28 @@ namespace Canis
             if (_conf.name == sc.name)
                 return;
 
+        u32 componentIndex = u32_max;
+        if (!m_freeComponentIndices.empty())
+        {
+            componentIndex = m_freeComponentIndices.back();
+            m_freeComponentIndices.pop_back();
+        }
+        else
+        {
+            componentIndex = m_nextComponentIndex++;
+        }
+
+        if (componentIndex >= 63)
+        {
+            Debug::Error("Cannot register script '%s': max ECS component count reached (63).", _conf.name.c_str());
+            return;
+        }
+
+        _conf.componentIndex = componentIndex;
+        _conf.componentMask = (1ull << componentIndex);
+
         m_scriptRegistry.push_back(_conf);
+        scene.RegisterComponent(componentIndex, _conf.componentMask);
     }
 
     void App::UnregisterScript(ScriptConf &_conf)
@@ -1027,6 +1060,20 @@ namespace Canis
         {
             if (_conf.name == m_scriptRegistry[i].name)
             {
+                ScriptConf& conf = m_scriptRegistry[i];
+
+                for (Entity* entity : scene.GetEntities())
+                {
+                    if (entity == nullptr)
+                        continue;
+
+                    if (entity->HasScript(conf.name))
+                        entity->RemoveScript(conf.name);
+                }
+
+                scene.UnregisterComponent(conf.componentIndex);
+                m_freeComponentIndices.push_back(conf.componentIndex);
+
                 m_scriptRegistry.erase(m_scriptRegistry.begin() + i);
                 i--;
             }

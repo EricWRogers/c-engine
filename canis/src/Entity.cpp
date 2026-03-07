@@ -4,11 +4,232 @@
 #include <Canis/Window.hpp>
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
+#include <Canis/ConfigData.hpp>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
 namespace Canis {
+
+ScriptableEntity* Entity::AddScriptDirect(const ScriptConf& _conf, ScriptableEntity* _scriptableEntity, bool _callCreate)
+{
+    if (_scriptableEntity == nullptr)
+        return nullptr;
+
+    if (ScriptableEntity* existing = GetScriptDirect(_conf))
+    {
+        if (existing != _scriptableEntity)
+            delete _scriptableEntity;
+        return existing;
+    }
+
+    if (scene == nullptr)
+    {
+        delete _scriptableEntity;
+        return nullptr;
+    }
+
+    ScriptableEntity* added = scene->AddComponentToEntity(
+        static_cast<u32>(id),
+        _conf.componentIndex,
+        _conf.componentMask,
+        _scriptableEntity
+    );
+
+    if (added == nullptr)
+    {
+        delete _scriptableEntity;
+        return nullptr;
+    }
+
+    if (added != _scriptableEntity)
+    {
+        delete _scriptableEntity;
+        return added;
+    }
+
+    m_scriptComponents.push_back(ScriptComponentEntry{
+        .name = _conf.name,
+        .componentIndex = _conf.componentIndex,
+        .componentMask = _conf.componentMask,
+        .script = _scriptableEntity
+    });
+
+    if (_callCreate)
+        _scriptableEntity->Create();
+
+    return _scriptableEntity;
+}
+
+ScriptableEntity* Entity::GetScriptDirect(const ScriptConf& _conf)
+{
+    if (scene == nullptr)
+        return nullptr;
+
+    return scene->GetComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
+}
+
+const ScriptableEntity* Entity::GetScriptDirect(const ScriptConf& _conf) const
+{
+    if (scene == nullptr)
+        return nullptr;
+
+    return scene->GetComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
+}
+
+void Entity::RemoveScriptDirect(const ScriptConf& _conf)
+{
+    if (scene == nullptr)
+        return;
+
+    ScriptableEntity* script = scene->RemoveComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
+    if (script == nullptr)
+        return;
+
+    script->Destroy();
+    delete script;
+
+    for (size_t i = 0; i < m_scriptComponents.size(); ++i)
+    {
+        if (m_scriptComponents[i].componentIndex == _conf.componentIndex)
+        {
+            m_scriptComponents.erase(m_scriptComponents.begin() + i);
+            break;
+        }
+    }
+}
+
+ScriptableEntity* Entity::AddScript(const std::string& _scriptName, bool _callCreate)
+{
+    if (scene == nullptr || scene->app == nullptr)
+        return nullptr;
+
+    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    if (conf == nullptr)
+        return nullptr;
+
+    if (ScriptableEntity* existing = GetScriptDirect(*conf))
+        return existing;
+
+    if (!_callCreate && conf->Construct)
+        return conf->Construct(*this, false);
+
+    static thread_local std::vector<std::string> addStack = {};
+    if (std::find(addStack.begin(), addStack.end(), _scriptName) != addStack.end())
+    {
+        if (conf->Construct)
+            return conf->Construct(*this, _callCreate);
+
+        return nullptr;
+    }
+
+    addStack.push_back(_scriptName);
+    struct StackPopGuard
+    {
+        std::vector<std::string>& stack;
+        ~StackPopGuard() { stack.pop_back(); }
+    } guard{ addStack };
+
+    if (conf->Add)
+        conf->Add(*this);
+    else if (conf->Construct)
+        conf->Construct(*this, _callCreate);
+
+    return GetScriptDirect(*conf);
+}
+
+ScriptableEntity* Entity::AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate)
+{
+    if (scene == nullptr || scene->app == nullptr)
+    {
+        delete _scriptableEntity;
+        return nullptr;
+    }
+
+    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    if (conf == nullptr)
+    {
+        delete _scriptableEntity;
+        return nullptr;
+    }
+
+    return AddScriptDirect(*conf, _scriptableEntity, _callCreate);
+}
+
+ScriptableEntity* Entity::GetScript(const std::string& _scriptName)
+{
+    if (scene == nullptr || scene->app == nullptr)
+        return nullptr;
+
+    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    if (conf == nullptr)
+        return nullptr;
+
+    return GetScriptDirect(*conf);
+}
+
+const ScriptableEntity* Entity::GetScript(const std::string& _scriptName) const
+{
+    if (scene == nullptr || scene->app == nullptr)
+        return nullptr;
+
+    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    if (conf == nullptr)
+        return nullptr;
+
+    return GetScriptDirect(*conf);
+}
+
+void Entity::RemoveScript(const std::string& _scriptName)
+{
+    if (scene == nullptr || scene->app == nullptr)
+        return;
+
+    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    if (conf == nullptr)
+        return;
+
+    RemoveScriptDirect(*conf);
+}
+
+bool Entity::HasScript(const std::string& _scriptName) const
+{
+    return GetScript(_scriptName) != nullptr;
+}
+
+void Entity::RemoveAllScripts()
+{
+    if (scene == nullptr)
+    {
+        for (ScriptComponentEntry& entry : m_scriptComponents)
+        {
+            if (entry.script == nullptr)
+                continue;
+
+            entry.script->Destroy();
+            delete entry.script;
+        }
+
+        m_scriptComponents.clear();
+        return;
+    }
+
+    for (int i = static_cast<int>(m_scriptComponents.size()) - 1; i >= 0; --i)
+    {
+        ScriptComponentEntry entry = m_scriptComponents[static_cast<size_t>(i)];
+        ScriptableEntity* script = scene->RemoveComponentFromEntity(static_cast<u32>(id), entry.componentIndex);
+        if (script == nullptr)
+            script = entry.script;
+
+        if (script != nullptr)
+        {
+            script->Destroy();
+            delete script;
+        }
+    }
+
+    m_scriptComponents.clear();
+}
 
 void Entity::Destroy() {
     scene->Destroy(id);
@@ -90,9 +311,9 @@ void ModelAnimation3D::EditorInspectorDraw()
 Camera2D::Camera2D(Canis::Entity &_entity)
     : Canis::ScriptableEntity(_entity), m_position(0.0f, 0.0f), m_scale(8.0f),
       m_needsMatrixUpdate(true), m_screenWidth(500), m_screenHeight(500) {
-    m_cameraMatrix.Identity();
-    m_view.Identity();
-    m_projection.Identity();
+    m_cameraMatrix = Matrix4(1.0f);
+    m_view = Matrix4(1.0f);
+    m_projection = Matrix4(1.0f);
 }
 
 Camera2D::~Camera2D() {}
@@ -100,8 +321,8 @@ Camera2D::~Camera2D() {}
 void Camera2D::Create() {
     m_screenWidth = entity.scene->GetWindow().GetScreenWidth();
     m_screenHeight = entity.scene->GetWindow().GetScreenHeight();
-    m_projection.Orthographic(0.0f, (float)m_screenWidth, 0.0f,
-                              (float)m_screenHeight, 0.0f, 100.0f);
+    m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
+                                      (float)m_screenHeight, 0.0f, 100.0f);
     SetPosition(Vector2(0.0f)); // Vector2((float)m_screenWidth / 2,
                                 // (float)m_screenHeight / 2));
     SetScale(1.0f);
@@ -133,10 +354,10 @@ void Camera2D::EditorInspectorDraw()
 
 void Camera2D::UpdateMatrix()
 {
-    m_view.Identity();
-    m_view.Translate(Vector3(-m_position.x + m_screenWidth / 2,
-                                -m_position.y + m_screenHeight / 2, 0.0f));
-    m_view.Scale(Vector3(m_scale, m_scale, 0.0f));
+    m_view = Matrix4(1.0f);
+    m_view = glm::translate(m_view, Vector3(-m_position.x + m_screenWidth / 2,
+                                             -m_position.y + m_screenHeight / 2, 0.0f));
+    m_view = glm::scale(m_view, Vector3(m_scale, m_scale, 0.0f));
 
     m_cameraMatrix = m_projection * m_view;
 

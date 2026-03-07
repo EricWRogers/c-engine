@@ -1,25 +1,45 @@
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 
 #include <cmath>
+#include <algorithm>
 
 #include <Canis/AssetManager.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Time.hpp>
+#include <Canis/App.hpp>
 
 namespace Canis
 {
+    void ModelAnimation3DSystem::Ready()
+    {
+        u64 requiredMask = 0;
+        if (scene != nullptr && scene->app != nullptr)
+        {
+            if (ScriptConf *modelConf = scene->app->GetScriptConf(Model3D::ScriptName))
+                requiredMask |= modelConf->componentMask;
+
+            if (ScriptConf *animationConf = scene->app->GetScriptConf(ModelAnimation3D::ScriptName))
+                requiredMask |= animationConf->componentMask;
+        }
+
+        scene->InitECSView(m_animationView, requiredMask);
+    }
+
     void ModelAnimation3DSystem::Update()
     {
         const float deltaTime = Time::DeltaTime();
 
-        for (Entity *entity : scene->GetEntities())
+        scene->UpdateECSView(m_animationView);
+
+        for (u32 entityId : m_animationView.entities)
         {
+            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Model3D *modelRenderer = entity->GetScript<Model3D>();
-            ModelAnimation3D *modelAnimation = entity->GetScript<ModelAnimation3D>();
+            Model3D *modelRenderer = CANIS_GET_SCRIPT(entity, Model3D);
+            ModelAnimation3D *modelAnimation = CANIS_GET_SCRIPT(entity, ModelAnimation3D);
             if (modelRenderer == nullptr || modelAnimation == nullptr || modelRenderer->modelId < 0)
                 continue;
 
@@ -46,7 +66,7 @@ namespace Canis
                 continue;
             }
 
-            Clamp(modelAnimation->animationIndex, 0, animationCount - 1);
+            modelAnimation->animationIndex = std::clamp(modelAnimation->animationIndex, 0, animationCount - 1);
             const float animationDuration = model->GetAnimationDuration(modelAnimation->animationIndex);
 
             if (modelAnimation->playAnimation && animationDuration > 0.0f)
@@ -63,7 +83,7 @@ namespace Canis
                 }
                 else
                 {
-                    Clamp(modelAnimation->animationTime, 0.0f, animationDuration);
+                    modelAnimation->animationTime = std::clamp(modelAnimation->animationTime, 0.0f, animationDuration);
                 }
             }
 

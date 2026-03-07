@@ -7,13 +7,15 @@ namespace Pong
     class Paddle : public Canis::ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Pong::Paddle";
+
         Canis::Vector2 direction;
         float speed = 100.0f;
         int playerNum = 1;
         Canis::Entity* ball = nullptr;
 
-        Canis::RectTransform &transform = *entity.GetScript<Canis::RectTransform>();
-        Canis::Sprite2D &sprite = *entity.GetScript<Canis::Sprite2D>();
+        Canis::RectTransform &transform = *CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        Canis::Sprite2D &sprite = *CANIS_GET_SCRIPT(entity, Canis::Sprite2D);
 
         Paddle(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 

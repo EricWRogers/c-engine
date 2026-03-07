@@ -30,7 +30,7 @@ namespace TankGame
         tankConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
             TankGame::Tank *tank = nullptr;
-            if ((tank = _entity.GetScript<TankGame::Tank>()) != nullptr)
+            if ((tank = CANIS_GET_SCRIPT(_entity, TankGame::Tank)) != nullptr)
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank->speed);
                 ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank->turnSpeed);
@@ -46,9 +46,9 @@ namespace TankGame
     void Tank::Create() { }
 
     void Tank::Ready() {
-        m_transform = entity.GetScript<Canis::RectTransform>();
-        m_turret = m_transform->children[0]->GetScript<RectTransform>();
-        m_firePoint = m_turret->children[0]->GetScript<RectTransform>();
+        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_turret = CANIS_GET_SCRIPT(m_transform->children[0], RectTransform);
+        m_firePoint = CANIS_GET_SCRIPT(m_turret->children[0], RectTransform);
     }
 
     void Tank::Destroy() { }
@@ -94,11 +94,11 @@ namespace TankGame
         if (entity.scene->GetInputManager().GetLeftClick())
         {
             Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
-            Canis::RectTransform* bulletTransform = bulletEntity->AddScript<RectTransform>();
-            Canis::Sprite2D* bulletSprite = bulletEntity->AddScript<Sprite2D>();
+            Canis::RectTransform* bulletTransform = CANIS_ADD_SCRIPT(bulletEntity, RectTransform);
+            Canis::Sprite2D* bulletSprite = CANIS_ADD_SCRIPT(bulletEntity, Sprite2D);
             bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
 
-            Bullet* bullet = bulletEntity->AddScript<Bullet>();
+            Bullet* bullet = CANIS_ADD_SCRIPT(bulletEntity, Bullet);
             bulletTransform->SetPosition(m_firePoint->GetPosition());
             bulletTransform->rotation = -(DEG2RAD*45.0f) + m_firePoint->GetRotation();
 

@@ -6,20 +6,36 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/AssetManager.hpp>
+#include <Canis/App.hpp>
 
 namespace Canis
 {
+    void SpriteAnimationSystem::Ready()
+    {
+        u64 requiredMask = 0;
+        if (scene != nullptr && scene->app != nullptr)
+        {
+            if (ScriptConf* animationConf = scene->app->GetScriptConf(SpriteAnimation::ScriptName))
+                requiredMask |= animationConf->componentMask;
+        }
+
+        scene->InitECSView(m_animationView, requiredMask);
+    }
+
     void SpriteAnimationSystem::Update()
     {
         f32 deltaTime = Time::DeltaTime();
         SpriteAnimationAsset *spriteAnimationAsset = nullptr;
         int spriteAnimationId = 0;
-        for (Entity* entity : scene->GetEntities())
+        scene->UpdateECSView(m_animationView);
+
+        for (u32 entityId : m_animationView.entities)
         {
+            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
 
-            SpriteAnimation* animation = entity->GetScript<SpriteAnimation>();
+            SpriteAnimation* animation = CANIS_GET_SCRIPT(entity, SpriteAnimation);
 
             if (animation == nullptr)
                 continue;
@@ -28,7 +44,7 @@ namespace Canis
 
             if (animation->countDown < 0.0f)
             {
-                Sprite2D* sprite = entity->GetScript<Sprite2D>();
+                Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
                 if (sprite == nullptr)
                     continue;
 
@@ -59,7 +75,7 @@ namespace Canis
 
             if (animation->redraw)
             {
-                Sprite2D* sprite = entity->GetScript<Sprite2D>();
+                Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
                 if (sprite == nullptr)
                     continue;
                 

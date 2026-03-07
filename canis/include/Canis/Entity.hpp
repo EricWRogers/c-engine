@@ -15,14 +15,29 @@ namespace Canis
     class Scene;
     class Editor;
     class ScriptableEntity;
+    struct ScriptConf;
+
+    struct ScriptComponentEntry
+    {
+        std::string name = "";
+        u32 componentIndex = u32_max;
+        u64 componentMask = 0;
+        ScriptableEntity* script = nullptr;
+    };
 
     
     class Entity
     {
     friend Scene;
     friend Editor;
+    friend App;
     private:
-        std::vector<ScriptableEntity *> m_scriptComponents = {};
+        std::vector<ScriptComponentEntry> m_scriptComponents = {};
+
+        ScriptableEntity* AddScriptDirect(const ScriptConf& _conf, ScriptableEntity* _scriptableEntity, bool _callCreate = true);
+        ScriptableEntity* GetScriptDirect(const ScriptConf& _conf);
+        const ScriptableEntity* GetScriptDirect(const ScriptConf& _conf) const;
+        void RemoveScriptDirect(const ScriptConf& _conf);
     public:
         int id;
         Scene *scene;
@@ -33,53 +48,13 @@ namespace Canis
         
         Entity() = default;
 
-        template <typename T>
-        T *AddScript(bool _callCreate = true)
-        {
-            T *scriptableEntity = new T(*this);
-
-            // might check if the entity already has script
-
-            m_scriptComponents.push_back((ScriptableEntity*)scriptableEntity);
-
-            if (_callCreate)
-                scriptableEntity->Create();
-
-            return scriptableEntity;
-        }
-
-        template <typename T>
-        T *GetScript()
-        {
-            T *scriptableEntity = nullptr;
-
-            for (ScriptableEntity *sc : m_scriptComponents)
-            {
-                if ((scriptableEntity = dynamic_cast<T *>(sc)) != nullptr)
-                {
-                    return scriptableEntity;
-                }
-            }
-
-            return scriptableEntity;
-        }
-
-        template <typename T>
-        void RemoveScript()
-        {
-            T *scriptableEntity = nullptr;
-
-            for (int i = 0; i < m_scriptComponents.size(); i++)
-            {
-                if ((scriptableEntity = dynamic_cast<T *>(m_scriptComponents[i])) != nullptr)
-                {
-                    scriptableEntity->Destroy();
-                    delete scriptableEntity;
-                    m_scriptComponents.erase(m_scriptComponents.begin() + i);
-                    return;
-                }
-            }
-        }
+        ScriptableEntity* AddScript(const std::string& _scriptName, bool _callCreate = true);
+        ScriptableEntity* AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true);
+        ScriptableEntity* GetScript(const std::string& _scriptName);
+        const ScriptableEntity* GetScript(const std::string& _scriptName) const;
+        void RemoveScript(const std::string& _scriptName);
+        bool HasScript(const std::string& _scriptName) const;
+        void RemoveAllScripts();
 
         void Destroy();
     };
@@ -99,6 +74,86 @@ namespace Canis
         virtual void Update(float _dt) {}
         virtual void EditorInspectorDraw() {}
     };
+
+    inline ScriptableEntity* EntityAddScriptByName(Entity& _entity, const std::string& _scriptName, bool _callCreate = true)
+    {
+        return _entity.AddScript(_scriptName, _callCreate);
+    }
+
+    inline ScriptableEntity* EntityAddScriptByName(Entity* _entity, const std::string& _scriptName, bool _callCreate = true)
+    {
+        if (_entity == nullptr)
+            return nullptr;
+
+        return _entity->AddScript(_scriptName, _callCreate);
+    }
+
+    inline ScriptableEntity* EntityAttachScriptByName(Entity& _entity, const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true)
+    {
+        return _entity.AttachScript(_scriptName, _scriptableEntity, _callCreate);
+    }
+
+    inline ScriptableEntity* EntityAttachScriptByName(Entity* _entity, const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true)
+    {
+        if (_entity == nullptr)
+            return nullptr;
+
+        return _entity->AttachScript(_scriptName, _scriptableEntity, _callCreate);
+    }
+
+    inline ScriptableEntity* EntityGetScriptByName(Entity& _entity, const std::string& _scriptName)
+    {
+        return _entity.GetScript(_scriptName);
+    }
+
+    inline ScriptableEntity* EntityGetScriptByName(Entity* _entity, const std::string& _scriptName)
+    {
+        if (_entity == nullptr)
+            return nullptr;
+
+        return _entity->GetScript(_scriptName);
+    }
+
+    inline void EntityRemoveScriptByName(Entity& _entity, const std::string& _scriptName)
+    {
+        _entity.RemoveScript(_scriptName);
+    }
+
+    inline void EntityRemoveScriptByName(Entity* _entity, const std::string& _scriptName)
+    {
+        if (_entity == nullptr)
+            return;
+
+        _entity->RemoveScript(_scriptName);
+    }
+
+    inline Entity& EntityAsRef(Entity& _entity)
+    {
+        return _entity;
+    }
+
+    inline Entity& EntityAsRef(Entity* _entity)
+    {
+        return *_entity;
+    }
+
+#define CANIS_ADD_SCRIPT(entityExpr, type) \
+    static_cast<type*>(Canis::EntityAddScriptByName((entityExpr), type::ScriptName, true))
+
+#define CANIS_ADD_SCRIPT_WITH_CREATE(entityExpr, type, callCreate) \
+    static_cast<type*>(Canis::EntityAddScriptByName((entityExpr), type::ScriptName, (callCreate)))
+
+#define CANIS_ATTACH_SCRIPT(entityExpr, type, callCreate) \
+    static_cast<type*>(Canis::EntityAttachScriptByName((entityExpr), type::ScriptName, new type(Canis::EntityAsRef(entityExpr)), (callCreate)))
+
+#define CANIS_GET_SCRIPT(entityExpr, type) \
+    static_cast<type*>(Canis::EntityGetScriptByName((entityExpr), type::ScriptName))
+
+#define CANIS_REMOVE_SCRIPT(entityExpr, type) \
+    Canis::EntityRemoveScriptByName((entityExpr), type::ScriptName)
+
+#define CANIS_HAS_SCRIPT(entityExpr, type) \
+    (Canis::EntityGetScriptByName((entityExpr), type::ScriptName) != nullptr)
 
     enum RectAnchor
 	{
@@ -121,6 +176,8 @@ namespace Canis
     class RectTransform : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::RectTransform";
+
         RectTransform(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -143,7 +200,7 @@ namespace Canis
             if (!parent)
                 return localPos;
 
-            if (auto* parentRT = parent->GetScript<RectTransform>())
+            if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
             {
                 Vector2 parentPos = parentRT->GetPosition();
                 float parentRot   = parentRT->GetRotation();
@@ -165,7 +222,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = parent->GetScript<RectTransform>())
+                if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     Vector2 parentPos = parentRT->GetPosition();
                     float parentRot   = parentRT->GetRotation();
@@ -190,7 +247,7 @@ namespace Canis
 		{
             if (parent)
 			{
-                if (auto* parentRT = parent->GetScript<RectTransform>())
+                if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     return rotation + parentRT->GetRotation();
                 }
@@ -203,7 +260,7 @@ namespace Canis
 		{
             if (parent)
 			{
-                if (auto* parentRT = parent->GetScript<RectTransform>())
+                if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     return depth + parentRT->GetDepth();
                 }
@@ -216,7 +273,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = parent->GetScript<RectTransform>())
+                if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     Vector2 parentDepth = parentRT->GetPosition();
                     
@@ -233,7 +290,7 @@ namespace Canis
             if (!parent)
                 return scale;
 
-            if (auto* parentRT = parent->GetScript<RectTransform>())
+            if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
             {
                 Vector2 p = parentRT->GetScale();
                 return Vector2(p.x * scale.x, p.y * scale.y);
@@ -246,7 +303,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = parent->GetScript<RectTransform>())
+                if (auto* parentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     Vector2 parentScale = parentRT->GetScale();
 
@@ -266,7 +323,7 @@ namespace Canis
 
             Vector2 right(std::cos(a), std::sin(a));
 
-            return right.Normalize();
+            return glm::normalize(right);
         }
 
         Vector2 GetUp() const
@@ -275,7 +332,7 @@ namespace Canis
 
             Vector2 up(-std::sin(a), std::cos(a));
 
-            return up.Normalize();
+            return glm::normalize(up);
         }
 
         bool HasParent() const {
@@ -292,7 +349,7 @@ namespace Canis
                 if (!parent)
                     return;
 
-                if (auto* prt = parent->GetScript<RectTransform>())
+                if (auto* prt = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     auto& list = prt->children;
                     auto it = std::find(list.begin(), list.end(), self);
@@ -305,7 +362,7 @@ namespace Canis
 
                     list.erase(it);
 
-                    Clamp(index, 0, list.size());
+                    index = std::clamp(index, static_cast<size_t>(0), list.size());
 
                     list.insert(list.begin() + index, self);
                 }
@@ -317,7 +374,7 @@ namespace Canis
             // different parent: remove from old parent
             if (parent)
             {
-                if (auto* oldParentRT = parent->GetScript<RectTransform>())
+                if (auto* oldParentRT = CANIS_GET_SCRIPT(parent, RectTransform))
                 {
                     auto& list = oldParentRT->children;
                     list.erase(std::remove(list.begin(), list.end(), self), list.end());
@@ -330,10 +387,10 @@ namespace Canis
             // insert into new parent's children list at index
             if (newParent)
             {
-                if (auto* newParentRT = newParent->GetScript<RectTransform>())
+                if (auto* newParentRT = CANIS_GET_SCRIPT(newParent, RectTransform))
                 {
                     auto& list = newParentRT->children;
-                    Clamp(index, 0, list.size());
+                    index = std::clamp(index, static_cast<size_t>(0), list.size());
 
                     list.insert(list.begin() + index, self);
                 }
@@ -344,7 +401,7 @@ namespace Canis
 
         void SetParent(Entity* newParent)
         {
-            if (auto* rt = newParent ? newParent->GetScript<RectTransform>() : nullptr)
+            if (auto* rt = newParent ? CANIS_GET_SCRIPT(newParent, RectTransform) : nullptr)
             {
                 SetParentAtIndex(newParent, rt->children.size());
             }
@@ -373,7 +430,7 @@ namespace Canis
         {
             if (!child) return;
 
-            auto* rt = child->GetScript<RectTransform>();
+            auto* rt = CANIS_GET_SCRIPT(child, RectTransform);
             if (!rt) return;
 
             rt->SetParent(&entity);
@@ -387,14 +444,14 @@ namespace Canis
             children.erase(std::remove(children.begin(), children.end(), child), children.end());
 
             // clear child's parent
-            if (auto* rt = child->GetScript<RectTransform>())
+            if (auto* rt = CANIS_GET_SCRIPT(child, RectTransform))
                 rt->parent = nullptr;
         }
 
         void RemoveAllChildren()
         {
             for (auto* child : children)
-                if (auto* rt = child->GetScript<RectTransform>())
+                if (auto* rt = CANIS_GET_SCRIPT(child, RectTransform))
                     rt->parent = nullptr;
             
             children.clear();
@@ -451,6 +508,8 @@ namespace Canis
     class Transform : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Transform";
+
         Transform(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw() {
@@ -472,7 +531,7 @@ namespace Canis
 		//glm::quat rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
         Vector3 rotation = Vector3(0.0f);
 		Vector3 scale = Vector3(1.0f);
-		Matrix4 modelMatrix = IdentitiyMatrix4();
+		Matrix4 modelMatrix = Matrix4(1.0f);
 		bool isDirty = true;
         Entity  parent;
 			std::vector<Entity> children;
@@ -481,6 +540,8 @@ namespace Canis
     class Transform3D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Transform3D";
+
         Transform3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -499,13 +560,12 @@ namespace Canis
 
         Matrix4 GetLocalMatrix() const
         {
-            Matrix4 matrix;
-            matrix.Identity();
-            matrix.Translate(position);
-            matrix.Rotate(rotation.z, Vector3(0.0f, 0.0f, 1.0f));
-            matrix.Rotate(rotation.y, Vector3(0.0f, 1.0f, 0.0f));
-            matrix.Rotate(rotation.x, Vector3(1.0f, 0.0f, 0.0f));
-            matrix.Scale(scale);
+            Matrix4 matrix = Matrix4(1.0f);
+            matrix = glm::translate(matrix, position);
+            matrix = glm::rotate(matrix, rotation.z, Vector3(0.0f, 0.0f, 1.0f));
+            matrix = glm::rotate(matrix, rotation.y, Vector3(0.0f, 1.0f, 0.0f));
+            matrix = glm::rotate(matrix, rotation.x, Vector3(1.0f, 0.0f, 0.0f));
+            matrix = glm::scale(matrix, scale);
             return matrix;
         }
 
@@ -515,7 +575,7 @@ namespace Canis
 
             if (parent != nullptr)
             {
-                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                if (auto* parentTransform = CANIS_GET_SCRIPT(parent, Transform3D))
                     return parentTransform->GetModelMatrix() * local;
             }
 
@@ -533,7 +593,7 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                if (auto* parentTransform = CANIS_GET_SCRIPT(parent, Transform3D))
                     return rotation + parentTransform->GetGlobalRotation();
             }
 
@@ -544,7 +604,7 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                if (auto* parentTransform = CANIS_GET_SCRIPT(parent, Transform3D))
                 {
                     const Vector3 parentScale = parentTransform->GetGlobalScale();
                     return Vector3(
@@ -561,14 +621,14 @@ namespace Canis
         {
             const Matrix4 matrix = GetModelMatrix();
             Vector4 forward4 = matrix * Vector4(0.0f, 0.0f, -1.0f, 0.0f);
-            return Normalize(Vector3(forward4.x, forward4.y, forward4.z));
+            return glm::normalize(Vector3(forward4.x, forward4.y, forward4.z));
         }
 
         Vector3 GetUp() const
         {
             const Matrix4 matrix = GetModelMatrix();
             Vector4 up4 = matrix * Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-            return Normalize(Vector3(up4.x, up4.y, up4.z));
+            return glm::normalize(Vector3(up4.x, up4.y, up4.z));
         }
 
         bool HasParent() const
@@ -585,7 +645,7 @@ namespace Canis
                 if (!parent)
                     return;
 
-                if (auto* parentTransform = parent->GetScript<Transform3D>())
+                if (auto* parentTransform = CANIS_GET_SCRIPT(parent, Transform3D))
                 {
                     auto& list = parentTransform->children;
                     auto it = std::find(list.begin(), list.end(), self);
@@ -597,7 +657,7 @@ namespace Canis
                         return;
 
                     list.erase(it);
-                    Clamp(index, 0, list.size());
+                    index = std::clamp(index, static_cast<size_t>(0), list.size());
                     list.insert(list.begin() + index, self);
                 }
                 return;
@@ -609,7 +669,7 @@ namespace Canis
 
             if (parent)
             {
-                if (auto* oldParentTransform = parent->GetScript<Transform3D>())
+                if (auto* oldParentTransform = CANIS_GET_SCRIPT(parent, Transform3D))
                 {
                     auto& list = oldParentTransform->children;
                     list.erase(std::remove(list.begin(), list.end(), self), list.end());
@@ -620,10 +680,10 @@ namespace Canis
 
             if (newParent)
             {
-                if (auto* newParentTransform = newParent->GetScript<Transform3D>())
+                if (auto* newParentTransform = CANIS_GET_SCRIPT(newParent, Transform3D))
                 {
                     auto& list = newParentTransform->children;
-                    Clamp(index, 0, list.size());
+                    index = std::clamp(index, static_cast<size_t>(0), list.size());
                     list.insert(list.begin() + index, self);
 
                     const Vector3 parentWorldPosition = newParentTransform->GetGlobalPosition();
@@ -631,11 +691,10 @@ namespace Canis
                     const Vector3 parentWorldScale = newParentTransform->GetGlobalScale();
 
                     Vector3 parentSpacePosition = oldWorldPosition - parentWorldPosition;
-                    Matrix4 inverseParentRotation;
-                    inverseParentRotation.Identity();
-                    inverseParentRotation.Rotate(-parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
-                    inverseParentRotation.Rotate(-parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
-                    inverseParentRotation.Rotate(-parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
+                    Matrix4 inverseParentRotation = Matrix4(1.0f);
+                    inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.x, Vector3(1.0f, 0.0f, 0.0f));
+                    inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.y, Vector3(0.0f, 1.0f, 0.0f));
+                    inverseParentRotation = glm::rotate(inverseParentRotation, -parentWorldRotation.z, Vector3(0.0f, 0.0f, 1.0f));
                     Vector4 localPosition4 = inverseParentRotation * Vector4(
                         parentSpacePosition.x,
                         parentSpacePosition.y,
@@ -660,7 +719,7 @@ namespace Canis
 
         void SetParent(Entity* newParent)
         {
-            if (auto* transform = newParent ? newParent->GetScript<Transform3D>() : nullptr)
+            if (auto* transform = newParent ? CANIS_GET_SCRIPT(newParent, Transform3D) : nullptr)
             {
                 SetParentAtIndex(newParent, transform->children.size());
             }
@@ -690,7 +749,7 @@ namespace Canis
             if (!child)
                 return;
 
-            auto* transform = child->GetScript<Transform3D>();
+            auto* transform = CANIS_GET_SCRIPT(child, Transform3D);
             if (!transform)
                 return;
 
@@ -704,7 +763,7 @@ namespace Canis
 
             children.erase(std::remove(children.begin(), children.end(), child), children.end());
 
-            if (auto* transform = child->GetScript<Transform3D>())
+            if (auto* transform = CANIS_GET_SCRIPT(child, Transform3D))
                 transform->parent = nullptr;
         }
 
@@ -712,7 +771,7 @@ namespace Canis
         {
             for (auto* child : children)
             {
-                if (auto* transform = child ? child->GetScript<Transform3D>() : nullptr)
+                if (auto* transform = child ? CANIS_GET_SCRIPT(child, Transform3D) : nullptr)
                     transform->parent = nullptr;
             }
 
@@ -723,6 +782,8 @@ namespace Canis
     class Camera3D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Camera3D";
+
         Camera3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -736,6 +797,8 @@ namespace Canis
     class Model3D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Model3D";
+
         Model3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -747,6 +810,8 @@ namespace Canis
     class ModelAnimation3D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::ModelAnimation3D";
+
         ModelAnimation3D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -770,6 +835,8 @@ namespace Canis
     class Sprite2D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Sprite2D";
+
         Sprite2D(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -805,6 +872,8 @@ namespace Canis
     class Text : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Text";
+
         Text(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 
         void EditorInspectorDraw();
@@ -826,6 +895,8 @@ namespace Canis
     class Camera2D : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::Camera2D";
+
         Camera2D(Canis::Entity& _entity);
         ~Camera2D();
 
@@ -868,6 +939,8 @@ namespace Canis
     class SpriteAnimation : public ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Canis::SpriteAnimation";
+
         SpriteAnimation(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
         ~SpriteAnimation() {}
 

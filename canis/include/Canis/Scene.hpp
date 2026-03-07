@@ -1,5 +1,6 @@
 #pragma once
 #include <Canis/UUID.hpp>
+#include <Canis/ECS/RuntimeECS.hpp>
 
 #include <string>
 #include <vector>
@@ -16,12 +17,21 @@ namespace Canis
     class Window;
     class InputManager;
     class Entity;
+    class ScriptableEntity;
     class System;
     struct ScriptConf;
 
     class Scene
     {
     public:
+        struct SystemTiming
+        {
+            std::string name = "";
+            float updateMs = 0.0f;
+            float renderMs = 0.0f;
+            const System* system = nullptr;
+        };
+
         App* app = nullptr;
         
         void Init(App *_app, Window *_window, InputManager *_inputManger, std::string _path);
@@ -85,6 +95,17 @@ namespace Canis
         }
 
         std::vector<Entity*>& GetEntities() { return m_entities; }
+
+        void RegisterComponent(u32 _componentIndex, u64 _componentMask);
+        void UnregisterComponent(u32 _componentIndex);
+        ScriptableEntity* AddComponentToEntity(u32 _entityId, u32 _componentIndex, u64 _componentMask, ScriptableEntity* _component);
+        ScriptableEntity* GetComponentFromEntity(u32 _entityId, u32 _componentIndex);
+        const ScriptableEntity* GetComponentFromEntity(u32 _entityId, u32 _componentIndex) const;
+        ScriptableEntity* RemoveComponentFromEntity(u32 _entityId, u32 _componentIndex);
+        u64 GetEntityComponentMask(u32 _entityId) const;
+        void InitECSView(RuntimeECSView& _view, u64 _requiredMask, u32 _capacity = 64) const;
+        void UpdateECSView(RuntimeECSView& _view) const;
+        const std::vector<SystemTiming>& GetSystemTimings() const { return m_systemTimings; }
     private:
         std::string m_name = "main";
         std::string m_path = "assets/scenes/main.scene";
@@ -92,9 +113,11 @@ namespace Canis
         InputManager *m_inputManager;
 
         std::vector<Entity*> m_entities = {};
+        RuntimeECS m_ecs = {};
         std::vector<System*> m_systems = {};
         std::vector<System*> m_updateSystems = {};
         std::vector<System*> m_renderSystems = {};
+        std::vector<SystemTiming> m_systemTimings = {};
         std::vector<int> m_entitiesToReady = {};
         std::vector<int> m_entitiesToDestroy = {};
         bool m_isUpdating = false;
@@ -112,5 +135,6 @@ namespace Canis
         void QueueEntityForReady(int _id);
         void DestroyNow(int _id);
         void ReadySystem(System *_system);
+        SystemTiming* GetSystemTiming(System* _system);
     };
 }

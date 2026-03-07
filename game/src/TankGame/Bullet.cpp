@@ -26,7 +26,7 @@ namespace TankGame
 
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (TankGame::Bullet *bullet = _entity.GetScript<TankGame::Bullet>())
+            if (TankGame::Bullet *bullet = CANIS_GET_SCRIPT(_entity, TankGame::Bullet))
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &bullet->speed);
                 ImGui::InputFloat(("lifeTime##" + _conf.name).c_str(), &bullet->lifeTime);
@@ -41,7 +41,7 @@ namespace TankGame
     void Bullet::Create() { }
 
     void Bullet::Ready() {
-        m_transform = entity.GetScript<Canis::RectTransform>();
+        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
     }
 
     void Bullet::Destroy() { }

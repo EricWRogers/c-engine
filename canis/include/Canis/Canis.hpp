@@ -3,6 +3,13 @@
 
 namespace Canis
 {
+    enum ProjectSyncMode : int
+    {
+        PROJECT_SYNC_ADAPTIVE = -1,
+        PROJECT_SYNC_OFF = 0,
+        PROJECT_SYNC_VSYNC = 1,
+    };
+
     struct ProjectConfig
     {
         //bool fullscreen = false;
@@ -22,7 +29,7 @@ namespace Canis
         //bool log = true;
         //bool logToFile = false;
         bool editor = false;
-        //bool vsync = false;
+        int syncMode = PROJECT_SYNC_OFF;
         UUID iconUUID = UUID(0);
     };
 

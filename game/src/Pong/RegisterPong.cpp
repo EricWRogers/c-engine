@@ -21,7 +21,7 @@ namespace Pong
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
             Pong::Ball *ball = nullptr;
-            if ((ball = _entity.GetScript<Pong::Ball>()) != nullptr)
+            if ((ball = CANIS_GET_SCRIPT(_entity, Pong::Ball)) != nullptr)
             {
                 ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
@@ -34,24 +34,27 @@ namespace Pong
 
     DEFAULT_UNREGISTER_SCRIPT(conf, Ball)
 
-    ScriptConf paddleConf = {
+ScriptConf paddleConf = {
     .name = "Pong::Paddle",
+    .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* {
+        return Canis::EntityAttachScriptByName(_entity, Pong::Paddle::ScriptName, new Pong::Paddle(_entity), _callCreate);
+    },
     .Add = [](Entity &_entity) -> void
     {
         // TODO: require a RectTransform component
         // TODO: require a Sprite2D component
-        _entity.AddScript<Paddle>();
+        CANIS_ADD_SCRIPT(_entity, Paddle);
     },
     .Has = [](Entity &_entity) -> bool
-    { return (_entity.GetScript<Paddle>() != nullptr); },
+    { return (CANIS_GET_SCRIPT(_entity, Paddle) != nullptr); },
     .Remove = [](Entity &_entity) -> void
-    { _entity.RemoveScript<Paddle>(); },
-    .Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<Paddle>(); },
+    { CANIS_REMOVE_SCRIPT(_entity, Paddle); },
+    .Get = [](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Paddle); },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        if (_entity.GetScript<Paddle>())
+        if (CANIS_GET_SCRIPT(_entity, Paddle))
         {
-            Paddle &paddle = *_entity.GetScript<Paddle>();
+            Paddle &paddle = *CANIS_GET_SCRIPT(_entity, Paddle);
 
             YAML::Node comp;
 
@@ -67,7 +70,7 @@ namespace Pong
     {
         if (auto paddleComponent = _node[paddleConf.name])
         {
-            auto &paddle = *_entity.AddScript<Paddle>(false);
+            auto &paddle = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Paddle, false);
             paddle.direction = paddleComponent["direction"].as<Vector2>(paddle.direction);
             paddle.speed = paddleComponent["speed"].as<float>(paddle.speed);
             paddle.playerNum = paddleComponent["playerNum"].as<int>(paddle.playerNum);
@@ -79,7 +82,7 @@ namespace Pong
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
         Paddle *paddle = nullptr;
-        if ((paddle = _entity.GetScript<Paddle>()) != nullptr)
+        if ((paddle = CANIS_GET_SCRIPT(_entity, Paddle)) != nullptr)
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);

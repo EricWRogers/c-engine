@@ -6,14 +6,12 @@ namespace Pong
 {
     void Ball::Create()
     {
-        direction = Vector2(-1.0f, -1.0f).Normalize();
-        direction = Vector2::Normalize(direction); 
+        direction = glm::normalize(Vector2(-1.0f, -1.0f)); 
     }
 
     void Ball::Ready()
     {
-        direction = Vector2(-1.0f, 0.0f).Normalize();
-        direction = Vector2::Normalize(direction);
+        direction = glm::normalize(Vector2(-1.0f, 0.0f));
     }
 
     void Ball::Destroy() {}

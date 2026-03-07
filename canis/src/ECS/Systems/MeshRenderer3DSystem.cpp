@@ -6,6 +6,7 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Shader.hpp>
 #include <Canis/Window.hpp>
+#include <Canis/App.hpp>
 
 namespace Canis
 {
@@ -25,6 +26,30 @@ namespace Canis
         m_shader = shader;
     }
 
+    void MeshRenderer3DSystem::Ready()
+    {
+        u64 cameraMask = 0;
+        u64 renderablesMask = 0;
+
+        if (scene != nullptr && scene->app != nullptr)
+        {
+            if (ScriptConf *cameraConf = scene->app->GetScriptConf(Camera3D::ScriptName))
+                cameraMask |= cameraConf->componentMask;
+
+            if (ScriptConf *transformConf = scene->app->GetScriptConf(Transform3D::ScriptName))
+            {
+                cameraMask |= transformConf->componentMask;
+                renderablesMask |= transformConf->componentMask;
+            }
+
+            if (ScriptConf *modelConf = scene->app->GetScriptConf(Model3D::ScriptName))
+                renderablesMask |= modelConf->componentMask;
+        }
+
+        scene->InitECSView(m_cameraView, cameraMask);
+        scene->InitECSView(m_renderablesView, renderablesMask);
+    }
+
     void MeshRenderer3DSystem::Update()
     {
         if (m_shader == nullptr)
@@ -33,13 +58,15 @@ namespace Canis
         Camera3D *camera = nullptr;
         Transform3D *cameraTransform = nullptr;
 
-        for (Entity *entity : scene->GetEntities())
+        scene->UpdateECSView(m_cameraView);
+        for (u32 entityId : m_cameraView.entities)
         {
+            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Camera3D *candidateCamera = entity->GetScript<Camera3D>();
-            Transform3D *candidateTransform = entity->GetScript<Transform3D>();
+            Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
+            Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
             if (candidateCamera == nullptr || candidateTransform == nullptr)
                 continue;
 
@@ -60,17 +87,16 @@ namespace Canis
         if (camera == nullptr || cameraTransform == nullptr)
             return;
 
-        Matrix4 projection;
-        projection.Identity();
+        Matrix4 projection = Matrix4(1.0f);
         const float aspect = (window->GetScreenHeight() > 0)
             ? (static_cast<float>(window->GetScreenWidth()) / static_cast<float>(window->GetScreenHeight()))
             : 1.0f;
-        projection.Perspective(DEG2RAD * camera->fovDegrees, aspect, camera->nearClip, camera->farClip);
+        projection = glm::perspective(DEG2RAD * camera->fovDegrees, aspect, camera->nearClip, camera->farClip);
 
         const Vector3 eye = cameraTransform->GetGlobalPosition();
         const Vector3 target = eye + cameraTransform->GetForward();
         const Vector3 up = cameraTransform->GetUp();
-        const Matrix4 view = LookAt(eye, target, up);
+        const Matrix4 view = glm::lookAt(eye, target, up);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -81,13 +107,15 @@ namespace Canis
         m_shader->SetMat4("P", projection);
         m_shader->SetMat4("V", view);
 
-        for (Entity *entity : scene->GetEntities())
+        scene->UpdateECSView(m_renderablesView);
+        for (u32 entityId : m_renderablesView.entities)
         {
+            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Transform3D *transform = entity->GetScript<Transform3D>();
-            Model3D *modelRenderer = entity->GetScript<Model3D>();
+            Transform3D *transform = CANIS_GET_SCRIPT(entity, Transform3D);
+            Model3D *modelRenderer = CANIS_GET_SCRIPT(entity, Model3D);
             if (transform == nullptr || modelRenderer == nullptr || modelRenderer->modelId < 0)
                 continue;
 
@@ -96,7 +124,7 @@ namespace Canis
                 continue;
 
             const ModelAsset::Pose3D *pose = nullptr;
-            if (ModelAnimation3D *animation = entity->GetScript<ModelAnimation3D>())
+            if (ModelAnimation3D *animation = CANIS_GET_SCRIPT(entity, ModelAnimation3D))
             {
                 if (animation->poseModelId == modelRenderer->modelId)
                     pose = &animation->pose;

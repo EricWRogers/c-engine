@@ -11,6 +11,7 @@
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 #include <Canis/ECS/Systems/MeshRenderer3DSystem.hpp>
 #include <algorithm>
+#include <SDL3/SDL_timer.h>
 
 namespace Canis
 {
@@ -32,8 +33,11 @@ namespace Canis
 
         for (System* system : m_updateSystems)
         {
-            //Canis::Debug::Log("Render Update for");
+            const Uint64 start = SDL_GetTicksNS();
             system->Update();
+            const float elapsedMs = static_cast<float>(SDL_GetTicksNS() - start) / 1000000.0f;
+            if (SystemTiming* timing = GetSystemTiming(system))
+                timing->updateMs = elapsedMs;
         }
         // Run Ready only on entities created since the last frame.
         for (size_t i = 0; i < m_entitiesToReady.size(); ++i)
@@ -49,7 +53,7 @@ namespace Canis
             auto& scripts = e->m_scriptComponents;
             for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
-                ScriptableEntity* se = scripts[j];
+                ScriptableEntity* se = scripts[j].script;
                 if (!se || se->m_onReadyCalled)
                     continue;
 
@@ -68,7 +72,7 @@ namespace Canis
             auto& scripts = e->m_scriptComponents;
             for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
-                ScriptableEntity* se = scripts[j];
+                ScriptableEntity* se = scripts[j].script;
                 if (se && se->m_onReadyCalled)
                     se->Update(_deltaTime);
             }
@@ -87,8 +91,11 @@ namespace Canis
         //Canis::Debug::Log("Render Update %i", m_renderSystems.size());
         for (System* renderer : m_renderSystems)
         {
-            //Canis::Debug::Log("Render Update for");
+            const Uint64 start = SDL_GetTicksNS();
             renderer->Update();
+            const float elapsedMs = static_cast<float>(SDL_GetTicksNS() - start) / 1000000.0f;
+            if (SystemTiming* timing = GetSystemTiming(renderer))
+                timing->renderMs = elapsedMs;
         }
     }
 
@@ -98,29 +105,7 @@ namespace Canis
         {
             if (e == nullptr)
                 continue;
-
-            for (ScriptableEntity* se : e->m_scriptComponents)
-            {
-                se->Destroy();
-            }
-        }
-
-        for (Entity* e : m_entities)
-        {
-            if (e == nullptr)
-                continue;
-
-            for (ScriptableEntity* se : e->m_scriptComponents)
-            {
-                delete se;
-            }
-        }
-
-        for (Entity* e : m_entities)
-        {
-            if (e == nullptr)
-                continue;
-                
+            e->RemoveAllScripts();
             delete e;
         }
 
@@ -139,6 +124,7 @@ namespace Canis
         m_systems.clear();
         m_updateSystems.clear();
         m_renderSystems.clear();
+        m_systemTimings.clear();
     }
 
     void Scene::Load(std::vector<ScriptConf>& _scriptRegistry)
@@ -213,11 +199,11 @@ namespace Canis
                 if (entity == nullptr)
                     continue;
 
-                if (RectTransform* transform = entity->GetScript<RectTransform>())
+                if (RectTransform* transform = CANIS_GET_SCRIPT(entity, RectTransform))
                 {
                     if (transform->parent != nullptr)
                     {
-                        if (RectTransform* parentTransform = transform->parent->GetScript<RectTransform>())
+                        if (RectTransform* parentTransform = CANIS_GET_SCRIPT(transform->parent, RectTransform))
                         {
                             auto& siblings = parentTransform->children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
@@ -234,16 +220,16 @@ namespace Canis
                         if (child == nullptr)
                             continue;
 
-                        if (RectTransform* childTransform = child->GetScript<RectTransform>())
+                        if (RectTransform* childTransform = CANIS_GET_SCRIPT(child, RectTransform))
                             childTransform->parent = entity;
                     }
                 }
 
-                if (Transform3D* transform = entity->GetScript<Transform3D>())
+                if (Transform3D* transform = CANIS_GET_SCRIPT(entity, Transform3D))
                 {
                     if (transform->parent != nullptr)
                     {
-                        if (Transform3D* parentTransform = transform->parent->GetScript<Transform3D>())
+                        if (Transform3D* parentTransform = CANIS_GET_SCRIPT(transform->parent, Transform3D))
                         {
                             auto& siblings = parentTransform->children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
@@ -260,7 +246,7 @@ namespace Canis
                         if (child == nullptr)
                             continue;
 
-                        if (Transform3D* childTransform = child->GetScript<Transform3D>())
+                        if (Transform3D* childTransform = CANIS_GET_SCRIPT(child, Transform3D))
                             childTransform->parent = entity;
                     }
                 }
@@ -268,8 +254,9 @@ namespace Canis
 
             for (auto e : newEntitys)
             {
-                for (ScriptableEntity* se : e->m_scriptComponents)
+                for (ScriptComponentEntry& entry : e->m_scriptComponents)
                 {
+                    ScriptableEntity* se = entry.script;
                     if (se)
                     {
                         se->Create();
@@ -389,6 +376,7 @@ namespace Canis
         entity->scene = this;
         entity->name = _name;
         entity->tag = _tag;
+        m_ecs.EnsureEntityCapacity(static_cast<u32>(entity->id));
 
         // TODO : handle better
         for (int i = 0; i < m_entities.size(); i++)
@@ -399,6 +387,7 @@ namespace Canis
                     Debug::Log("The Camera Just Died");
                 m_entities[i] = entity;
                 entity->id = i;
+                m_ecs.EnsureEntityCapacity(static_cast<u32>(entity->id));
                 QueueEntityForReady(entity->id);
                 return entity;
             }
@@ -513,18 +502,7 @@ namespace Canis
         // Clear slot first to prevent recursive self-destroy during callbacks.
         m_entities[_id] = nullptr;
 
-        for (ScriptableEntity* se : entity->m_scriptComponents)
-        {
-            if (se)
-                se->Destroy();
-        }
-
-        for (ScriptableEntity* se : entity->m_scriptComponents)
-        {
-            delete se;
-        }
-
-        entity->m_scriptComponents.clear();
+        entity->RemoveAllScripts();
         delete entity;
     }
 
@@ -549,5 +527,67 @@ namespace Canis
         //_system->time = m_time;
         //_system->camera = camera;
         m_systems.push_back(_system);
+        m_systemTimings.push_back(SystemTiming{
+            .name = _system->GetName(),
+            .updateMs = 0.0f,
+            .renderMs = 0.0f,
+            .system = _system
+        });
+    }
+
+    Scene::SystemTiming* Scene::GetSystemTiming(System* _system)
+    {
+        for (SystemTiming& timing : m_systemTimings)
+        {
+            if (timing.system == _system)
+                return &timing;
+        }
+
+        return nullptr;
+    }
+
+    void Scene::RegisterComponent(u32 _componentIndex, u64 _componentMask)
+    {
+        m_ecs.RegisterComponent(_componentIndex, _componentMask);
+    }
+
+    void Scene::UnregisterComponent(u32 _componentIndex)
+    {
+        m_ecs.UnregisterComponent(_componentIndex);
+    }
+
+    ScriptableEntity* Scene::AddComponentToEntity(u32 _entityId, u32 _componentIndex, u64 _componentMask, ScriptableEntity* _component)
+    {
+        return m_ecs.AddComponent(_componentIndex, _componentMask, _entityId, _component);
+    }
+
+    ScriptableEntity* Scene::GetComponentFromEntity(u32 _entityId, u32 _componentIndex)
+    {
+        return m_ecs.GetComponent(_componentIndex, _entityId);
+    }
+
+    const ScriptableEntity* Scene::GetComponentFromEntity(u32 _entityId, u32 _componentIndex) const
+    {
+        return m_ecs.GetComponent(_componentIndex, _entityId);
+    }
+
+    ScriptableEntity* Scene::RemoveComponentFromEntity(u32 _entityId, u32 _componentIndex)
+    {
+        return m_ecs.RemoveComponent(_componentIndex, _entityId);
+    }
+
+    u64 Scene::GetEntityComponentMask(u32 _entityId) const
+    {
+        return m_ecs.GetEntityMask(_entityId);
+    }
+
+    void Scene::InitECSView(RuntimeECSView& _view, u64 _requiredMask, u32 _capacity) const
+    {
+        m_ecs.InitView(_view, _requiredMask, _capacity);
+    }
+
+    void Scene::UpdateECSView(RuntimeECSView& _view) const
+    {
+        m_ecs.UpdateView(_view);
     }
 }

@@ -36,6 +36,8 @@ public:
 private:
     std::vector<ScriptConf> m_scriptRegistry = {};
     std::vector<InspectorItemRightClick> m_inspectorItemRegistry = {};
+    u32 m_nextComponentIndex = 0;
+    std::vector<u32> m_freeComponentIndices = {};
 
     void RegisterDefaults(Editor& _editor);
     Editor* m_editor;

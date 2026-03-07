@@ -34,7 +34,7 @@ namespace Canis
 
         for(int i = 1; i < graph.size(); i++)
         {
-            distance = _position.Distance(graph[i].position);
+            distance = glm::distance(_position, graph[i].position);
 
             if (minDistance > distance)
             {
@@ -177,7 +177,7 @@ namespace Canis
                         continue;
                     }
 
-                    float currentG = node->g + std::abs(node->position.Distance(neighborNode->position));
+                    float currentG = node->g + std::abs(glm::distance(node->position, neighborNode->position));
 
                     bool isNewPath = false;
 
@@ -198,7 +198,7 @@ namespace Canis
 
                     if (isNewPath)
                     {
-                        neighborNode->h = std::abs(neighborNode->position.Distance(graph[idTo].position));
+                        neighborNode->h = std::abs(glm::distance(neighborNode->position, graph[idTo].position));
                         neighborNode->f = neighborNode->g + neighborNode->h;
                         neighborNode->predecessorID = graphNodeIndex;
                     }

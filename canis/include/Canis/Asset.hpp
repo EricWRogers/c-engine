@@ -172,8 +172,8 @@ namespace Canis
             Vector3 translation = Vector3(0.0f);
             Vector4 rotation = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             Vector3 scale = Vector3(1.0f);
-            Matrix4 localMatrix = IdentitiyMatrix4();
-            Matrix4 globalMatrix = IdentitiyMatrix4();
+            Matrix4 localMatrix = Matrix4(1.0f);
+            Matrix4 globalMatrix = Matrix4(1.0f);
             bool hasMatrix = false;
         };
 

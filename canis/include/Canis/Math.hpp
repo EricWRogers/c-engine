@@ -1,301 +1,136 @@
-
 #pragma once
-#include <stdio.h>
-#include <string>
-#include <math.h>
+
+#include <cstddef>
 #include <functional>
+#include <string>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <Canis/Data/Types.hpp>
 
 namespace Canis
 {
-    const float PI = 3.14159265f;
-    const float RAD2DEG = 180.0f / PI;
-    const float DEG2RAD = PI / 180.0f;
+    inline constexpr float PI = 3.14159265f;
+    inline constexpr float RAD2DEG = 180.0f / PI;
+    inline constexpr float DEG2RAD = PI / 180.0f;
 
-    struct Vector3;
-    struct Vector4;
-    
-    struct Vector2
+    using Vector2 = glm::vec2;
+    using Vector3 = glm::vec3;
+    using Vector4 = glm::vec4;
+    using Matrix4 = glm::mat4;
+    using Color = Vector4;
+
+    inline const Vector2 VECTOR2_ZERO = Vector2(0.0f);
+
+    inline size_t HashCombine(size_t _seed, size_t _value)
     {
-        float x, y;
-
-        Vector2()
-        {
-            x = 0.0f;
-            y = 0.0f;
-        }
-        Vector2(float _scalor)
-        {
-            x = _scalor;
-            y = _scalor;
-        }
-        Vector2(float _x, float _y)
-        {
-            x = _x;
-            y = _y;
-        }
-        Vector2(Vector3 _v);
-        Vector2(Vector4 _v);
-
-        size_t Hash() const;
-        float Distance(const Vector2 &_other) const;
-        float Magnitude() const;
-        Vector2 Normalize();
-        const char *ToCString() const;
-
-        static Vector2 Normalize(const Vector2 &_vector);
-
-        // arithmetic
-        Vector2 operator+(const Vector2 &rhs) const;
-        Vector2 operator-(const Vector2 &rhs) const;
-        Vector2 operator*(float scalar) const;
-        Vector2 operator/(float scalar) const;
-
-        Vector2 operator-() const { return Vector2(-x, -y); }
-
-        Vector2 &operator+=(const Vector2 &rhs);
-        Vector2 &operator-=(const Vector2 &rhs);
-        Vector2 &operator*=(float scalar);
-        Vector2 &operator/=(float scalar);
-
-        bool operator==(const Vector2 &_other) const { return x == _other.x && y == _other.y; }
-        bool operator!=(const Vector2 &_other) const { return x != _other.x || y != _other.y; }
-    };
-
-    const Vector2 VECTOR2_ZERO;
-
-    struct Vector3
-    {
-        union
-        {
-            struct
-            {
-                float x, y, z;
-            }; // positional
-            struct
-            {
-                float r, g, b;
-            }; // color
-            float v[3]; // array access
-        };
-
-        Vector3()
-        {
-            x = 0.0f;
-            y = 0.0f;
-            z = 0.0f;
-        }
-        Vector3(float _scalor)
-        {
-            x = _scalor;
-            y = _scalor;
-            z = _scalor;
-        }
-        Vector3(Vector2 _v, float _z)
-        {
-            x = _v.x;
-            y = _v.y;
-            z = _z;
-        }
-        Vector3(float _x, float _y, float _z)
-        {
-            x = _x;
-            y = _y;
-            z = _z;
-        }
-
-        size_t Hash() const;
-        float Distance(const Vector3 &_other) const;
-        const char *ToCString() const;
-
-        // arithmetic
-        Vector3 operator+(const Vector3 &rhs) const;
-        Vector3 operator-(const Vector3 &rhs) const;
-        Vector3 operator*(float scalar) const;
-        Vector3 operator/(float scalar) const;
-
-        Vector3 &operator+=(const Vector3 &rhs);
-        Vector3 &operator-=(const Vector3 &rhs);
-        Vector3 &operator*=(float scalar);
-        Vector3 &operator/=(float scalar);
-
-        bool operator==(const Vector3 &rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
-        bool operator!=(const Vector3 &rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
-    };
-
-    struct Vector4
-    {
-        union
-        {
-            struct
-            {
-                float x, y, z, w;
-            }; // positional
-            struct
-            {
-                float r, g, b, a;
-            }; // color
-            float v[4]; // array access
-        };
-
-        Vector4()
-        {
-            x = 0.0f;
-            y = 0.0f;
-            z = 0.0f;
-            w = 0.0f;
-        }
-        Vector4(float _scalor)
-        {
-            x = _scalor;
-            y = _scalor;
-            z = _scalor;
-            w = _scalor;
-        }
-        Vector4(float _x, float _y, float _z, float _w)
-        {
-            x = _x;
-            y = _y;
-            z = _z;
-            w = _w;
-        }
-
-        size_t Hash() const;
-        const char *ToCString() const;
-
-        bool operator==(const Vector4 &rhs) const
-        {
-            return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
-        }
-
-        bool operator!=(const Vector4 &rhs) const
-        {
-            return !(*this == rhs);
-        }
-
-        Vector4 operator+(const Vector4 &rhs) const;
-        Vector4 operator-(const Vector4 &rhs) const;
-        Vector4 operator*(float scalar) const;
-        Vector4 operator/(float scalar) const;
-
-        Vector4 &operator+=(const Vector4 &rhs);
-        Vector4 &operator-=(const Vector4 &rhs);
-        Vector4 &operator*=(float scalar);
-        Vector4 &operator/=(float scalar);
-    };
-
-    typedef Vector4 Color;
-
-    struct Matrix4
-    {
-        float m[16]; // column major
-
-        Matrix4() {};
-
-        float &operator[](int _idx) { return m[_idx]; }
-        const float &operator[](int _idx) const { return m[_idx]; }
-
-        size_t Hash() const;
-        const char *ToCString() const;
-
-        bool operator==(const Matrix4 &rhs) const
-        {
-            for (int i = 0; i < 16; ++i)
-            {
-                if (m[i] != rhs.m[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        bool operator!=(const Matrix4 &rhs) const
-        {
-            return !(*this == rhs);
-        }
-
-        Matrix4 operator+(const Matrix4 &_rhs) const;
-        Matrix4 operator-(const Matrix4 &_rhs) const;
-        Matrix4 operator*(const Matrix4 &_rhs) const; // matrix * matrix
-        Vector4 operator*(const Vector4 &_v) const;   // matrix * vec4
-        Matrix4 operator*(float _scalar) const;
-
-        Matrix4 &operator+=(const Matrix4 &_rhs);
-        Matrix4 &operator-=(const Matrix4 &_rhs);
-        Matrix4 &operator*=(const Matrix4 &_rhs);
-        Matrix4 &operator*=(float _scalar);
-
-        void Identity();
-        void Translate(const Vector3 &_translation);
-        void Scale(const Vector3 &_scale);
-        void Rotate(float _radians, const Vector3 &_axis);
-        void Orthographic(float _left, float _right,
-                          float _bottom, float _top,
-                          float _near, float _far);
-        void Perspective(float _fovRadians, float _aspect, float _near, float _far);
-    };
-
-    static Matrix4 IdentitiyMatrix4() {
-        Matrix4 m;
-        m.Identity();
-        return m;
+        return _seed ^ (_value + 0x9e3779b97f4a7c15ULL + (_seed << 6) + (_seed >> 2));
     }
 
-    extern Vector2 RotatePoint(Vector2 _vector, float _radian);
+    inline size_t HashVector(const Vector2 &_v)
+    {
+        std::hash<float> h;
+        size_t out = h(_v.x);
+        out = HashCombine(out, h(_v.y));
+        return out;
+    }
 
-    extern void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle);
+    inline size_t HashVector(const Vector3 &_v)
+    {
+        std::hash<float> h;
+        size_t out = h(_v.x);
+        out = HashCombine(out, h(_v.y));
+        out = HashCombine(out, h(_v.z));
+        return out;
+    }
 
-    extern void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian);
+    inline size_t HashVector(const Vector4 &_v)
+    {
+        std::hash<float> h;
+        size_t out = h(_v.x);
+        out = HashCombine(out, h(_v.y));
+        out = HashCombine(out, h(_v.z));
+        out = HashCombine(out, h(_v.w));
+        return out;
+    }
 
-    extern void Clamp(int &_value, int _min, int _max);
+    inline size_t HashMatrix(const Matrix4 &_m)
+    {
+        std::hash<float> h;
+        size_t out = 0;
+        for (int col = 0; col < 4; ++col)
+        {
+            for (int row = 0; row < 4; ++row)
+                out = HashCombine(out, h(_m[col][row]));
+        }
+        return out;
+    }
 
-    extern void Clamp(float &_value, float _min, float _max);
+    inline const char *MatrixToCString(const Matrix4 &_m)
+    {
+        static thread_local std::string s;
+        s.clear();
+        s.reserve(256);
 
-    extern void Clamp(size_t &_value, size_t _min, size_t _max);
+        for (int row = 0; row < 4; ++row)
+        {
+            s += "[ ";
+            s += std::to_string(_m[0][row]);
+            s += " ";
+            s += std::to_string(_m[1][row]);
+            s += " ";
+            s += std::to_string(_m[2][row]);
+            s += " ";
+            s += std::to_string(_m[3][row]);
+            s += " ]";
+            if (row < 3)
+                s += "\n";
+        }
 
-    extern float Dot(const Vector3 &_a, const Vector3 &_b);
+        return s.c_str();
+    }
 
-    extern Vector3 Cross(const Vector3 &_a, const Vector3 &_b);
-
-    extern Vector3 Normalize(const Vector3 &_vector);
-
-    extern Vector4 NormalizeQuaternion(const Vector4 &_quat);
-
-    extern Vector4 SlerpQuaternion(const Vector4 &_a, const Vector4 &_b, float _t);
-
-    extern Matrix4 TRS(const Vector3 &_translation, const Vector4 &_rotation, const Vector3 &_scale);
-
-    extern Matrix4 LookAt(const Vector3 &_eye, const Vector3 &_target, const Vector3 &_up);
+    Vector2 RotatePoint(Vector2 _vector, float _radian);
+    void RotatePoint(Vector2 &_point, const float &_cosAngle, const float &_sinAngle);
+    void RotatePointAroundPivot(Vector2 &_point, const Vector2 &_pivot, float _radian);
 }
 
-namespace std {
+namespace std
+{
     template<>
-    struct hash<Canis::Vector2> {
-        size_t operator()(const Canis::Vector2 &v) const {
-            return v.Hash();
+    struct hash<Canis::Vector2>
+    {
+        size_t operator()(const Canis::Vector2 &v) const
+        {
+            return Canis::HashVector(v);
         }
     };
 
     template<>
-    struct hash<Canis::Vector3> {
-        size_t operator()(const Canis::Vector3 &v) const {
-            return v.Hash();
+    struct hash<Canis::Vector3>
+    {
+        size_t operator()(const Canis::Vector3 &v) const
+        {
+            return Canis::HashVector(v);
         }
     };
 
     template<>
-    struct hash<Canis::Vector4> {
-        size_t operator()(const Canis::Vector4 &v) const {
-            return v.Hash();
+    struct hash<Canis::Vector4>
+    {
+        size_t operator()(const Canis::Vector4 &v) const
+        {
+            return Canis::HashVector(v);
         }
     };
 
     template<>
-    struct hash<Canis::Matrix4> {
-        size_t operator()(const Canis::Matrix4 &m) const {
-            return m.Hash();
+    struct hash<Canis::Matrix4>
+    {
+        size_t operator()(const Canis::Matrix4 &m) const
+        {
+            return Canis::HashMatrix(m);
         }
     };
 }

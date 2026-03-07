@@ -15,6 +15,8 @@ namespace TankGame
         void Turret(float _dt);
         void UpdateGun(float _dt);
     public:
+        static constexpr const char* ScriptName = "TankGame::Tank";
+
         float speed = 10.0f;
         float turnSpeed = 25.0f;
         int count = 5;

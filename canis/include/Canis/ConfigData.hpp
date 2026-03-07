@@ -5,11 +5,14 @@
 #include <functional>
 #include <yaml-cpp/yaml.h>
 
+#include <Canis/Data/Types.hpp>
+
 namespace Canis
 {
 class App;
 class Entity;
 class Editor;
+class ScriptableEntity;
 
 using PropertySetter = std::function<void(YAML::Node&, void*)>;
 using PropertyGetter = std::function<YAML::Node(void*)>;
@@ -22,7 +25,10 @@ struct PropertyRegistry {
 
 struct ScriptConf {
     std::string name;
+    u32 componentIndex = u32_max;
+    u64 componentMask = 0;
     PropertyRegistry registry;
+    std::function<ScriptableEntity*(Entity&, bool)> Construct = nullptr;
     std::function<void(Entity&)> Add = nullptr;
     std::function<bool(Entity&)> Has = nullptr;
     std::function<void(Entity&)> Remove = nullptr;

@@ -17,6 +17,8 @@
 #include <string.h>
 #include <unordered_map>
 
+#include <glm/gtc/quaternion.hpp>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_filesystem.h>
 
@@ -417,13 +419,12 @@ namespace Canis
 
         Matrix4 MatrixFromNode(const tinygltf::Node &_node)
         {
-            Matrix4 matrix;
-            matrix.Identity();
+            Matrix4 matrix = Matrix4(1.0f);
 
             if (_node.matrix.size() == 16)
             {
                 for (size_t i = 0; i < 16; ++i)
-                    matrix[i] = static_cast<float>(_node.matrix[i]);
+                    matrix[i / 4][i % 4] = static_cast<float>(_node.matrix[i]);
                 return matrix;
             }
 
@@ -450,7 +451,8 @@ namespace Canis
                     static_cast<float>(_node.scale[1]),
                     static_cast<float>(_node.scale[2]));
 
-            return TRS(translation, rotation, scale);
+            const glm::quat q = glm::normalize(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
+            return glm::translate(Matrix4(1.0f), translation) * glm::mat4_cast(q) * glm::scale(Matrix4(1.0f), scale);
         }
 
         std::string ResolveTexturePath(
@@ -501,10 +503,24 @@ namespace Canis
             };
 
             if (keyCount == 1 || _time <= _sampler.inputs.front())
-                return _rotation ? NormalizeQuaternion(valueAt(0u)) : valueAt(0u);
+            {
+                if (!_rotation)
+                    return valueAt(0u);
+
+                const Vector4 value = valueAt(0u);
+                const glm::quat q = glm::normalize(glm::quat(value.w, value.x, value.y, value.z));
+                return Vector4(q.x, q.y, q.z, q.w);
+            }
 
             if (_time >= _sampler.inputs.back())
-                return _rotation ? NormalizeQuaternion(valueAt(keyCount - 1u)) : valueAt(keyCount - 1u);
+            {
+                if (!_rotation)
+                    return valueAt(keyCount - 1u);
+
+                const Vector4 value = valueAt(keyCount - 1u);
+                const glm::quat q = glm::normalize(glm::quat(value.w, value.x, value.y, value.z));
+                return Vector4(q.x, q.y, q.z, q.w);
+            }
 
             size_t rightKey = 1u;
             while (rightKey < keyCount && _time > _sampler.inputs[rightKey])
@@ -520,7 +536,13 @@ namespace Canis
             const Vector4 v1 = valueAt(rightKey);
 
             if (_sampler.interpolation == "STEP")
-                return _rotation ? NormalizeQuaternion(v0) : v0;
+            {
+                if (!_rotation)
+                    return v0;
+
+                const glm::quat q = glm::normalize(glm::quat(v0.w, v0.x, v0.y, v0.z));
+                return Vector4(q.x, q.y, q.z, q.w);
+            }
 
             if (_sampler.cubicSpline)
             {
@@ -538,11 +560,20 @@ namespace Canis
                 const float h11 = t3 - t2;
 
                 const Vector4 value = (v0 * h00) + (outTangent * h10) + (v1 * h01) + (inTangent * h11);
-                return _rotation ? NormalizeQuaternion(value) : value;
+                if (!_rotation)
+                    return value;
+
+                const glm::quat q = glm::normalize(glm::quat(value.w, value.x, value.y, value.z));
+                return Vector4(q.x, q.y, q.z, q.w);
             }
 
             if (_rotation)
-                return SlerpQuaternion(v0, v1, t);
+            {
+                const glm::quat q0 = glm::normalize(glm::quat(v0.w, v0.x, v0.y, v0.z));
+                const glm::quat q1 = glm::normalize(glm::quat(v1.w, v1.x, v1.y, v1.z));
+                const glm::quat q = glm::normalize(glm::slerp(q0, q1, t));
+                return Vector4(q.x, q.y, q.z, q.w);
+            }
 
             return v0 + ((v1 - v0) * t);
         }
@@ -585,7 +616,7 @@ namespace Canis
         m_bindTranslations.resize(gltfModel.nodes.size(), Vector3(0.0f));
         m_bindRotations.resize(gltfModel.nodes.size(), Vector4(0.0f, 0.0f, 0.0f, 1.0f));
         m_bindScales.resize(gltfModel.nodes.size(), Vector3(1.0f));
-        m_bindLocalMatrices.resize(gltfModel.nodes.size(), IdentitiyMatrix4());
+        m_bindLocalMatrices.resize(gltfModel.nodes.size(), Matrix4(1.0f));
 
         for (size_t i = 0; i < gltfModel.nodes.size(); ++i)
         {
@@ -670,7 +701,7 @@ namespace Canis
             for (int joint : skin.joints)
                 localSkin.joints.push_back(joint);
 
-            localSkin.inverseBindMatrices.resize(localSkin.joints.size(), IdentitiyMatrix4());
+            localSkin.inverseBindMatrices.resize(localSkin.joints.size(), Matrix4(1.0f));
             if (skin.inverseBindMatrices >= 0 && skin.inverseBindMatrices < (int)gltfModel.accessors.size())
             {
                 const tinygltf::Accessor &accessor = gltfModel.accessors[skin.inverseBindMatrices];
@@ -680,10 +711,9 @@ namespace Canis
                     const size_t matrixCount = std::min<size_t>(accessor.count, localSkin.inverseBindMatrices.size());
                     for (size_t matrixIndex = 0; matrixIndex < matrixCount; ++matrixIndex)
                     {
-                        Matrix4 matrix;
-                        matrix.Identity();
+                        Matrix4 matrix = Matrix4(1.0f);
                         for (size_t c = 0; c < 16; ++c)
-                            matrix[c] = matrixData[matrixIndex * 16u + c];
+                            matrix[c / 4][c % 4] = matrixData[matrixIndex * 16u + c];
                         localSkin.inverseBindMatrices[matrixIndex] = matrix;
                     }
                 }
@@ -1013,9 +1043,12 @@ namespace Canis
                     trsChanged[channel.targetNode] = true;
                     break;
                 case AnimationPath3D::ROTATION:
-                    rotations[channel.targetNode] = NormalizeQuaternion(sampled);
+                {
+                    const glm::quat q = glm::normalize(glm::quat(sampled.w, sampled.x, sampled.y, sampled.z));
+                    rotations[channel.targetNode] = Vector4(q.x, q.y, q.z, q.w);
                     trsChanged[channel.targetNode] = true;
                     break;
+                }
                 case AnimationPath3D::SCALE:
                     scales[channel.targetNode] = Vector3(sampled.x, sampled.y, sampled.z);
                     trsChanged[channel.targetNode] = true;
@@ -1031,10 +1064,14 @@ namespace Canis
             }
             else
             {
-                _pose.localNodeMatrices[nodeIndex] = TRS(
-                    translations[nodeIndex],
-                    rotations[nodeIndex],
-                    scales[nodeIndex]);
+                const glm::quat q = glm::normalize(glm::quat(
+                    rotations[nodeIndex].w,
+                    rotations[nodeIndex].x,
+                    rotations[nodeIndex].y,
+                    rotations[nodeIndex].z));
+                _pose.localNodeMatrices[nodeIndex] = glm::translate(Matrix4(1.0f), translations[nodeIndex]) *
+                    glm::mat4_cast(q) *
+                    glm::scale(Matrix4(1.0f), scales[nodeIndex]);
             }
         }
 
@@ -1060,10 +1097,16 @@ namespace Canis
             if (m_nodes[nodeIndex].hasMatrix)
                 _pose.localNodeMatrices[nodeIndex] = m_bindLocalMatrices[nodeIndex];
             else
-                _pose.localNodeMatrices[nodeIndex] = TRS(
-                    m_bindTranslations[nodeIndex],
-                    m_bindRotations[nodeIndex],
-                    m_bindScales[nodeIndex]);
+            {
+                const glm::quat q = glm::normalize(glm::quat(
+                    m_bindRotations[nodeIndex].w,
+                    m_bindRotations[nodeIndex].x,
+                    m_bindRotations[nodeIndex].y,
+                    m_bindRotations[nodeIndex].z));
+                _pose.localNodeMatrices[nodeIndex] = glm::translate(Matrix4(1.0f), m_bindTranslations[nodeIndex]) *
+                    glm::mat4_cast(q) *
+                    glm::scale(Matrix4(1.0f), m_bindScales[nodeIndex]);
+            }
         }
 
         UpdateGlobalMatrices(_pose);
@@ -1151,10 +1194,10 @@ namespace Canis
     void ModelAsset::EnsurePose(Pose3D &_pose) const
     {
         if (_pose.localNodeMatrices.size() != m_nodes.size())
-            _pose.localNodeMatrices.resize(m_nodes.size(), IdentitiyMatrix4());
+            _pose.localNodeMatrices.resize(m_nodes.size(), Matrix4(1.0f));
 
         if (_pose.globalNodeMatrices.size() != m_nodes.size())
-            _pose.globalNodeMatrices.resize(m_nodes.size(), IdentitiyMatrix4());
+            _pose.globalNodeMatrices.resize(m_nodes.size(), Matrix4(1.0f));
 
         if (_pose.skinnedVertices.size() != m_primitives.size())
             _pose.skinnedVertices.resize(m_primitives.size());
@@ -1204,8 +1247,7 @@ namespace Canis
         else
             std::fill(visited.begin(), visited.end(), false);
 
-        Matrix4 identity;
-        identity.Identity();
+        Matrix4 identity = Matrix4(1.0f);
 
         for (i32 root : m_sceneRoots)
             VisitNodeRecursive(root, identity, _pose, visited);
@@ -1237,9 +1279,9 @@ namespace Canis
 
             std::vector<Matrix4> &skinMatrices = _pose.skinMatricesScratch[primitiveIndex];
             if (skinMatrices.size() != skin.joints.size())
-                skinMatrices.resize(skin.joints.size(), IdentitiyMatrix4());
+                skinMatrices.resize(skin.joints.size(), Matrix4(1.0f));
             else
-                std::fill(skinMatrices.begin(), skinMatrices.end(), IdentitiyMatrix4());
+                std::fill(skinMatrices.begin(), skinMatrices.end(), Matrix4(1.0f));
 
             for (size_t jointIndex = 0; jointIndex < skin.joints.size(); ++jointIndex)
             {
@@ -1301,7 +1343,13 @@ namespace Canis
                 }
 
                 skinnedVertex.position = Vector3(position.x, position.y, position.z);
-                skinnedVertex.normal = Normalize(Vector3(normal.x, normal.y, normal.z));
+
+                const Vector3 normal3(normal.x, normal.y, normal.z);
+                const float normalLength = glm::length(normal3);
+                if (normalLength > 0.0f)
+                    skinnedVertex.normal = normal3 / normalLength;
+                else
+                    skinnedVertex.normal = Vector3(0.0f, 1.0f, 0.0f);
             }
         }
     }

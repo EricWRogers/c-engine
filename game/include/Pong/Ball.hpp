@@ -7,13 +7,15 @@ namespace Pong
     class Ball : public Canis::ScriptableEntity
     {
     public:
+        static constexpr const char* ScriptName = "Pong::Ball";
+
         Canis::Vector2 direction = Canis::Vector2(1.0f, 0.5f);
         float speed = 100.0f;
         float randomRotation = 0;
         float test = 150.0f;
 
-        Canis::RectTransform &transform = *entity.GetScript<Canis::RectTransform>();
-        Canis::Sprite2D &sprite = *entity.GetScript<Canis::Sprite2D>();
+        Canis::RectTransform &transform = *CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        Canis::Sprite2D &sprite = *CANIS_GET_SCRIPT(entity, Canis::Sprite2D);
 
         Ball(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 

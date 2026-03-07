@@ -66,13 +66,15 @@ namespace Canis
 
         void SetSort(GlyphSortType _sortType);
 
-        void Create();
+        void Create() override;
 
-        void Ready() {}
+        void Ready() override;
 
-        void Update();
+        void Update() override;
     private:
         void DrawText(Entity* _entity, RectTransform* _transform, Text* _text, const Vector2& _cameraPosition, float _halfWidth, float _halfHeight);
         float m_time = 0.0f;
+        RuntimeECSView m_cameraView = {};
+        RuntimeECSView m_drawablesView = {};
     };
 } // end of Canis namespace

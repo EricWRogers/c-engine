@@ -520,6 +520,39 @@ namespace Canis
         if (entity == nullptr)
             return;
 
+        // Capture child ids before component teardown mutates hierarchy links.
+        std::vector<int> childIdsToDestroy = {};
+        auto queueChildForDestroy = [&](Entity* _child)
+        {
+            if (_child == nullptr || _child == entity)
+                return;
+
+            const int childId = _child->id;
+            if (childId < 0 || childId >= static_cast<int>(m_entities.size()))
+                return;
+
+            if (m_entities[childId] != _child)
+                return;
+
+            if (std::find(childIdsToDestroy.begin(), childIdsToDestroy.end(), childId) == childIdsToDestroy.end())
+                childIdsToDestroy.push_back(childId);
+        };
+
+        if (RectTransform* rectTransform = CANIS_GET_SCRIPT(entity, RectTransform))
+        {
+            for (Entity* child : rectTransform->children)
+                queueChildForDestroy(child);
+        }
+
+        if (Transform3D* transform3D = CANIS_GET_SCRIPT(entity, Transform3D))
+        {
+            for (Entity* child : transform3D->children)
+                queueChildForDestroy(child);
+        }
+
+        for (int childId : childIdsToDestroy)
+            DestroyNow(childId);
+
         // Clear slot first to prevent recursive self-destroy during callbacks.
         m_entities[_id] = nullptr;
 

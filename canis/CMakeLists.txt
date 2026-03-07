@@ -12,8 +12,21 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
-target_include_directories(${CANIS_ENGINE_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include imgui yaml-cpp PRIVATE SDL3::SDL3 stb imguizmo libglew_static)
-target_link_libraries(${CANIS_ENGINE_LIB} PUBLIC imgui yaml-cpp PRIVATE SDL3::SDL3 stb imguizmo libglew_static)
+target_include_directories(${CANIS_ENGINE_LIB}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_link_libraries(${CANIS_ENGINE_LIB}
+    PUBLIC
+    glm
+    imgui
+    yaml-cpp
+    PRIVATE
+    SDL3::SDL3
+    stb
+    imguizmo
+    libglew_static
+)
 
 find_package(Freetype QUIET)
 if (Freetype_FOUND)
@@ -27,19 +40,13 @@ endif()
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC    
-    yaml-cpp
+    PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    imgui
-    PRIVATE
-    SDL3::SDL3
-    stb
-    libglew_static
-    imguizmo
 )
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
+    glm
     yaml-cpp
     imgui
     ${CANIS_ENGINE_LIB}

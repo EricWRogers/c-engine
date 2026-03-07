@@ -127,7 +127,6 @@ namespace Canis
                 if (imguiWantsKeyboard && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
-                Debug::Log("Key Down: %i", event.key.scancode);
                 PressKey(event.key.scancode);
                 m_lastInputDeviceType = InputDevice::KEYBOARD;
                 break;

@@ -15,7 +15,6 @@ add_library(GameCode SHARED
 # Include SDL3 headers if needed
 target_include_directories(GameCode PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CanisEngine
 )
 
 target_precompile_headers(GameCode PRIVATE

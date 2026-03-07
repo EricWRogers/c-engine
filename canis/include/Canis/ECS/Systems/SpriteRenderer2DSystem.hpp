@@ -60,7 +60,7 @@ namespace Canis
 
         void Draw(const Vector4 &destRect, const Vector4 &uvRect, const GLTexture &texture, const float &depth, const Color &color, const float &angle, const Vector2 &origin);
 
-        void SpriteRenderBatch(bool use2DCamera);
+        void SpriteRenderBatch(bool use2DCamera, const Matrix4* overrideProjection = nullptr);
 
         void CreateVertexArray();
 

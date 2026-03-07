@@ -30,6 +30,7 @@
 #include <filesystem>
 #include <cstdint>
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <cctype>
 
@@ -251,15 +252,19 @@ namespace Canis
 
         m_assetPaths = FindFilesInFolder("assets", "");
 
-        m_gameViewportWidth = _window->GetScreenWidth();
-        m_gameViewportHeight = _window->GetScreenHeight();
+        m_gameViewportWidth = _window->GetWindowWidth();
+        m_gameViewportHeight = _window->GetWindowHeight();
         EnsureGameRenderTarget(m_gameViewportWidth, m_gameViewportHeight);
+        m_playViewportWidth = _window->GetWindowWidth();
+        m_playViewportHeight = _window->GetWindowHeight();
+        EnsurePlayRenderTarget(m_playViewportWidth, m_playViewportHeight);
 #endif
     }
 
     Editor::~Editor()
     {
         DestroyGameRenderTarget();
+        DestroyPlayRenderTarget();
     }
 
     void Editor::BeginGameRender(Window* _window)
@@ -275,6 +280,27 @@ namespace Canis
         _window->SetRenderSize(targetWidth, targetHeight);
 
         glBindFramebuffer(GL_FRAMEBUFFER, m_gameFramebuffer);
+        glViewport(0, 0, targetWidth, targetHeight);
+
+        Color clear = _window->GetClearColor();
+        glClearColor(clear.r, clear.g, clear.b, clear.a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
+    }
+
+    void Editor::BeginPlayRender(Window* _window)
+    {
+#if CANIS_EDITOR
+        int targetWidth = (m_playViewportWidth > 0) ? m_playViewportWidth : _window->GetWindowWidth();
+        int targetHeight = (m_playViewportHeight > 0) ? m_playViewportHeight : _window->GetWindowHeight();
+
+        EnsurePlayRenderTarget(targetWidth, targetHeight);
+        if (m_playFramebuffer == 0)
+            return;
+
+        _window->SetRenderSize(targetWidth, targetHeight);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_playFramebuffer);
         glViewport(0, 0, targetWidth, targetHeight);
 
         Color clear = _window->GetClearColor();
@@ -306,11 +332,24 @@ namespace Canis
         m_gameSharedLib = _gameSharedLib;
         m_gameInputWindowID = SDL_GetWindowID((SDL_Window *)m_window->GetSDLWindow());
 
-        // TODO: Editor V2 Needs Refactor
+        // Pass 1: runtime/game camera (used by Game panel).
+        m_scene->ClearEditorCameraOverrides();
+        BeginPlayRender(m_window);
+        m_scene->Render(_deltaTime);
+        EndGameRender(m_window);
+
+        // Pass 2: editor scene camera (used by Scene panel + gizmos).
+        ApplyInternalSceneCamera(_deltaTime);
         BeginGameRender(m_window);
         m_scene->Render(_deltaTime);
         RenderGameDebug();
         EndGameRender(m_window);
+        m_scene->ClearEditorCameraOverrides();
+
+        // Keep logical gameplay size set to Game panel size for scripts/input math between frames.
+        const int gameplayWidth = (m_playViewportWidth > 0) ? m_playViewportWidth : m_window->GetWindowWidth();
+        const int gameplayHeight = (m_playViewportHeight > 0) ? m_playViewportHeight : m_window->GetWindowHeight();
+        m_window->SetRenderSize(gameplayWidth, gameplayHeight);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -409,6 +448,89 @@ namespace Canis
         ImGui::End();
     }
 
+    void Editor::ApplyInternalSceneCamera(float _deltaTime)
+    {
+        if (m_scene == nullptr || m_window == nullptr)
+            return;
+
+        m_scene->ClearEditorCameraOverrides();
+
+        // Keep gameplay camera behavior in play mode.
+        if (m_mode == EditorMode::PLAY || m_mode == EditorMode::HIDDEN)
+            return;
+
+        InputManager& input = m_scene->GetInputManager();
+        const bool rightClickNavigation = m_gameViewHovered && input.GetRightClick();
+
+        const int renderWidth = std::max(1, (m_gameViewportWidth > 0) ? m_gameViewportWidth : m_window->GetWindowWidth());
+        const int renderHeight = std::max(1, (m_gameViewportHeight > 0) ? m_gameViewportHeight : m_window->GetWindowHeight());
+
+        if (m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_3D)
+        {
+            if (rightClickNavigation)
+            {
+                m_editorCamera3DYaw += input.mouseRel.x * m_editorCamera3DLookSensitivity;
+                m_editorCamera3DPitch -= input.mouseRel.y * m_editorCamera3DLookSensitivity;
+                m_editorCamera3DPitch = std::clamp(m_editorCamera3DPitch, -89.0f, 89.0f);
+            }
+
+            const float yaw = DEG2RAD * m_editorCamera3DYaw;
+            const float pitch = DEG2RAD * m_editorCamera3DPitch;
+
+            Vector3 forward = Vector3(
+                std::cos(pitch) * std::cos(yaw),
+                std::sin(pitch),
+                std::cos(pitch) * std::sin(yaw));
+            forward = glm::normalize(forward);
+
+            const Vector3 worldUp = Vector3(0.0f, 1.0f, 0.0f);
+            Vector3 right = glm::normalize(glm::cross(forward, worldUp));
+            Vector3 up = glm::normalize(glm::cross(right, forward));
+
+            if (rightClickNavigation)
+            {
+                float moveSpeed = m_editorCamera3DMoveSpeed * _deltaTime;
+                if (input.GetKey(Canis::Key::LSHIFT) || input.GetKey(Canis::Key::RSHIFT))
+                    moveSpeed *= 3.0f;
+
+                if (input.GetKey(Canis::Key::W))
+                    m_editorCamera3DPosition += forward * moveSpeed;
+                if (input.GetKey(Canis::Key::S))
+                    m_editorCamera3DPosition -= forward * moveSpeed;
+                if (input.GetKey(Canis::Key::A))
+                    m_editorCamera3DPosition -= right * moveSpeed;
+                if (input.GetKey(Canis::Key::D))
+                    m_editorCamera3DPosition += right * moveSpeed;
+                if (input.GetKey(Canis::Key::Q))
+                    m_editorCamera3DPosition -= worldUp * moveSpeed;
+                if (input.GetKey(Canis::Key::E))
+                    m_editorCamera3DPosition += worldUp * moveSpeed;
+            }
+
+            const Matrix4 view = glm::lookAt(m_editorCamera3DPosition, m_editorCamera3DPosition + forward, up);
+            const float aspect = static_cast<float>(renderWidth) / static_cast<float>(renderHeight);
+            const Matrix4 projection = glm::perspective(DEG2RAD * m_editorCamera3DFovDegrees, aspect, 0.05f, 2000.0f);
+
+            m_scene->SetEditorCamera3DOverride(view, projection);
+        }
+        else
+        {
+            if (rightClickNavigation)
+            {
+                m_editorCamera2DPosition.x -= input.mouseRel.x;
+                m_editorCamera2DPosition.y += input.mouseRel.y;
+            }
+
+            Matrix4 projection = glm::ortho(0.0f, static_cast<float>(renderWidth), 0.0f,
+                                            static_cast<float>(renderHeight), 0.0f, 100.0f);
+            Matrix4 view = Matrix4(1.0f);
+            view = glm::translate(view, Vector3(-m_editorCamera2DPosition.x + renderWidth * 0.5f,
+                                                -m_editorCamera2DPosition.y + renderHeight * 0.5f, 0.0f));
+            view = glm::scale(view, Vector3(m_editorCamera2DScale, m_editorCamera2DScale, 0.0f));
+            m_scene->SetEditorCamera2DOverride(projection * view, m_editorCamera2DPosition);
+        }
+    }
+
     void Editor::RenderGameDebug()
     {
 #if CANIS_EDITOR
@@ -476,8 +598,8 @@ namespace Canis
 
             if (m_gameColorTexture != 0)
             {
-                float targetW = static_cast<float>(m_window->GetScreenWidth());
-                float targetH = static_cast<float>(m_window->GetScreenHeight());
+                float targetW = static_cast<float>((m_gameTextureWidth > 0) ? m_gameTextureWidth : 1);
+                float targetH = static_cast<float>((m_gameTextureHeight > 0) ? m_gameTextureHeight : 1);
                 float targetAspect = targetW / targetH;
                 float availAspect = (avail.y > 0.0f) ? (avail.x / avail.y) : targetAspect;
 
@@ -545,12 +667,18 @@ namespace Canis
         int nextWidth = static_cast<int>(avail.x);
         int nextHeight = static_cast<int>(avail.y);
 
+        if (nextWidth != m_playViewportWidth || nextHeight != m_playViewportHeight)
+        {
+            m_playViewportWidth = std::max(0, nextWidth);
+            m_playViewportHeight = std::max(0, nextHeight);
+        }
+
         if (nextWidth > 0 && nextHeight > 0)
         {
-            if (m_gameColorTexture != 0)
+            if (m_playColorTexture != 0)
             {
-                float targetW = static_cast<float>(m_window->GetScreenWidth());
-                float targetH = static_cast<float>(m_window->GetScreenHeight());
+                float targetW = static_cast<float>((m_playTextureWidth > 0) ? m_playTextureWidth : 1);
+                float targetH = static_cast<float>((m_playTextureHeight > 0) ? m_playTextureHeight : 1);
                 float targetAspect = targetW / targetH;
                 float availAspect = (avail.y > 0.0f) ? (avail.x / avail.y) : targetAspect;
 
@@ -566,7 +694,7 @@ namespace Canis
                 ImGui::SetCursorPos(ImVec2(cursor.x + offset.x, cursor.y + offset.y));
 
                 ImGui::Image(
-                    (ImTextureID)(intptr_t)m_gameColorTexture,
+                    (ImTextureID)(intptr_t)m_playColorTexture,
                     drawSize,
                     ImVec2(0.0f, 1.0f),
                     ImVec2(1.0f, 0.0f));
@@ -646,8 +774,8 @@ namespace Canis
                 return;
 
             Matrix4 projection = Matrix4(1.0f);
-            const float aspect = (m_window->GetScreenHeight() > 0)
-                ? (static_cast<float>(m_window->GetScreenWidth()) / static_cast<float>(m_window->GetScreenHeight()))
+            const float aspect = (m_gameTextureHeight > 0)
+                ? (static_cast<float>(m_gameTextureWidth) / static_cast<float>(m_gameTextureHeight))
                 : 1.0f;
             projection = glm::perspective(DEG2RAD * camera3D->fovDegrees, aspect, camera3D->nearClip, camera3D->farClip);
 
@@ -845,6 +973,48 @@ namespace Canis
         m_gameTextureHeight = _height;
     }
 
+    void Editor::EnsurePlayRenderTarget(int _width, int _height)
+    {
+        if (_width <= 0 || _height <= 0)
+            return;
+
+        if (m_playFramebuffer != 0 &&
+            _width == m_playTextureWidth &&
+            _height == m_playTextureHeight)
+        {
+            return;
+        }
+
+        DestroyPlayRenderTarget();
+
+        glGenFramebuffers(1, &m_playFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_playFramebuffer);
+
+        glGenTextures(1, &m_playColorTexture);
+        glBindTexture(GL_TEXTURE_2D, m_playColorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_playColorTexture, 0);
+
+        glGenRenderbuffers(1, &m_playDepthRbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_playDepthRbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _width, _height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_playDepthRbo);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            Debug::Log("Play framebuffer incomplete.");
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        m_playTextureWidth = _width;
+        m_playTextureHeight = _height;
+    }
+
     void Editor::DestroyGameRenderTarget()
     {
         if (m_gameDepthRbo != 0)
@@ -867,6 +1037,30 @@ namespace Canis
 
         m_gameTextureWidth = 0;
         m_gameTextureHeight = 0;
+    }
+
+    void Editor::DestroyPlayRenderTarget()
+    {
+        if (m_playDepthRbo != 0)
+        {
+            glDeleteRenderbuffers(1, &m_playDepthRbo);
+            m_playDepthRbo = 0;
+        }
+
+        if (m_playColorTexture != 0)
+        {
+            glDeleteTextures(1, &m_playColorTexture);
+            m_playColorTexture = 0;
+        }
+
+        if (m_playFramebuffer != 0)
+        {
+            glDeleteFramebuffers(1, &m_playFramebuffer);
+            m_playFramebuffer = 0;
+        }
+
+        m_playTextureWidth = 0;
+        m_playTextureHeight = 0;
     }
 
     void Editor::FocusEntity(Canis::Entity *_entity)
@@ -2217,6 +2411,12 @@ namespace Canis
             }
         }
 
+        ImGui::SameLine();
+        int sceneCameraMode = static_cast<int>(m_sceneCameraMode);
+        const char* sceneCameraModeLabels[] = { "Scene Cam: 3D", "Scene Cam: 2D" };
+        if (ImGui::Combo("##SceneCameraMode", &sceneCameraMode, sceneCameraModeLabels, IM_ARRAYSIZE(sceneCameraModeLabels)))
+            m_sceneCameraMode = static_cast<SceneCameraMode>(sceneCameraMode);
+
         size_t entityCount = 0;
 
         for (Entity *e : m_scene->GetEntities())
@@ -2248,8 +2448,8 @@ namespace Canis
         ImVec2 mousePos = ImGui::GetMousePos();
         float localX = mousePos.x - m_gameViewportPosX;
         float localY = mousePos.y - m_gameViewportPosY;
-        float logicalWidth = static_cast<float>(m_window->GetScreenWidth());
-        float logicalHeight = static_cast<float>(m_window->GetScreenHeight());
+        float logicalWidth = static_cast<float>((m_gameTextureWidth > 0) ? m_gameTextureWidth : m_window->GetWindowWidth());
+        float logicalHeight = static_cast<float>((m_gameTextureHeight > 0) ? m_gameTextureHeight : m_window->GetWindowHeight());
         float scaleX = logicalWidth / m_gameViewportDrawWidth;
         float scaleY = logicalHeight / m_gameViewportDrawHeight;
         localX *= scaleX;

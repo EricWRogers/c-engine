@@ -444,7 +444,7 @@ namespace Canis
         glyphsCurrentIndex++;
     }
 
-    void SpriteRenderer2DSystem::SpriteRenderBatch(bool use2DCamera)
+    void SpriteRenderer2DSystem::SpriteRenderBatch(bool use2DCamera, const Matrix4* overrideProjection)
     {
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0);
@@ -454,7 +454,9 @@ namespace Canis
 
         Matrix4 projection = Matrix4(1.0f);
 
-        if (use2DCamera) {
+        if (overrideProjection != nullptr) {
+            projection = *overrideProjection;
+        } else if (use2DCamera) {
             camera2D->UpdateMatrix();
             projection = camera2D->GetCameraMatrix();
         } else {
@@ -559,6 +561,8 @@ namespace Canis
         Begin(glyphSortType);
 
         bool cameraFound = false;
+        bool editorCameraOverride = scene->HasEditorCamera2DOverride();
+        Matrix4 overrideProjection = Matrix4(1.0f);
         scene->UpdateECSView(m_cameraView);
 
         for (u32 entityId : m_cameraView.entities)
@@ -576,13 +580,21 @@ namespace Canis
             }
         }
 
+        if (editorCameraOverride)
+        {
+            cameraFound = true;
+            overrideProjection = scene->GetEditorCamera2DMatrix();
+        }
+
         // Draw
         Vector2 positionAnchor = Vector2(0.0f);
         float halfWidth = window->GetScreenWidth() / 2;
         float halfHeight = window->GetScreenHeight() / 2;
         Vector2 camPos;
 
-        if (cameraFound)
+        if (editorCameraOverride)
+            camPos = scene->GetEditorCamera2DPosition();
+        else if (cameraFound)
             camPos = camera2D->GetPosition();
         else
             camPos = Vector2(0.0f);
@@ -644,7 +656,7 @@ namespace Canis
         }
 
         End();
-        SpriteRenderBatch(cameraFound);
+        SpriteRenderBatch(cameraFound, editorCameraOverride ? &overrideProjection : nullptr);
 
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);

@@ -21,10 +21,31 @@ namespace Canis
         m_window = _window;
         m_inputManager = _inputManger;
         m_path = _path;
+        ClearEditorCameraOverrides();
 
         // TODO resizing breaks components
         // I think this is fixed but needs more testing
         m_entities.reserve(1000);
+    }
+
+    void Scene::SetEditorCamera3DOverride(const Matrix4 &_view, const Matrix4 &_projection)
+    {
+        m_editorCamera3DOverrideEnabled = true;
+        m_editorCamera3DView = _view;
+        m_editorCamera3DProjection = _projection;
+    }
+
+    void Scene::SetEditorCamera2DOverride(const Matrix4 &_cameraMatrix, const Vector2 &_position)
+    {
+        m_editorCamera2DOverrideEnabled = true;
+        m_editorCamera2DMatrix = _cameraMatrix;
+        m_editorCamera2DPosition = _position;
+    }
+
+    void Scene::ClearEditorCameraOverrides()
+    {
+        m_editorCamera3DOverrideEnabled = false;
+        m_editorCamera2DOverrideEnabled = false;
     }
 
     void Scene::Update(float _deltaTime)

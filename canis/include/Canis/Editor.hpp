@@ -46,6 +46,7 @@ namespace Canis
         void Init(Window* _window);
         void Draw(Scene* _scene, Window* _window, App* _app, GameCodeObject* _gameSharedLib, float _deltaTime);
         void BeginGameRender(Window* _window);
+        void BeginPlayRender(Window* _window);
         void EndGameRender(Window* _window);
         void RenderGameDebug();
         unsigned int GetGameInputWindowID() const { return m_gameInputWindowID; }
@@ -59,11 +60,14 @@ namespace Canis
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
         void DrawMainDockspace();
+        void ApplyInternalSceneCamera(float _deltaTime);
         void DrawSceneView();
         void DrawGameView();
         void DrawSceneViewGizmo();
         void EnsureGameRenderTarget(int _width, int _height);
+        void EnsurePlayRenderTarget(int _width, int _height);
         void DestroyGameRenderTarget();
+        void DestroyPlayRenderTarget();
         void DrawInspectorPanel(bool _refresh);
         void DrawAddComponentDropDown(bool _refresh);
         //void DrawSystemPanel();
@@ -95,6 +99,12 @@ namespace Canis
             RECT,
         };
 
+        enum SceneCameraMode
+        {
+            SCENE_CAMERA_3D = 0,
+            SCENE_CAMERA_2D = 1,
+        };
+
         Scene *m_scene;
         App *m_app;
         Window* m_window;
@@ -103,8 +113,17 @@ namespace Canis
         bool m_forceRefresh = false;
         EditorMode m_mode = EditorMode::EDIT;
         DebugDraw m_debugDraw = DebugDraw::NONE;
+        SceneCameraMode m_sceneCameraMode = SceneCameraMode::SCENE_CAMERA_3D;
         GuizmoMode m_guizmoMode = GuizmoMode::WORLD;
         std::vector<std::string> m_assetPaths = {};
+        Vector3 m_editorCamera3DPosition = Vector3(0.0f, 2.0f, 8.0f);
+        float m_editorCamera3DYaw = -90.0f;
+        float m_editorCamera3DPitch = -12.0f;
+        float m_editorCamera3DFovDegrees = 60.0f;
+        float m_editorCamera3DMoveSpeed = 8.0f;
+        float m_editorCamera3DLookSensitivity = 0.12f;
+        Vector2 m_editorCamera2DPosition = Vector2(0.0f);
+        float m_editorCamera2DScale = 1.0f;
 
         // asset panel
         bool m_isRenamingAsset = false;
@@ -125,6 +144,15 @@ namespace Canis
         bool m_gameViewHovered = false;
         int m_gameTextureWidth = 0;
         int m_gameTextureHeight = 0;
+
+        unsigned int m_playFramebuffer = 0;
+        unsigned int m_playColorTexture = 0;
+        unsigned int m_playDepthRbo = 0;
+        int m_playViewportWidth = 0;
+        int m_playViewportHeight = 0;
+        int m_playTextureWidth = 0;
+        int m_playTextureHeight = 0;
+
         unsigned int m_gameInputWindowID = 0;
     };
 }

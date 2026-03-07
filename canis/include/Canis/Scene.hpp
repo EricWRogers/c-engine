@@ -1,6 +1,7 @@
 #pragma once
 #include <Canis/UUID.hpp>
 #include <Canis/ECS/RuntimeECS.hpp>
+#include <Canis/Math.hpp>
 
 #include <string>
 #include <vector>
@@ -51,6 +52,17 @@ namespace Canis
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }
+
+        void SetEditorCamera3DOverride(const Matrix4 &_view, const Matrix4 &_projection);
+        void SetEditorCamera2DOverride(const Matrix4 &_cameraMatrix, const Vector2 &_position);
+        void ClearEditorCameraOverrides();
+
+        bool HasEditorCamera3DOverride() const { return m_editorCamera3DOverrideEnabled; }
+        bool HasEditorCamera2DOverride() const { return m_editorCamera2DOverrideEnabled; }
+        const Matrix4& GetEditorCamera3DView() const { return m_editorCamera3DView; }
+        const Matrix4& GetEditorCamera3DProjection() const { return m_editorCamera3DProjection; }
+        const Matrix4& GetEditorCamera2DMatrix() const { return m_editorCamera2DMatrix; }
+        const Vector2& GetEditorCamera2DPosition() const { return m_editorCamera2DPosition; }
 
 
         Entity* CreateEntity(std::string _name = "", std::string _tag = "");
@@ -121,6 +133,12 @@ namespace Canis
         std::vector<int> m_entitiesToReady = {};
         std::vector<int> m_entitiesToDestroy = {};
         bool m_isUpdating = false;
+        bool m_editorCamera3DOverrideEnabled = false;
+        bool m_editorCamera2DOverrideEnabled = false;
+        Matrix4 m_editorCamera3DView = Matrix4(1.0f);
+        Matrix4 m_editorCamera3DProjection = Matrix4(1.0f);
+        Matrix4 m_editorCamera2DMatrix = Matrix4(1.0f);
+        Vector2 m_editorCamera2DPosition = Vector2(0.0f);
 
         // this is used when duplicating entity
         std::unordered_map<UUID, UUID> m_targetUUIDNewUUID;

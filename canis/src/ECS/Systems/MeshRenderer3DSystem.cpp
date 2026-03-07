@@ -58,48 +58,58 @@ namespace Canis
         if (m_shader == nullptr)
             return;
 
-        Camera3D *camera = nullptr;
-        Transform3D *cameraTransform = nullptr;
-
-        scene->UpdateECSView(m_cameraView);
-        for (u32 entityId : m_cameraView.entities)
-        {
-            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
-            if (entity == nullptr || !entity->active)
-                continue;
-
-            Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
-            Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
-            if (candidateCamera == nullptr || candidateTransform == nullptr)
-                continue;
-
-            if (candidateCamera->primary)
-            {
-                camera = candidateCamera;
-                cameraTransform = candidateTransform;
-                break;
-            }
-
-            if (camera == nullptr)
-            {
-                camera = candidateCamera;
-                cameraTransform = candidateTransform;
-            }
-        }
-
-        if (camera == nullptr || cameraTransform == nullptr)
-            return;
-
         Matrix4 projection = Matrix4(1.0f);
-        const float aspect = (window->GetScreenHeight() > 0)
-            ? (static_cast<float>(window->GetScreenWidth()) / static_cast<float>(window->GetScreenHeight()))
-            : 1.0f;
-        projection = glm::perspective(DEG2RAD * camera->fovDegrees, aspect, camera->nearClip, camera->farClip);
+        Matrix4 view = Matrix4(1.0f);
 
-        const Vector3 eye = cameraTransform->GetGlobalPosition();
-        const Vector3 target = eye + cameraTransform->GetForward();
-        const Vector3 up = cameraTransform->GetUp();
-        const Matrix4 view = glm::lookAt(eye, target, up);
+        if (scene->HasEditorCamera3DOverride())
+        {
+            projection = scene->GetEditorCamera3DProjection();
+            view = scene->GetEditorCamera3DView();
+        }
+        else
+        {
+            Camera3D *camera = nullptr;
+            Transform3D *cameraTransform = nullptr;
+
+            scene->UpdateECSView(m_cameraView);
+            for (u32 entityId : m_cameraView.entities)
+            {
+                Entity *entity = scene->GetEntity(static_cast<int>(entityId));
+                if (entity == nullptr || !entity->active)
+                    continue;
+
+                Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
+                Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
+                if (candidateCamera == nullptr || candidateTransform == nullptr)
+                    continue;
+
+                if (candidateCamera->primary)
+                {
+                    camera = candidateCamera;
+                    cameraTransform = candidateTransform;
+                    break;
+                }
+
+                if (camera == nullptr)
+                {
+                    camera = candidateCamera;
+                    cameraTransform = candidateTransform;
+                }
+            }
+
+            if (camera == nullptr || cameraTransform == nullptr)
+                return;
+
+            const float aspect = (window->GetScreenHeight() > 0)
+                ? (static_cast<float>(window->GetScreenWidth()) / static_cast<float>(window->GetScreenHeight()))
+                : 1.0f;
+            projection = glm::perspective(DEG2RAD * camera->fovDegrees, aspect, camera->nearClip, camera->farClip);
+
+            const Vector3 eye = cameraTransform->GetGlobalPosition();
+            const Vector3 target = eye + cameraTransform->GetForward();
+            const Vector3 up = cameraTransform->GetUp();
+            view = glm::lookAt(eye, target, up);
+        }
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);

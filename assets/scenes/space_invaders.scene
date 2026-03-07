@@ -1,0 +1,478 @@
+Environment:
+  ClearColor: [0.035, 0.04, 0.07, 1]
+Entities:
+  - Entity: 1001
+    Name: Camera
+    Tag: MainCamera
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [32, 32]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Camera2D:
+      position: [0, 0]
+      scale: 1
+
+  - Entity: 2001
+    Name: Player
+    Tag: Player
+    Canis::RectTransform:
+      active: true
+      position: [0, -180]
+      size: [56, 56]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.25, 0.95, 0.8, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::PlayerShip:
+      speed: 300
+      fireCooldown: 0.2
+      bulletSpeed: 460
+      bulletLifetime: 2
+
+  - Entity: 3001
+    Name: Invader_00
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-200, 140]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.3, 0.3, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3002
+    Name: Invader_01
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-100, 140]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.55, 0.2, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3003
+    Name: Invader_02
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [0, 140]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.85, 0.2, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3004
+    Name: Invader_03
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [100, 140]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.55, 1, 0.25, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3005
+    Name: Invader_04
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [200, 140]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.25, 1, 0.45, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3011
+    Name: Invader_10
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-200, 90]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.25, 0.9, 1, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3012
+    Name: Invader_11
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-100, 90]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.25, 0.65, 1, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3013
+    Name: Invader_12
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [0, 90]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.5, 0.45, 1, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3014
+    Name: Invader_13
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [100, 90]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.75, 0.35, 1, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3015
+    Name: Invader_14
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [200, 90]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.3, 0.85, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3021
+    Name: Invader_20
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-200, 40]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.55, 0.65, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3022
+    Name: Invader_21
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [-100, 40]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.7, 0.5, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3023
+    Name: Invader_22
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [0, 40]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.95, 0.9, 0.4, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3024
+    Name: Invader_23
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [100, 40]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.65, 0.95, 0.4, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 3025
+    Name: Invader_24
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [200, 40]
+      size: [44, 44]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.35, 0.95, 0.65, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 10
+      wobbleAmplitude: 0.06
+      wobbleSpeed: 6
+
+  - Entity: 4001
+    Name: UFO
+    Tag: Enemy
+    Canis::RectTransform:
+      active: true
+      position: [0, 210]
+      size: [52, 52]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.01
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [1, 0.2, 0.45, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 10819762428735356505
+    SpaceInvaders::Invader:
+      points: 50
+      wobbleAmplitude: 0.08
+      wobbleSpeed: 8
+
+  - Entity: 9001
+    Name: GameController
+    Tag: ""
+    SpaceInvaders::GameController:
+      score: 0
+      lives: 3
+      gameOver: false
+      levelCleared: false
+    SpaceInvaders::SwarmController:
+      horizontalSpeed: 50
+      stepDown: 26
+      fireInterval: 1.1
+      enemyBulletSpeed: 220
+      enemyBulletLifetime: 4

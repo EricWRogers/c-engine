@@ -10,6 +10,11 @@
 #include "../include/Pong/Paddle.hpp"
 #include <TankGame/Tank.hpp>
 #include <TankGame/Bullet.hpp>
+#include <SpaceInvaders/GameController.hpp>
+#include <SpaceInvaders/PlayerShip.hpp>
+#include <SpaceInvaders/SwarmController.hpp>
+#include <SpaceInvaders/Invader.hpp>
+#include <SpaceInvaders/Projectile.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -35,6 +40,11 @@ extern "C"
         TankGame::RegisterBulletScript(app);
         Pong::RegisterBallScript(app);
         Pong::RegisterPaddleScript(app);
+        SpaceInvaders::RegisterGameControllerScript(app);
+        SpaceInvaders::RegisterPlayerShipScript(app);
+        SpaceInvaders::RegisterSwarmControllerScript(app);
+        SpaceInvaders::RegisterInvaderScript(app);
+        SpaceInvaders::RegisterProjectileScript(app);
         
 
         Canis::Debug::Log("Game initialized!");
@@ -59,6 +69,11 @@ extern "C"
         Pong::UnRegisterPaddleScript(app);
         TankGame::UnRegisterTankScript(app);
         TankGame::UnRegisterBulletScript(app);
+        SpaceInvaders::UnRegisterProjectileScript(app);
+        SpaceInvaders::UnRegisterInvaderScript(app);
+        SpaceInvaders::UnRegisterSwarmControllerScript(app);
+        SpaceInvaders::UnRegisterPlayerShipScript(app);
+        SpaceInvaders::UnRegisterGameControllerScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;
@@ -67,9 +82,9 @@ extern "C"
     void SpawnAwesome(Canis::App &_app)
     {
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
-        Canis::RectTransform * transform = entityOne->AddScript<Canis::RectTransform>();
-        Canis::Sprite2D *sprite = entityOne->AddScript<Canis::Sprite2D>();
-        entityOne->AddScript<Pong::Ball>();
+        Canis::RectTransform * transform = CANIS_ADD_SCRIPT(entityOne, Canis::RectTransform);
+        Canis::Sprite2D *sprite = CANIS_ADD_SCRIPT(entityOne, Canis::Sprite2D);
+        CANIS_ADD_SCRIPT(entityOne, Pong::Ball);
 
         sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         transform->size = Vector2(32.0f);

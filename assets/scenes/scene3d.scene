@@ -47,7 +47,7 @@ Entities:
       position: [0, 0, 0]
       rotation: [0, 0, 0]
       scale: [1, 1, 1]
-      parent: 0
+      parent: 4446671720531257211
       children:
         - 102
         - 12055382215490480631
@@ -104,7 +104,7 @@ Entities:
       position: [0, 0, -2]
       rotation: [0, 0, 0]
       scale: [1, 1, 1]
-      parent: 0
+      parent: 4446671720531257211
       children:
         - 8095028473786721017
         - 18321008979560940991
@@ -183,7 +183,7 @@ Entities:
       position: [0, 0, -4]
       rotation: [0, 0, 0]
       scale: [1, 1, 1]
-      parent: 0
+      parent: 4446671720531257211
       children:
         - 17816358247336517187
         - 7900536474301679702
@@ -254,20 +254,46 @@ Entities:
       animationSpeed: 1
       animationTime: 0
       animationIndex: 8
-  - Entity: 988755227823267231
+  - Entity: 16670175799899201965
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 11690829725740213218
+        - 5165976878918243064
+        - 2171600088297164162
+  - Entity: 4446671720531257211
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [6, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 7401146293353079073
+        - 1372968077357914684
+        - 5096152816868960373
+  - Entity: 11690829725740213218
     Name: Parent
     Tag: ""
     Canis::Transform3D:
       active: true
-      position: [0, 0, -6]
+      position: [0, 0, 0]
       rotation: [0, 0, 0]
       scale: [1, 1, 1]
-      parent: 0
+      parent: 16670175799899201965
       children:
-        - 16276368724089375476
-        - 2192363069171882109
-        - 17309028508724473995
-  - Entity: 16276368724089375476
+        - 6073977755657524967
+        - 17755423163022152506
+        - 4253446301873122412
+  - Entity: 6073977755657524967
     Name: Model
     Tag: ""
     Canis::Transform3D:
@@ -275,7 +301,165 @@ Entities:
       position: [-2, -1, 0]
       rotation: [0, 0, 0]
       scale: [100, 100, 100]
-      parent: 988755227823267231
+      parent: 11690829725740213218
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+  - Entity: 17755423163022152506
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 11690829725740213218
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 1
+  - Entity: 4253446301873122412
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 11690829725740213218
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 2
+  - Entity: 5165976878918243064
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 16670175799899201965
+      children:
+        - 6037099844769499459
+        - 6491962695504630229
+        - 14404401830073320577
+  - Entity: 6037099844769499459
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 5165976878918243064
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 3
+  - Entity: 6491962695504630229
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 5165976878918243064
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 4
+  - Entity: 14404401830073320577
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 5165976878918243064
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 5
+  - Entity: 2171600088297164162
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -4]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 16670175799899201965
+      children:
+        - 5870209014988781841
+        - 3181478832650266083
+        - 2797886840263271038
+  - Entity: 5870209014988781841
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 2171600088297164162
       children:
         []
     Canis::Model3D:
@@ -289,7 +473,7 @@ Entities:
       animationSpeed: 1
       animationTime: 0
       animationIndex: 6
-  - Entity: 2192363069171882109
+  - Entity: 3181478832650266083
     Name: Model
     Tag: ""
     Canis::Transform3D:
@@ -297,7 +481,7 @@ Entities:
       position: [0, -1, 0]
       rotation: [0, 0, 0]
       scale: [100, 100, 100]
-      parent: 988755227823267231
+      parent: 2171600088297164162
       children:
         []
     Canis::Model3D:
@@ -311,7 +495,7 @@ Entities:
       animationSpeed: 1
       animationTime: 0
       animationIndex: 7
-  - Entity: 17309028508724473995
+  - Entity: 2797886840263271038
     Name: Model
     Tag: ""
     Canis::Transform3D:
@@ -319,7 +503,1007 @@ Entities:
       position: [2, -1, 0]
       rotation: [0, 0, 0]
       scale: [100, 100, 100]
-      parent: 988755227823267231
+      parent: 2171600088297164162
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 8
+  - Entity: 2836287388435359738
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-6, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 4764754825860400423
+        - 15155523196258667961
+        - 3107061786819109643
+  - Entity: 4764754825860400423
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 2836287388435359738
+      children:
+        - 6823718744641848164
+        - 5338053970328186110
+        - 6010877719026056383
+  - Entity: 6823718744641848164
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4764754825860400423
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+  - Entity: 5338053970328186110
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4764754825860400423
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 1
+  - Entity: 6010877719026056383
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4764754825860400423
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 2
+  - Entity: 15155523196258667961
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 2836287388435359738
+      children:
+        - 14925831951227201103
+        - 13616233377480060424
+        - 14091248173978178347
+  - Entity: 14925831951227201103
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15155523196258667961
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 3
+  - Entity: 13616233377480060424
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15155523196258667961
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 4
+  - Entity: 14091248173978178347
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15155523196258667961
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 5
+  - Entity: 3107061786819109643
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -4]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 2836287388435359738
+      children:
+        - 2917479808610038081
+        - 3851661610506230224
+        - 10610774977047638755
+  - Entity: 2917479808610038081
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 3107061786819109643
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 6
+  - Entity: 3851661610506230224
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 3107061786819109643
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 7
+  - Entity: 10610774977047638755
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 3107061786819109643
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 8
+  - Entity: 16353438828495338595
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -6]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 10960855588237419384
+        - 7742548209021652950
+        - 7147319594592643272
+  - Entity: 10960855588237419384
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 16353438828495338595
+      children:
+        - 11762960303237157456
+        - 9577647851767745092
+        - 1825677981477508760
+  - Entity: 11762960303237157456
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 10960855588237419384
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+  - Entity: 9577647851767745092
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 10960855588237419384
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 1
+  - Entity: 1825677981477508760
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 10960855588237419384
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 2
+  - Entity: 7742548209021652950
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 16353438828495338595
+      children:
+        - 6795066420073783732
+        - 9392161235585408994
+        - 772404389486168217
+  - Entity: 6795066420073783732
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7742548209021652950
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 3
+  - Entity: 9392161235585408994
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7742548209021652950
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 4
+  - Entity: 772404389486168217
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7742548209021652950
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 5
+  - Entity: 7147319594592643272
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -4]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 16353438828495338595
+      children:
+        - 6487258035063688990
+        - 2253643270523399186
+        - 3693153381157609415
+  - Entity: 6487258035063688990
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7147319594592643272
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 6
+  - Entity: 2253643270523399186
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7147319594592643272
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 7
+  - Entity: 3693153381157609415
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 7147319594592643272
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 8
+  - Entity: 1678276617441865231
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [6, 0, -6]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 694933130963749929
+        - 15401178967301717983
+        - 4440823794585161732
+  - Entity: 694933130963749929
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 1678276617441865231
+      children:
+        - 3228926973134991667
+        - 1314328696283702168
+        - 576662515419564723
+  - Entity: 3228926973134991667
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 694933130963749929
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+  - Entity: 1314328696283702168
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 694933130963749929
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 1
+  - Entity: 576662515419564723
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 694933130963749929
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 2
+  - Entity: 15401178967301717983
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 1678276617441865231
+      children:
+        - 10412086419018650183
+        - 4044855804818025357
+        - 2871581861895602245
+  - Entity: 10412086419018650183
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15401178967301717983
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 3
+  - Entity: 4044855804818025357
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15401178967301717983
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 4
+  - Entity: 2871581861895602245
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 15401178967301717983
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 5
+  - Entity: 4440823794585161732
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -4]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 1678276617441865231
+      children:
+        - 17911174299886556275
+        - 12323844630406130477
+        - 988277417758750075
+  - Entity: 17911174299886556275
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4440823794585161732
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 6
+  - Entity: 12323844630406130477
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4440823794585161732
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 7
+  - Entity: 988277417758750075
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 4440823794585161732
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 8
+  - Entity: 574876361989910688
+    Name: Grandparent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-6, 0, -6]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        - 248533401870925238
+        - 16489097354186717699
+        - 16624108537191200439
+  - Entity: 248533401870925238
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 574876361989910688
+      children:
+        - 2140536861835520629
+        - 207963828134342885
+        - 18191675675238505332
+  - Entity: 2140536861835520629
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 248533401870925238
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 0
+  - Entity: 207963828134342885
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 248533401870925238
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 1
+  - Entity: 18191675675238505332
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 248533401870925238
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 2
+  - Entity: 16489097354186717699
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 574876361989910688
+      children:
+        - 13730988378509385383
+        - 14940192640411500679
+        - 6088725401034937362
+  - Entity: 13730988378509385383
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16489097354186717699
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 3
+  - Entity: 14940192640411500679
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16489097354186717699
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 4
+  - Entity: 6088725401034937362
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16489097354186717699
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 5
+  - Entity: 16624108537191200439
+    Name: Parent
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 0, -4]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 574876361989910688
+      children:
+        - 14099649372093433367
+        - 439112257246968011
+        - 15011890976068151411
+  - Entity: 14099649372093433367
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16624108537191200439
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 6
+  - Entity: 439112257246968011
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16624108537191200439
+      children:
+        []
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/Woman.gltf
+        uuid: 519526659216622592
+    Canis::ModelAnimation3D:
+      playAnimation: true
+      loop: true
+      animationSpeed: 1
+      animationTime: 0
+      animationIndex: 7
+  - Entity: 15011890976068151411
+    Name: Model
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [2, -1, 0]
+      rotation: [0, 0, 0]
+      scale: [100, 100, 100]
+      parent: 16624108537191200439
       children:
         []
     Canis::Model3D:

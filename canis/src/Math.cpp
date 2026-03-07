@@ -31,4 +31,24 @@ namespace Canis
         _point.y = holder.x * s + holder.y * c;
         _point += _pivot;
     }
+
+    void Lerp(float &_value, const float &_min, const float &_max, const float &_fraction)
+    {
+        _value = _min + _fraction * (_max - _min);
+    }
+
+    void Lerp(glm::vec3 &_value, const glm::vec3 &_min, const glm::vec3 &_max, const float &_fraction)
+    {
+        _value = _min + _fraction * (_max - _min);
+    }
+
+    void Lerp(glm::vec4 &_value, const glm::vec4 &_min, const glm::vec4 &_max, const float &_fraction)
+    {
+        _value = _min + _fraction * (_max - _min);
+    }
+
+    float Lerp(float _min, float _max, float _fraction)
+    {
+        return _min + _fraction * (_max - _min);
+    }
 }

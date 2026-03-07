@@ -219,9 +219,10 @@ namespace Canis
 #ifdef __EMSCRIPTEN__
 
 #else
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Keep all windows in the main SDL window
-        io.ConfigViewportsNoAutoMerge = true;
-        io.ConfigViewportsNoTaskBarIcon = false;
+        // Keep editor windows docked inside the main SDL window.
+        io.ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+        io.ConfigViewportsNoAutoMerge = false;
+        io.ConfigViewportsNoTaskBarIcon = true;
 #endif
 
 
@@ -264,12 +265,14 @@ namespace Canis
     void Editor::BeginGameRender(Window* _window)
     {
 #if CANIS_EDITOR
-        int targetWidth = (m_gameViewportWidth > 0) ? m_gameViewportWidth : _window->GetScreenWidth();
-        int targetHeight = (m_gameViewportHeight > 0) ? m_gameViewportHeight : _window->GetScreenHeight();
+        int targetWidth = (m_gameViewportWidth > 0) ? m_gameViewportWidth : _window->GetWindowWidth();
+        int targetHeight = (m_gameViewportHeight > 0) ? m_gameViewportHeight : _window->GetWindowHeight();
 
         EnsureGameRenderTarget(targetWidth, targetHeight);
         if (m_gameFramebuffer == 0)
             return;
+
+        _window->SetRenderSize(targetWidth, targetHeight);
 
         glBindFramebuffer(GL_FRAMEBUFFER, m_gameFramebuffer);
         glViewport(0, 0, targetWidth, targetHeight);
@@ -284,7 +287,7 @@ namespace Canis
     {
 #if CANIS_EDITOR
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, _window->GetScreenWidth(), _window->GetScreenHeight());
+        glViewport(0, 0, _window->GetWindowWidth(), _window->GetWindowHeight());
 #endif
     }
 
@@ -301,6 +304,7 @@ namespace Canis
         m_scene = _scene;
         m_window = _window;
         m_gameSharedLib = _gameSharedLib;
+        m_gameInputWindowID = SDL_GetWindowID((SDL_Window *)m_window->GetSDLWindow());
 
         // TODO: Editor V2 Needs Refactor
         BeginGameRender(m_window);
@@ -312,6 +316,7 @@ namespace Canis
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        DrawMainDockspace();
 
         bool refresh = DrawHierarchyPanel();
         DrawInspectorPanel(refresh);
@@ -320,6 +325,7 @@ namespace Canis
         DrawAssetsPanel();
         DrawProjectSettings();
         DrawSceneView();
+        DrawGameView();
         DrawEditorPanel(); // draw last
 
         SelectSprite2D();
@@ -373,6 +379,34 @@ namespace Canis
         }
 
 #endif
+    }
+
+    void Editor::DrawMainDockspace()
+    {
+        ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking;
+
+        const ImGuiViewport *viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        windowFlags |= ImGuiWindowFlags_NoTitleBar;
+        windowFlags |= ImGuiWindowFlags_NoCollapse;
+        windowFlags |= ImGuiWindowFlags_NoResize;
+        windowFlags |= ImGuiWindowFlags_NoMove;
+        windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+        windowFlags |= ImGuiWindowFlags_NoNavFocus;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("MainDockspace", nullptr, windowFlags);
+        ImGui::PopStyleVar(3);
+
+        const ImGuiID dockspaceID = ImGui::GetID("MainDockspaceID");
+        ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
+        ImGui::End();
     }
 
     void Editor::RenderGameDebug()
@@ -490,6 +524,59 @@ namespace Canis
         }
 
         m_gameViewHovered = hovered;
+        ImGui::End();
+    }
+
+    void Editor::DrawGameView()
+    {
+        ImGui::Begin("Game");
+
+        if (ImGuiViewport *viewport = ImGui::GetWindowViewport())
+        {
+            if (viewport->PlatformHandle != nullptr)
+            {
+                SDL_Window *viewportWindow = static_cast<SDL_Window *>(viewport->PlatformHandle);
+                if (viewportWindow != nullptr)
+                    m_gameInputWindowID = SDL_GetWindowID(viewportWindow);
+            }
+        }
+
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        int nextWidth = static_cast<int>(avail.x);
+        int nextHeight = static_cast<int>(avail.y);
+
+        if (nextWidth > 0 && nextHeight > 0)
+        {
+            if (m_gameColorTexture != 0)
+            {
+                float targetW = static_cast<float>(m_window->GetScreenWidth());
+                float targetH = static_cast<float>(m_window->GetScreenHeight());
+                float targetAspect = targetW / targetH;
+                float availAspect = (avail.y > 0.0f) ? (avail.x / avail.y) : targetAspect;
+
+                ImVec2 drawSize = avail;
+                if (availAspect > targetAspect) {
+                    drawSize.x = avail.y * targetAspect;
+                } else {
+                    drawSize.y = avail.x / targetAspect;
+                }
+
+                ImVec2 cursor = ImGui::GetCursorPos();
+                ImVec2 offset((avail.x - drawSize.x) * 0.5f, (avail.y - drawSize.y) * 0.5f);
+                ImGui::SetCursorPos(ImVec2(cursor.x + offset.x, cursor.y + offset.y));
+
+                ImGui::Image(
+                    (ImTextureID)(intptr_t)m_gameColorTexture,
+                    drawSize,
+                    ImVec2(0.0f, 1.0f),
+                    ImVec2(1.0f, 0.0f));
+            }
+            else
+            {
+                ImGui::Text("Game view unavailable.");
+            }
+        }
+
         ImGui::End();
     }
 
@@ -1923,6 +2010,35 @@ namespace Canis
 
         if (ImGui::Button("Save Project", ImVec2(-1.0f, 0.0f)))
         {
+            Canis::SaveProjectConfig();
+        }
+
+        bool editorEnabled = Canis::GetProjectConfig().editor;
+        ImGui::Text("editor mode");
+        ImGui::SameLine();
+        if (ImGui::Checkbox("##editorEnabled", &editorEnabled))
+        {
+            Canis::GetProjectConfig().editor = editorEnabled;
+            Canis::SaveProjectConfig();
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("(restart required)");
+
+        int targetGameWidth = Canis::GetProjectConfig().targetGameWidth;
+        int targetGameHeight = Canis::GetProjectConfig().targetGameHeight;
+        ImGui::Text("target game width");
+        ImGui::SameLine();
+        if (ImGui::InputInt("##targetGameWidth", &targetGameWidth, 0))
+        {
+            Canis::GetProjectConfig().targetGameWidth = std::max(1, targetGameWidth);
+            Canis::SaveProjectConfig();
+        }
+
+        ImGui::Text("target game height");
+        ImGui::SameLine();
+        if (ImGui::InputInt("##targetGameHeight", &targetGameHeight, 0))
+        {
+            Canis::GetProjectConfig().targetGameHeight = std::max(1, targetGameHeight);
             Canis::SaveProjectConfig();
         }
 

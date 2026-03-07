@@ -37,11 +37,13 @@ namespace Canis
 
         m_screenWidth = width;
         m_screenHeight = height;
+        m_renderWidth = width;
+        m_renderHeight = height;
 
         m_window = SDL_CreateWindow(title,
                                     width,
                                     height,
-                                    SDL_WINDOW_OPENGL);
+                                    SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
         if (!m_window)
         {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create window: %s", SDL_GetError());
@@ -153,6 +155,17 @@ namespace Canis
 
         m_screenWidth = _width;
         m_screenHeight = _height;
+        m_renderWidth = _width;
+        m_renderHeight = _height;
+    }
+
+    void Window::SetRenderSize(int _width, int _height)
+    {
+        if (_width <= 0 || _height <= 0)
+            return;
+
+        m_renderWidth = _width;
+        m_renderHeight = _height;
     }
 
     void Window::SetResized(bool _resized)

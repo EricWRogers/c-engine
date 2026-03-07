@@ -41,8 +41,17 @@ namespace Canis
         
         Canis::Init();
 
+        bool editorRuntimeEnabled = false;
+#if CANIS_EDITOR
+        editorRuntimeEnabled = Canis::GetProjectConfig().editor;
+#endif
+
         // init window
-        Window window("Canis Beta", 512, 512);
+        const int startupWidth = std::max(320, editorRuntimeEnabled ? GetProjectConfig().editorWindowWidth
+                                                                     : GetProjectConfig().targetGameWidth);
+        const int startupHeight = std::max(240, editorRuntimeEnabled ? GetProjectConfig().editorWindowHeight
+                                                                      : GetProjectConfig().targetGameHeight);
+        Window window("Canis Beta", startupWidth, startupHeight);
         window.SetClearColor(Color(1.0f));
         window.SetSync(static_cast<Window::Sync>(GetProjectConfig().syncMode));
         
@@ -57,20 +66,25 @@ namespace Canis
 
         Editor editor;
         m_editor = &editor;
-        editor.Init(&window);
+#if CANIS_EDITOR
+        if (editorRuntimeEnabled)
+            editor.Init(&window);
+#endif
 
         RegisterDefaults(editor);
 
         InputManager inputManager;
+        inputManager.SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)window.GetSDLWindow()));
 
         if (Canis::GetProjectConfig().useFrameLimit)
             Time::Init(Canis::GetProjectConfig().frameLimit + 0.0f);
         else
             Time::Init(100000.0f);
         
-        #if CANIS_EDITOR
-        Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
-        #endif
+#if CANIS_EDITOR
+        if (editorRuntimeEnabled)
+            Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
+#endif
 
         scene.Init(this, &window, &inputManager, "assets/scenes/scene3d.scene");
 
@@ -83,12 +97,27 @@ namespace Canis
 
         while (inputManager.Update((void *)&window))
         {
+            if (window.IsResized())
+            {
+                if (editorRuntimeEnabled)
+                {
+                    GetProjectConfig().editorWindowWidth = window.GetWindowWidth();
+                    GetProjectConfig().editorWindowHeight = window.GetWindowHeight();
+                }
+                else
+                {
+                    GetProjectConfig().targetGameWidth = window.GetWindowWidth();
+                    GetProjectConfig().targetGameHeight = window.GetWindowHeight();
+                }
+            }
+
             f32 deltaTime = Time::StartFrame();
 
             bool runGameTick = true;
-            #if CANIS_EDITOR
-            runGameTick = (editor.m_mode == EditorMode::PLAY);
-            #endif
+#if CANIS_EDITOR
+            if (editorRuntimeEnabled)
+                runGameTick = (editor.m_mode == EditorMode::PLAY);
+#endif
 
             if (runGameTick)
             {
@@ -111,17 +140,38 @@ namespace Canis
             }
             
             // GameCodeObjectWatchFile(&gameCodeObject, this);
-            
-            editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
 
             Uint64 renderStart = SDL_GetTicksNS();
             window.Clear();
-            scene.Render(deltaTime);
+#if CANIS_EDITOR
+            if (editorRuntimeEnabled)
+            {
+                editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
+                inputManager.SetGameInputWindowID(editor.GetGameInputWindowID());
+            }
+            else
+#endif
+            {
+                scene.Render(deltaTime);
+                inputManager.SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)window.GetSDLWindow()));
+            }
             window.SwapBuffer();
             m_renderTimeMs = static_cast<float>(SDL_GetTicksNS() - renderStart) / 1000000.0f;
 
             Time::EndFrame();
         }
+
+        if (editorRuntimeEnabled)
+        {
+            GetProjectConfig().editorWindowWidth = window.GetWindowWidth();
+            GetProjectConfig().editorWindowHeight = window.GetWindowHeight();
+        }
+        else
+        {
+            GetProjectConfig().targetGameWidth = window.GetWindowWidth();
+            GetProjectConfig().targetGameHeight = window.GetWindowHeight();
+        }
+        SaveProjectConfig();
 
         scene.Unload();
         Time::Quit();

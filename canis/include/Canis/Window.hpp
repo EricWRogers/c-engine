@@ -17,8 +17,13 @@ namespace Canis
         Window(const char *title, int width, int height);
         ~Window();
 
-        int GetScreenWidth() { return m_screenWidth; }
-        int GetScreenHeight() { return m_screenHeight; }
+        // Gameplay/render surface size (current game view target).
+        int GetScreenWidth() { return m_renderWidth; }
+        int GetScreenHeight() { return m_renderHeight; }
+
+        // Native SDL window pixel size.
+        int GetWindowWidth() { return m_screenWidth; }
+        int GetWindowHeight() { return m_screenHeight; }
 
         void Clear() const;
         void SetClearColor(Color _color);
@@ -28,6 +33,7 @@ namespace Canis
         void SetWindowIcon(std::string _path);
 
         void SetWindowSize(int _width, int _height);
+        void SetRenderSize(int _width, int _height);
         void SetResized(bool _resized);
         bool IsResized();
 
@@ -48,6 +54,8 @@ namespace Canis
 
         int m_screenWidth = 0;
         int m_screenHeight = 0;
+        int m_renderWidth = 0;
+        int m_renderHeight = 0;
 
         void InitGL();
     };

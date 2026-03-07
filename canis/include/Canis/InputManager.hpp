@@ -70,6 +70,7 @@ namespace Canis
         ~InputManager();
 
         bool Update(void* _window);
+        void SetGameInputWindowID(unsigned int _windowID) { m_gameInputWindowID = _windowID; }
 
         bool GetKey(unsigned int _keyID);
         bool JustPressedKey(unsigned int _keyID);
@@ -141,5 +142,6 @@ namespace Canis
         unsigned int m_lastControllerID = 0u;
 
         InputDevice m_lastInputDeviceType = InputDevice::MOUSE;
+        unsigned int m_gameInputWindowID = 0u;
     };
 } // end of Canis namespace

@@ -455,6 +455,7 @@ namespace Canis
         Matrix4 projection = Matrix4(1.0f);
 
         if (use2DCamera) {
+            camera2D->UpdateMatrix();
             projection = camera2D->GetCameraMatrix();
         } else {
             projection = glm::ortho(0.0f, static_cast<float>(window->GetScreenWidth()), 0.0f, static_cast<float>(window->GetScreenHeight()), 0.0f, 100.0f);

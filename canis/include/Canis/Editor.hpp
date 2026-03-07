@@ -48,6 +48,7 @@ namespace Canis
         void BeginGameRender(Window* _window);
         void EndGameRender(Window* _window);
         void RenderGameDebug();
+        unsigned int GetGameInputWindowID() const { return m_gameInputWindowID; }
 
         EditorMode GetMode() { return m_mode; }
         void FocusEntity(Canis::Entity* _entity);
@@ -57,7 +58,9 @@ namespace Canis
         void InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable);
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
     private:
+        void DrawMainDockspace();
         void DrawSceneView();
+        void DrawGameView();
         void DrawSceneViewGizmo();
         void EnsureGameRenderTarget(int _width, int _height);
         void DestroyGameRenderTarget();
@@ -122,5 +125,6 @@ namespace Canis
         bool m_gameViewHovered = false;
         int m_gameTextureWidth = 0;
         int m_gameTextureHeight = 0;
+        unsigned int m_gameInputWindowID = 0;
     };
 }

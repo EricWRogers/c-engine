@@ -31,6 +31,10 @@ namespace Canis
         bool editor = false;
         int syncMode = PROJECT_SYNC_OFF;
         UUID iconUUID = UUID(0);
+        int editorWindowWidth = 512;
+        int editorWindowHeight = 512;
+        int targetGameWidth = 512;
+        int targetGameHeight = 512;
     };
 
     ProjectConfig& GetProjectConfig();

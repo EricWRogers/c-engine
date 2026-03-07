@@ -3,12 +3,38 @@
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
+#include <Canis/Canis.hpp>
 #include <imgui_impl_sdl3.h>
 #include <ImGuizmo.h>
 #include <Canis/Window.hpp>
 
 namespace Canis
 {
+    namespace
+    {
+        Uint32 GetEventWindowID(const SDL_Event& _event)
+        {
+            switch (_event.type)
+            {
+                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                    return _event.window.windowID;
+                case SDL_EVENT_MOUSE_MOTION:
+                    return _event.motion.windowID;
+                case SDL_EVENT_MOUSE_WHEEL:
+                    return _event.wheel.windowID;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                case SDL_EVENT_MOUSE_BUTTON_UP:
+                    return _event.button.windowID;
+                case SDL_EVENT_KEY_DOWN:
+                case SDL_EVENT_KEY_UP:
+                    return _event.key.windowID;
+                default:
+                    return 0u;
+            }
+        }
+    } // namespace
+
     InputManager::InputManager()
     {
         
@@ -30,26 +56,30 @@ namespace Canis
         m_scrollVertical = 0;
 
         Window* window = (Window*)_window;
-        int screenWidth = window->GetScreenWidth();
-        int screenHeight = window->GetScreenHeight();
+        int screenWidth = window->GetWindowWidth();
+        int screenHeight = window->GetWindowHeight();
         window->SetResized(false);
+        const Uint32 mainWindowID = SDL_GetWindowID((SDL_Window*)window->GetSDLWindow());
+        const Uint32 gameWindowID = (m_gameInputWindowID == 0u) ? mainWindowID : m_gameInputWindowID;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            const Uint32 eventWindowID = GetEventWindowID(event);
+
             #if CANIS_EDITOR
-            //if (GetProjectConfig().editor)
-            //{
-                //Debug::Log("ProcessEvent");
+            bool imguiWantsMouse = false;
+            bool imguiWantsKeyboard = false;
+            if (Canis::GetProjectConfig().editor)
+            {
                 ImGui_ImplSDL3_ProcessEvent(&event);
                 ImGuiIO& io = ImGui::GetIO();
-                //if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
-                //    continue;
-                //}
-            //}
+                imguiWantsMouse = io.WantCaptureMouse;
+                imguiWantsKeyboard = io.WantCaptureKeyboard;
+            }
             #endif
 
-            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+            if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED && eventWindowID == mainWindowID)
                 return false;
 
             switch (event.type)
@@ -58,7 +88,7 @@ namespace Canis
                 return false;
                 break;
             case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-                if(event.window.windowID == SDL_GetWindowID((SDL_Window*)window->GetSDLWindow())) {
+                if(eventWindowID == mainWindowID) {
                     screenWidth = event.window.data1;
                     screenHeight = event.window.data2;
                     window->SetWindowSize(screenWidth, screenHeight);
@@ -66,7 +96,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_MOTION:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsMouse && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                     mouse.x = event.motion.x;
@@ -78,7 +108,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
             #if CANIS_EDITOR
-                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsMouse && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                 m_scrollVertical = event.wheel.y;
@@ -87,14 +117,14 @@ namespace Canis
                 break;
             case SDL_EVENT_KEY_UP:
                 #if CANIS_EDITOR
-                if (io.WantCaptureKeyboard && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsKeyboard && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                 ReleasedKey(event.key.scancode);
                 break;
             case SDL_EVENT_KEY_DOWN:
                 #if CANIS_EDITOR
-                if (io.WantCaptureKeyboard && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsKeyboard && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                 Debug::Log("Key Down: %i", event.key.scancode);
@@ -103,7 +133,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsMouse && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                 if (event.button.button == SDL_BUTTON_LEFT)
@@ -113,7 +143,7 @@ namespace Canis
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 #if CANIS_EDITOR
-                if (io.WantCaptureMouse && event.window.windowID != SDL_GetWindowID((SDL_Window*)window->GetSDLWindow()))
+                if (imguiWantsMouse && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
                 if (event.button.button == SDL_BUTTON_LEFT)

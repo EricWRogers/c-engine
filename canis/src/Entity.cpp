@@ -362,6 +362,11 @@ void Camera2D::EditorInspectorDraw()
 
 void Camera2D::UpdateMatrix()
 {
+    m_screenWidth = entity.scene->GetWindow().GetScreenWidth();
+    m_screenHeight = entity.scene->GetWindow().GetScreenHeight();
+    m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
+                                      (float)m_screenHeight, 0.0f, 100.0f);
+                                      
     m_view = Matrix4(1.0f);
     m_view = glm::translate(m_view, Vector3(-m_position.x + m_screenWidth / 2,
                                              -m_position.y + m_screenHeight / 2, 0.0f));

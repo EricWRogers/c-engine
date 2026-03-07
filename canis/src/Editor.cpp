@@ -508,7 +508,18 @@ namespace Canis
         float rectW = (m_gameViewportDrawWidth > 0.0f) ? m_gameViewportDrawWidth : static_cast<float>(m_gameViewportWidth);
         float rectH = (m_gameViewportDrawHeight > 0.0f) ? m_gameViewportDrawHeight : static_cast<float>(m_gameViewportHeight);
 
+        // Keep ImGuizmo's internal helper window attached to the Scene viewport.
+        // This preserves gizmo interaction while preventing it from showing up as its own platform window.
+        ImGuiWindow* sceneWindow = ImGui::GetCurrentWindow();
+        if (sceneWindow != nullptr && sceneWindow->Viewport != nullptr)
+            ImGui::SetNextWindowViewport(sceneWindow->Viewport->ID);
+
+        ImGuiWindowClass gizmoWindowClass = {};
+        gizmoWindowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags_NoTaskBarIcon;
+        gizmoWindowClass.ViewportFlagsOverrideClear = ImGuiViewportFlags_NoAutoMerge;
+        ImGui::SetNextWindowClass(&gizmoWindowClass);
         ImGuizmo::BeginFrame();
+
         ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
         ImGuizmo::SetAlternativeWindow(ImGui::GetCurrentWindow());
         ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);

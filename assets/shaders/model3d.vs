@@ -15,7 +15,7 @@ void main()
 {
     mat3 normalMatrix = mat3(transpose(inverse(M)));
     fragmentNormal = normalize(normalMatrix * vertexNormal);
-    fragmentUV = vec2(vertexUV.x, 1.0 - vertexUV.y);
+    fragmentUV = vec2(vertexUV.x, vertexUV.y);
 
     gl_Position = P * V * M * vec4(vertexPosition, 1.0);
 }

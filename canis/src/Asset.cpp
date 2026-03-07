@@ -197,6 +197,8 @@ namespace Canis
                 return "ANIMATIONCLIP2D";
             case MetaFileAsset::FileType::MODEL:
                 return "MODEL";
+            case MetaFileAsset::FileType::MATERIAL:
+                return "MATERIAL";
             default:
                 return "FILE_UNKNOWN";
         }
@@ -216,6 +218,8 @@ namespace Canis
             return MetaFileAsset::FileType::ANIMATIONCLIP2D;
         else if (_type == "MODEL")
             return MetaFileAsset::FileType::MODEL;
+        else if (_type == "MATERIAL")
+            return MetaFileAsset::FileType::MATERIAL;
         else
             return MetaFileAsset::FileType::FILE_UNKNOWN;
     }
@@ -242,6 +246,8 @@ namespace Canis
                 type = FileType::ANIMATIONCLIP2D;
             else if (extension == "gltf" || extension == "glb")
                 type = FileType::MODEL;
+            else if (extension == "material")
+                type = FileType::MATERIAL;
             else
                 type = FileType::FILE_UNKNOWN;
 
@@ -1113,7 +1119,7 @@ namespace Canis
         UpdateSkinning(_pose);
     }
 
-    void ModelAsset::Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose)
+    void ModelAsset::Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose, i32 _overrideTextureId)
     {
         const Pose3D *pose = (_pose == nullptr) ? &m_sharedPose : _pose;
 
@@ -1129,14 +1135,16 @@ namespace Canis
                     model = _modelMatrix * m_nodes[primitive.nodeIndex].globalMatrix;
             }
 
+            const i32 textureId = (_overrideTextureId >= 0) ? _overrideTextureId : primitive.textureId;
+
             _shader.SetMat4("M", model);
-            _shader.SetBool("useTexture", primitive.textureId >= 0);
+            _shader.SetBool("useTexture", textureId >= 0);
             _shader.SetInt("mySampler", 0);
 
             glActiveTexture(GL_TEXTURE0);
-            if (primitive.textureId >= 0)
+            if (textureId >= 0)
             {
-                if (TextureAsset *texture = AssetManager::GetTexture(primitive.textureId))
+                if (TextureAsset *texture = AssetManager::GetTexture(textureId))
                     glBindTexture(GL_TEXTURE_2D, texture->GetGLTexture().id);
                 else
                     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1362,5 +1370,25 @@ namespace Canis
     bool SpriteAnimationAsset::Free()
     {
         return true;
+    }
+
+    void MaterialFields::Use(Shader &_shader) const
+    {
+        for (const FloatUniformData &uniform : m_floatUniformData)
+            _shader.SetFloat(uniform.name, uniform.value);
+    }
+
+    void MaterialFields::SetFloat(const std::string &_name, float _value)
+    {
+        for (FloatUniformData &uniform : m_floatUniformData)
+        {
+            if (uniform.name == _name)
+            {
+                uniform.value = _value;
+                return;
+            }
+        }
+
+        m_floatUniformData.push_back(FloatUniformData{.name = _name, .value = _value});
     }
 }

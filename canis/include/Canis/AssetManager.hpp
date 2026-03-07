@@ -136,5 +136,9 @@ namespace Canis
         int LoadModel(const std::string &_path);
         ModelAsset* GetModel(const std::string &_path);
         ModelAsset* GetModel(i32 _modelID);
+
+        int LoadMaterial(const std::string &_path);
+        MaterialAsset* GetMaterial(const std::string &_path);
+        MaterialAsset* GetMaterial(i32 _materialID);
     } // end of AssetManager namespace
 } // end of Canis namespace

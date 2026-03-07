@@ -13,6 +13,7 @@
 #include <Canis/InputManager.hpp>
 #include <Canis/GameCodeObject.hpp>
 #include <Canis/AssetManager.hpp>
+#include <Canis/Yaml.hpp>
 
 #include <SDL3/SDL.h>
 
@@ -29,9 +30,160 @@
 #include <filesystem>
 #include <cstdint>
 #include <algorithm>
+#include <fstream>
+#include <cctype>
 
 namespace Canis
 {
+    static std::string ResolveAssetRefPath(const YAML::Node &_node)
+    {
+        if (!_node)
+            return "";
+
+        if (_node.IsMap())
+        {
+            if (YAML::Node uuidNode = _node["uuid"])
+            {
+                UUID uuid = uuidNode.as<uint64_t>(0);
+                if ((uint64_t)uuid != 0)
+                {
+                    std::string path = AssetManager::GetPath(uuid);
+                    if (path != "Path was not found in AssetLibrary")
+                        return path;
+                }
+            }
+
+            if (YAML::Node pathNode = _node["path"])
+                return pathNode.as<std::string>("");
+
+            return "";
+        }
+
+        if (_node.IsScalar())
+        {
+            std::string raw = _node.as<std::string>("");
+            if (raw.empty())
+                return "";
+
+            bool isNumeric = std::all_of(raw.begin(), raw.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
+            if (isNumeric)
+            {
+                UUID uuid = (UUID)std::stoull(raw);
+                std::string path = AssetManager::GetPath(uuid);
+                if (path != "Path was not found in AssetLibrary")
+                    return path;
+            }
+
+            return raw;
+        }
+
+        return "";
+    }
+
+    static void SetAssetRefUUID(YAML::Node &_root, const std::string &_key, const std::string &_path)
+    {
+        YAML::Node node(YAML::NodeType::Map);
+        if (MetaFileAsset *meta = AssetManager::GetMetaFile(_path))
+            node["uuid"] = (uint64_t)meta->uuid;
+        _root[_key] = node;
+    }
+
+    static void ApplyMaterialNodeToAsset(const YAML::Node &_root, MaterialAsset *_material)
+    {
+        if (_material == nullptr)
+            return;
+
+        _material->info = 0u;
+        _material->shaderId = -1;
+        _material->albedoId = -1;
+        _material->specularId = -1;
+        _material->emissionId = -1;
+        _material->color = Color(1.0f);
+        _material->materialFields = MaterialFields();
+
+        if (YAML::Node shaderNode = _root["shader"])
+        {
+            std::string shaderPath = ResolveAssetRefPath(shaderNode);
+            if (!shaderPath.empty())
+            {
+                if (shaderPath.size() > 3 && shaderPath.ends_with(".vs"))
+                    shaderPath = shaderPath.substr(0, shaderPath.size() - 3);
+                else if (shaderPath.size() > 3 && shaderPath.ends_with(".fs"))
+                    shaderPath = shaderPath.substr(0, shaderPath.size() - 3);
+
+                _material->shaderId = AssetManager::LoadShader(shaderPath);
+                if (_material->shaderId >= 0)
+                    _material->info |= MATERIAL_HAS_SHADER;
+            }
+        }
+
+        if (YAML::Node albedoNode = _root["albedo"])
+        {
+            std::string path = ResolveAssetRefPath(albedoNode);
+            if (!path.empty())
+            {
+                _material->albedoId = AssetManager::LoadTexture(path);
+                if (_material->albedoId >= 0)
+                    _material->info |= MATERIAL_HAS_ALBEDO;
+            }
+        }
+
+        if (YAML::Node specularNode = _root["specular"])
+        {
+            std::string path = ResolveAssetRefPath(specularNode);
+            if (!path.empty())
+            {
+                _material->specularId = AssetManager::LoadTexture(path);
+                if (_material->specularId >= 0)
+                    _material->info |= MATERIAL_HAS_SPECULAR;
+            }
+        }
+
+        if (YAML::Node emissionNode = _root["emission"])
+        {
+            std::string path = ResolveAssetRefPath(emissionNode);
+            if (!path.empty())
+            {
+                _material->emissionId = AssetManager::LoadTexture(path);
+                if (_material->emissionId >= 0)
+                    _material->info |= MATERIAL_HAS_EMISSION;
+            }
+        }
+
+        if (YAML::Node colorNode = _root["color"])
+        {
+            _material->color = colorNode.as<Color>(Color(1.0f));
+            _material->info |= MATERIAL_HAS_COLOR;
+        }
+
+        if (YAML::Node cullNode = _root["backFaceCulling"]; cullNode.as<bool>(false))
+            _material->info |= MATERIAL_BACK_FACE_CULLING;
+
+        if (YAML::Node cullNode = _root["frontFaceCulling"]; cullNode.as<bool>(false))
+            _material->info |= MATERIAL_FRONT_FACE_CULLING;
+
+        for (const auto &entry : _root)
+        {
+            const std::string key = entry.first.as<std::string>("");
+            if (key == "shader" || key == "albedo" || key == "specular" || key == "emission" ||
+                key == "color" || key == "backFaceCulling" || key == "frontFaceCulling")
+            {
+                continue;
+            }
+
+            if (!entry.second.IsScalar())
+                continue;
+
+            try
+            {
+                _material->materialFields.SetFloat(key, entry.second.as<float>());
+            }
+            catch (const YAML::Exception &)
+            {
+            }
+        }
+    }
+
     std::vector<const char *> ConvertComponentToCStringVector(App &_app, Entity &_entity)
     {
         std::vector<const char *> cStringVector;
@@ -626,6 +778,7 @@ namespace Canis
             if (m_scene->GetEntities()[i] == _entity)
             {
                 m_index = i;
+                m_selectedAssetPath.clear();
                 return;
             }
         }
@@ -887,6 +1040,7 @@ namespace Canis
                 if (_entities[i] == _entity)
                 {
                     m_index = i;
+                    m_selectedAssetPath.clear();
                     _refresh = true;
                     break;
                 }
@@ -1235,6 +1389,15 @@ namespace Canis
     {
         ImGui::Begin("Inspector");
 
+        if (!m_selectedAssetPath.empty())
+        {
+            if (DrawMaterialAssetInspector(m_selectedAssetPath))
+            {
+                ImGui::End();
+                return;
+            }
+        }
+
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
         if (entities.empty())
@@ -1299,6 +1462,133 @@ namespace Canis
         }
 
         ImGui::End();
+    }
+
+    bool Editor::DrawMaterialAssetInspector(const std::string &_materialPath)
+    {
+        MetaFileAsset *meta = AssetManager::GetMetaFile(_materialPath);
+        if (meta == nullptr || meta->type != MetaFileAsset::FileType::MATERIAL)
+            return false;
+
+        ImGui::Text("Asset: %s", meta->name.c_str());
+        ImGui::Text("Path: %s", meta->path.c_str());
+        ImGui::Separator();
+
+        YAML::Node root = YAML::LoadFile(_materialPath);
+        bool dirty = false;
+
+        auto drawAssetField = [&](const char *_label, const char *_key, bool _shaderField) -> void
+        {
+            std::string refPath = ResolveAssetRefPath(root[_key]);
+            std::string display = "None";
+            if (!refPath.empty())
+            {
+                if (MetaFileAsset *assetMeta = AssetManager::GetMetaFile(refPath))
+                    display = assetMeta->name;
+                else
+                    display = refPath;
+            }
+
+            ImGui::Text("%s", _label);
+            ImGui::SameLine();
+            ImGui::Button(display.c_str(), ImVec2(220, 0));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                {
+                    const AssetDragData dropped = *static_cast<const AssetDragData *>(payload->Data);
+                    std::string path = AssetManager::GetPath(dropped.uuid);
+
+                    bool valid = false;
+                    if (_shaderField)
+                    {
+                        if (MetaFileAsset *droppedMeta = AssetManager::GetMetaFile(path))
+                        {
+                            valid = droppedMeta->type == MetaFileAsset::FileType::VERTEX ||
+                                    droppedMeta->type == MetaFileAsset::FileType::FRAGMENT;
+                        }
+                    }
+                    else
+                    {
+                        TextureAsset *texture = AssetManager::GetTexture(path);
+                        valid = texture != nullptr;
+                    }
+
+                    if (valid)
+                    {
+                        SetAssetRefUUID(root, _key, path);
+                        dirty = true;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+        };
+
+        drawAssetField("shader", "shader", true);
+        drawAssetField("albedo", "albedo", false);
+        drawAssetField("specular", "specular", false);
+        drawAssetField("emission", "emission", false);
+
+        Color color = root["color"].as<Color>(Color(1.0f));
+        if (ImGui::ColorEdit4("color", &color.r))
+        {
+            root["color"] = color;
+            dirty = true;
+        }
+
+        bool backFaceCulling = root["backFaceCulling"].as<bool>(false);
+        if (ImGui::Checkbox("backFaceCulling", &backFaceCulling))
+        {
+            root["backFaceCulling"] = backFaceCulling;
+            dirty = true;
+        }
+
+        bool frontFaceCulling = root["frontFaceCulling"].as<bool>(false);
+        if (ImGui::Checkbox("frontFaceCulling", &frontFaceCulling))
+        {
+            root["frontFaceCulling"] = frontFaceCulling;
+            dirty = true;
+        }
+
+        for (const auto &entry : root)
+        {
+            std::string key = entry.first.as<std::string>("");
+            if (key == "shader" || key == "albedo" || key == "specular" || key == "emission" ||
+                key == "color" || key == "backFaceCulling" || key == "frontFaceCulling")
+            {
+                continue;
+            }
+
+            if (!entry.second.IsScalar())
+                continue;
+
+            try
+            {
+                float value = entry.second.as<float>();
+                if (ImGui::DragFloat(key.c_str(), &value, 0.01f))
+                {
+                    root[key] = value;
+                    dirty = true;
+                }
+            }
+            catch (const YAML::Exception &)
+            {
+            }
+        }
+
+        if (dirty)
+        {
+            std::ofstream fout(_materialPath);
+            fout << root;
+            fout.close();
+
+            int id = AssetManager::GetID(_materialPath);
+            if (id >= 0)
+                ApplyMaterialNodeToAsset(root, AssetManager::GetMaterial(id));
+        }
+
+        return true;
     }
 
     void Editor::DrawAddComponentDropDown(bool _refresh)
@@ -1475,7 +1765,17 @@ namespace Canis
                 }
                 else
                 {
-                    ImGui::Selectable(name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns);
+                    const bool selected = (m_selectedAssetPath == fullPath);
+                    ImGui::Selectable(name.c_str(), selected, ImGuiSelectableFlags_SpanAllColumns);
+
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                    {
+                        if (MetaFileAsset *meta = AssetManager::GetMetaFile(fullPath))
+                        {
+                            if (meta->type == MetaFileAsset::FileType::MATERIAL)
+                                m_selectedAssetPath = fullPath;
+                        }
+                    }
 
                     // right click
                     if (ImGui::BeginPopupContextItem())

@@ -44,6 +44,9 @@ namespace Canis
 
             if (ScriptConf *modelConf = scene->app->GetScriptConf(Model3D::ScriptName))
                 renderablesMask |= modelConf->componentMask;
+
+            if (ScriptConf *materialConf = scene->app->GetScriptConf(Material::ScriptName))
+                renderablesMask |= materialConf->componentMask;
         }
 
         scene->InitECSView(m_cameraView, cameraMask);
@@ -103,9 +106,7 @@ namespace Canis
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        m_shader->Use();
-        m_shader->SetMat4("P", projection);
-        m_shader->SetMat4("V", view);
+        Shader *currentShader = nullptr;
 
         scene->UpdateECSView(m_renderablesView);
         for (u32 entityId : m_renderablesView.entities)
@@ -123,6 +124,33 @@ namespace Canis
             if (model == nullptr)
                 continue;
 
+            MaterialAsset *materialAsset = nullptr;
+            Material *material = CANIS_GET_SCRIPT(entity, Material);
+            if (material != nullptr && material->materialId >= 0)
+                materialAsset = AssetManager::GetMaterial(material->materialId);
+
+            Shader *activeShader = m_shader;
+            if (materialAsset != nullptr && materialAsset->shaderId >= 0)
+            {
+                if (ShaderAsset *shaderAsset = AssetManager::Get<ShaderAsset>(materialAsset->shaderId))
+                {
+                    if (!shaderAsset->GetShader()->IsLinked())
+                        shaderAsset->GetShader()->Link();
+                    activeShader = shaderAsset->GetShader();
+                }
+            }
+
+            if (currentShader != activeShader)
+            {
+                if (currentShader != nullptr)
+                    currentShader->UnUse();
+
+                currentShader = activeShader;
+                currentShader->Use();
+                currentShader->SetMat4("P", projection);
+                currentShader->SetMat4("V", view);
+            }
+
             const ModelAsset::Pose3D *pose = nullptr;
             if (ModelAnimation3D *animation = CANIS_GET_SCRIPT(entity, ModelAnimation3D))
             {
@@ -130,12 +158,43 @@ namespace Canis
                     pose = &animation->pose;
             }
 
-            m_shader->SetVec4("baseColor", modelRenderer->color);
-            model->Draw(*m_shader, transform->GetModelMatrix(), pose);
+            Color baseColor = modelRenderer->color;
+            i32 overrideTextureId = -1;
+
+            glDisable(GL_CULL_FACE);
+            if (materialAsset != nullptr)
+            {
+                if ((materialAsset->info & MATERIAL_HAS_COLOR) != 0u)
+                    baseColor *= materialAsset->color;
+
+                if (materialAsset->albedoId >= 0)
+                    overrideTextureId = materialAsset->albedoId;
+
+                if ((materialAsset->info & MATERIAL_BACK_FACE_CULLING) != 0u)
+                {
+                    glEnable(GL_CULL_FACE);
+                    glCullFace(GL_BACK);
+                }
+                else if ((materialAsset->info & MATERIAL_FRONT_FACE_CULLING) != 0u)
+                {
+                    glEnable(GL_CULL_FACE);
+                    glCullFace(GL_FRONT);
+                }
+
+                materialAsset->materialFields.Use(*currentShader);
+            }
+
+            if (material != nullptr)
+                baseColor *= material->color;
+
+            currentShader->SetVec4("baseColor", baseColor);
+            model->Draw(*currentShader, transform->GetModelMatrix(), pose, overrideTextureId);
         }
 
-        m_shader->UnUse();
+        if (currentShader != nullptr)
+            currentShader->UnUse();
 
+        glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
     }

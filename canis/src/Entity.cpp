@@ -297,6 +297,14 @@ void Model3D::EditorInspectorDraw()
     ImGui::ColorEdit4("color", &color.r);
 }
 
+void Material::EditorInspectorDraw()
+{
+    std::string nameOfType = "Material";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::InputInt("materialId", &materialId);
+    ImGui::ColorEdit4("color", &color.r);
+}
+
 void ModelAnimation3D::EditorInspectorDraw()
 {
     std::string nameOfType = "ModelAnimation3D";

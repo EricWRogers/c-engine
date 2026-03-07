@@ -92,6 +92,7 @@ namespace Canis
             SCENE,
             ANIMATIONCLIP2D,
             MODEL,
+            MATERIAL,
         };
 
         MetaFileAsset() {}
@@ -135,6 +136,44 @@ namespace Canis
         bool Free() override;
 
         std::vector<SpriteFrame> frames = {};
+    };
+
+    enum MaterialInfo : u32
+    {
+        MATERIAL_HAS_SHADER = 1u << 0u,
+        MATERIAL_HAS_ALBEDO = 1u << 1u,
+        MATERIAL_HAS_SPECULAR = 1u << 2u,
+        MATERIAL_HAS_EMISSION = 1u << 3u,
+        MATERIAL_HAS_COLOR = 1u << 4u,
+        MATERIAL_BACK_FACE_CULLING = 1u << 5u,
+        MATERIAL_FRONT_FACE_CULLING = 1u << 6u,
+    };
+
+    class MaterialFields
+    {
+    private:
+        struct FloatUniformData
+        {
+            std::string name = "";
+            float value = 0.0f;
+        };
+
+        std::vector<FloatUniformData> m_floatUniformData = {};
+
+    public:
+        void Use(Shader &_shader) const;
+        void SetFloat(const std::string &_name, float _value);
+    };
+
+    struct MaterialAsset
+    {
+        u32 info = 0u;
+        i32 shaderId = -1;
+        i32 albedoId = -1;
+        i32 specularId = -1;
+        i32 emissionId = -1;
+        Color color = Color(1.0f);
+        MaterialFields materialFields = {};
     };
 
     class ModelAsset : public Asset
@@ -233,7 +272,7 @@ namespace Canis
         bool UpdateAnimation(Pose3D &_pose, i32 _clipIndex, float _timeSeconds) const;
         void ResetPose();
         void ResetPose(Pose3D &_pose) const;
-        void Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose = nullptr);
+        void Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose = nullptr, i32 _overrideTextureId = -1);
 
         i32 GetAnimationCount() const { return (i32)m_animations.size(); }
         std::string GetAnimationName(i32 _index) const;

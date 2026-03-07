@@ -72,6 +72,7 @@ namespace Canis
         void DrawAssetsPanel();
         void DrawDirectoryRecursive(const std::string &_dirPath);
         void CommitAssetRename();
+        bool DrawMaterialAssetInspector(const std::string &_materialPath);
         void DrawProjectSettings();
         void DrawSystemPanel();
         void DrawEditorPanel();
@@ -106,6 +107,7 @@ namespace Canis
         bool m_isRenamingAsset = false;
         std::string m_renamingPath;
         char m_renameBuffer[256] = {};
+        std::string m_selectedAssetPath = {};
 
         unsigned int m_gameFramebuffer = 0;
         unsigned int m_gameColorTexture = 0;

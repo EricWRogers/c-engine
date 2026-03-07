@@ -651,6 +651,118 @@ namespace Canis
 
         RegisterScript(camera3DConf);
 
+        ScriptConf materialConf = {
+            .name = "Canis::Material",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Material::ScriptName, new Canis::Material(_entity), _callCreate); },
+            .Add = [this](Entity& _entity) -> void {
+                if (CANIS_GET_SCRIPT(_entity, Model3D) == nullptr)
+                {
+                    if (CANIS_GET_SCRIPT(_entity, Transform3D) == nullptr)
+                        CANIS_ADD_SCRIPT(_entity, Transform3D);
+
+                    Model3D* model = CANIS_ADD_SCRIPT(_entity, Model3D);
+                    model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
+                }
+
+                Material* material = CANIS_ADD_SCRIPT(_entity, Material);
+                material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
+            },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Material) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, Material); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Material); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (CANIS_GET_SCRIPT(_entity, Canis::Material))
+                {
+                    Material& material = *CANIS_GET_SCRIPT(_entity, Material);
+                    YAML::Node comp;
+                    comp["color"] = material.color;
+
+                    if (material.materialId > -1)
+                    {
+                        const std::string materialPath = AssetManager::GetPath(material.materialId);
+                        if (materialPath.rfind("Path was not found", 0) != 0)
+                        {
+                            YAML::Node materialAssetNode;
+                            materialAssetNode["path"] = materialPath;
+
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(materialPath))
+                                materialAssetNode["uuid"] = (uint64_t)meta->uuid;
+
+                            comp["MaterialAsset"] = materialAssetNode;
+                        }
+                    }
+
+                    _node["Canis::Material"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Material"])
+                {
+                    auto &material = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::Material, false);
+                    material.color = comp["color"].as<Vector4>(Color(1.0f));
+
+                    std::string path = "";
+                    if (auto materialAsset = comp["MaterialAsset"])
+                    {
+                        if (auto uuidNode = materialAsset["uuid"])
+                        {
+                            UUID uuid = uuidNode.as<uint64_t>(0);
+                            path = AssetManager::GetPath(uuid);
+                            if (path.rfind("Path was not found", 0) == 0)
+                                path.clear();
+                        }
+
+                        if (path.empty())
+                            path = materialAsset["path"].as<std::string>("");
+                    }
+
+                    if (!path.empty())
+                        material.materialId = AssetManager::LoadMaterial(path);
+
+                    if (_callCreate)
+                        material.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                Material* material = nullptr;
+                if ((material = CANIS_GET_SCRIPT(_entity, Material)) != nullptr)
+                {
+                    ImGui::ColorEdit4("material color", &material->color.r);
+
+                    std::string materialLabel = "[ empty ]";
+                    if (material->materialId > -1)
+                    {
+                        std::string path = AssetManager::GetPath(material->materialId);
+                        if (path.rfind("Path was not found", 0) != 0)
+                        {
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(path))
+                                materialLabel = meta->name;
+                            else
+                                materialLabel = path;
+                        }
+                    }
+
+                    ImGui::Text("material");
+                    ImGui::SameLine();
+                    ImGui::Button(materialLabel.c_str(), ImVec2(150, 0));
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                        {
+                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                            std::string path = AssetManager::GetPath(dropped.uuid);
+                            if (GetFileExtension(path) == "material")
+                                material->materialId = AssetManager::LoadMaterial(path);
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+            },
+        };
+
+        RegisterScript(materialConf);
+
         ScriptConf model3DConf = {
             .name = "Canis::Model3D",
             .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Model3D::ScriptName, new Canis::Model3D(_entity), _callCreate); },
@@ -660,6 +772,12 @@ namespace Canis
 
                 Model3D* model = CANIS_ADD_SCRIPT(_entity, Model3D);
                 model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
+
+                if (CANIS_GET_SCRIPT(_entity, Material) == nullptr)
+                {
+                    Material* material = CANIS_ADD_SCRIPT(_entity, Material);
+                    material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
+                }
 
                 if (CANIS_GET_SCRIPT(_entity, ModelAnimation3D) == nullptr)
                 {

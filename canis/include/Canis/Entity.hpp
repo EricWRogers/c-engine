@@ -807,6 +807,19 @@ namespace Canis
         Color color = Color(1.0f);
     };
 
+    class Material : public ScriptableEntity
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::Material";
+
+        Material(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        i32 materialId = -1;
+        Color color = Color(1.0f);
+    };
+
     class ModelAnimation3D : public ScriptableEntity
     {
     public:

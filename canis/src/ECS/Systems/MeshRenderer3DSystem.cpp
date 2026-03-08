@@ -7,6 +7,7 @@
 #include <Canis/Shader.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/App.hpp>
+#include <algorithm>
 
 namespace Canis
 {
@@ -30,6 +31,8 @@ namespace Canis
     {
         u64 cameraMask = 0;
         u64 renderablesMask = 0;
+        u64 directionalLightMask = 0;
+        u64 pointLightMask = 0;
 
         if (scene != nullptr && scene->app != nullptr)
         {
@@ -47,10 +50,21 @@ namespace Canis
 
             if (ScriptConf *materialConf = scene->app->GetScriptConf(Material::ScriptName))
                 renderablesMask |= materialConf->componentMask;
+
+            if (ScriptConf *directionalLightConf = scene->app->GetScriptConf(DirectionalLight::ScriptName))
+                directionalLightMask |= directionalLightConf->componentMask;
+
+            if (ScriptConf *pointLightConf = scene->app->GetScriptConf(PointLight::ScriptName))
+                pointLightMask |= pointLightConf->componentMask;
+
+            if (ScriptConf *transformConf = scene->app->GetScriptConf(Transform3D::ScriptName))
+                pointLightMask |= transformConf->componentMask;
         }
 
         scene->InitECSView(m_cameraView, cameraMask);
         scene->InitECSView(m_renderablesView, renderablesMask);
+        scene->InitECSView(m_directionalLightsView, directionalLightMask);
+        scene->InitECSView(m_pointLightsView, pointLightMask);
     }
 
     void MeshRenderer3DSystem::Update()
@@ -60,11 +74,14 @@ namespace Canis
 
         Matrix4 projection = Matrix4(1.0f);
         Matrix4 view = Matrix4(1.0f);
+        Vector3 cameraPosition = Vector3(0.0f, 0.0f, 0.0f);
 
         if (scene->HasEditorCamera3DOverride())
         {
             projection = scene->GetEditorCamera3DProjection();
             view = scene->GetEditorCamera3DView();
+            const Matrix4 invView = glm::inverse(view);
+            cameraPosition = Vector3(invView[3][0], invView[3][1], invView[3][2]);
         }
         else
         {
@@ -109,12 +126,68 @@ namespace Canis
             const Vector3 target = eye + cameraTransform->GetForward();
             const Vector3 up = cameraTransform->GetUp();
             view = glm::lookAt(eye, target, up);
+            cameraPosition = eye;
         }
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        bool useDirectionalLight = true;
+        Vector3 directionalLightDirection = Vector3(-0.4f, -1.0f, -0.25f);
+        Vector3 directionalLightColor = Vector3(1.0f, 0.98f, 0.95f);
+        float directionalLightIntensity = 1.0f;
+
+        scene->UpdateECSView(m_directionalLightsView);
+        for (u32 entityId : m_directionalLightsView.entities)
+        {
+            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
+            if (entity == nullptr || !entity->active)
+                continue;
+
+            DirectionalLight *light = CANIS_GET_SCRIPT(entity, DirectionalLight);
+            if (light == nullptr)
+                continue;
+
+            useDirectionalLight = light->enabled;
+            directionalLightDirection = light->direction;
+            const float directionLength = glm::length(directionalLightDirection);
+            if (directionLength > 0.0001f)
+                directionalLightDirection /= directionLength;
+            else
+                directionalLightDirection = Vector3(0.0f, -1.0f, 0.0f);
+
+            directionalLightColor = Vector3(light->color.r, light->color.g, light->color.b);
+            directionalLightIntensity = light->intensity;
+            break;
+        }
+
+        bool usePointLight = true;
+        Vector3 pointLightPosition = Vector3(2.0f, 2.5f, 2.0f);
+        Vector3 pointLightColor = Vector3(1.0f, 0.95f, 0.85f);
+        float pointLightIntensity = 1.2f;
+        float pointLightRange = 12.0f;
+
+        scene->UpdateECSView(m_pointLightsView);
+        for (u32 entityId : m_pointLightsView.entities)
+        {
+            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
+            if (entity == nullptr || !entity->active)
+                continue;
+
+            PointLight *light = CANIS_GET_SCRIPT(entity, PointLight);
+            Transform3D *lightTransform = CANIS_GET_SCRIPT(entity, Transform3D);
+            if (light == nullptr || lightTransform == nullptr)
+                continue;
+
+            usePointLight = light->enabled;
+            pointLightPosition = lightTransform->GetGlobalPosition();
+            pointLightColor = Vector3(light->color.r, light->color.g, light->color.b);
+            pointLightIntensity = light->intensity;
+            pointLightRange = light->range;
+            break;
+        }
 
         Shader *currentShader = nullptr;
 
@@ -159,6 +232,18 @@ namespace Canis
                 currentShader->Use();
                 currentShader->SetMat4("P", projection);
                 currentShader->SetMat4("V", view);
+                currentShader->SetVec3("cameraPosition", cameraPosition);
+
+                currentShader->SetBool("useDirectionalLight", useDirectionalLight);
+                currentShader->SetVec3("directionalLightDirection", directionalLightDirection);
+                currentShader->SetVec3("directionalLightColor", directionalLightColor);
+                currentShader->SetFloat("directionalLightIntensity", directionalLightIntensity);
+
+                currentShader->SetBool("usePointLight", usePointLight);
+                currentShader->SetVec3("pointLightPosition", pointLightPosition);
+                currentShader->SetVec3("pointLightColor", pointLightColor);
+                currentShader->SetFloat("pointLightIntensity", pointLightIntensity);
+                currentShader->SetFloat("pointLightRange", pointLightRange);
             }
 
             const ModelAsset::Pose3D *pose = nullptr;
@@ -170,6 +255,12 @@ namespace Canis
 
             Color baseColor = modelRenderer->color;
             i32 overrideTextureId = -1;
+            i32 specularTextureId = -1;
+            i32 roughnessTextureId = -1;
+            i32 metallicTextureId = -1;
+            float specularValue = 0.5f;
+            float roughnessValue = 0.5f;
+            float metallicValue = 0.0f;
 
             glDisable(GL_CULL_FACE);
             if (materialAsset != nullptr)
@@ -179,6 +270,16 @@ namespace Canis
 
                 if (materialAsset->albedoId >= 0)
                     overrideTextureId = materialAsset->albedoId;
+                if (materialAsset->specularId >= 0)
+                    specularTextureId = materialAsset->specularId;
+                if (materialAsset->roughnessId >= 0)
+                    roughnessTextureId = materialAsset->roughnessId;
+                if (materialAsset->metallicId >= 0)
+                    metallicTextureId = materialAsset->metallicId;
+
+                specularValue = materialAsset->specularValue;
+                roughnessValue = materialAsset->roughnessValue;
+                metallicValue = materialAsset->metallicValue;
 
                 if ((materialAsset->info & MATERIAL_BACK_FACE_CULLING) != 0u)
                 {
@@ -197,8 +298,82 @@ namespace Canis
             if (material != nullptr)
                 baseColor *= material->color;
 
-            currentShader->SetVec4("baseColor", baseColor);
-            model->Draw(*currentShader, transform->GetModelMatrix(), pose, overrideTextureId);
+            currentShader->SetFloat("specularValue", specularValue);
+            currentShader->SetFloat("roughnessValue", roughnessValue);
+            currentShader->SetFloat("metallicValue", metallicValue);
+
+            currentShader->SetBool("useSpecularMap", specularTextureId >= 0);
+            currentShader->SetBool("useRoughnessMap", roughnessTextureId >= 0);
+            currentShader->SetBool("useMetallicMap", metallicTextureId >= 0);
+            currentShader->SetInt("specularMap", 1);
+            currentShader->SetInt("roughnessMap", 2);
+            currentShader->SetInt("metallicMap", 3);
+
+            glActiveTexture(GL_TEXTURE1);
+            if (specularTextureId >= 0)
+            {
+                if (TextureAsset *texture = AssetManager::GetTexture(specularTextureId))
+                    glBindTexture(GL_TEXTURE_2D, texture->GetGLTexture().id);
+                else
+                    glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
+            glActiveTexture(GL_TEXTURE2);
+            if (roughnessTextureId >= 0)
+            {
+                if (TextureAsset *texture = AssetManager::GetTexture(roughnessTextureId))
+                    glBindTexture(GL_TEXTURE_2D, texture->GetGLTexture().id);
+                else
+                    glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
+            glActiveTexture(GL_TEXTURE3);
+            if (metallicTextureId >= 0)
+            {
+                if (TextureAsset *texture = AssetManager::GetTexture(metallicTextureId))
+                    glBindTexture(GL_TEXTURE_2D, texture->GetGLTexture().id);
+                else
+                    glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            else
+            {
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
+            glActiveTexture(GL_TEXTURE0);
+
+            std::vector<MaterialAsset*> slotMaterialOverrides = {};
+            if (material != nullptr && !material->materialIds.empty())
+            {
+                const i32 slotCount = model->GetMaterialSlotCount();
+                if (slotCount > 0)
+                {
+                    slotMaterialOverrides.resize(static_cast<size_t>(slotCount), nullptr);
+                    const size_t copyCount = std::min(slotMaterialOverrides.size(), material->materialIds.size());
+                    for (size_t slotIndex = 0; slotIndex < copyCount; ++slotIndex)
+                    {
+                        const i32 slotMaterialId = material->materialIds[slotIndex];
+                        if (slotMaterialId >= 0)
+                            slotMaterialOverrides[slotIndex] = AssetManager::GetMaterial(slotMaterialId);
+                    }
+                }
+            }
+
+            model->Draw(
+                *currentShader,
+                transform->GetModelMatrix(),
+                pose,
+                overrideTextureId,
+                baseColor,
+                slotMaterialOverrides.empty() ? nullptr : &slotMaterialOverrides);
         }
 
         if (currentShader != nullptr)

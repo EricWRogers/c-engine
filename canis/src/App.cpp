@@ -701,6 +701,103 @@ namespace Canis
 
         RegisterScript(camera3DConf);
 
+        ScriptConf directionalLightConf = {
+            .name = "Canis::DirectionalLight",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::DirectionalLight::ScriptName, new Canis::DirectionalLight(_entity), _callCreate); },
+            .Add = [this](Entity& _entity) -> void {
+                CANIS_ADD_SCRIPT(_entity, DirectionalLight);
+            },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, DirectionalLight) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, DirectionalLight); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, DirectionalLight); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (CANIS_GET_SCRIPT(_entity, Canis::DirectionalLight))
+                {
+                    DirectionalLight& light = *CANIS_GET_SCRIPT(_entity, DirectionalLight);
+                    YAML::Node comp;
+                    comp["enabled"] = light.enabled;
+                    comp["color"] = light.color;
+                    comp["intensity"] = light.intensity;
+                    comp["direction"] = light.direction;
+                    _node["Canis::DirectionalLight"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::DirectionalLight"])
+                {
+                    auto &light = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::DirectionalLight, false);
+                    light.enabled = comp["enabled"].as<bool>(true);
+                    light.color = comp["color"].as<Vector4>(Color(1.0f));
+                    light.intensity = comp["intensity"].as<float>(1.0f);
+                    light.direction = comp["direction"].as<Vector3>(Vector3(-0.4f, -1.0f, -0.25f));
+                    if (_callCreate)
+                        light.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                DirectionalLight* light = nullptr;
+                if ((light = CANIS_GET_SCRIPT(_entity, DirectionalLight)) != nullptr)
+                {
+                    ImGui::Checkbox("enabled", &light->enabled);
+                    ImGui::ColorEdit3("color", &light->color.r);
+                    ImGui::InputFloat("intensity", &light->intensity);
+                    ImGui::InputFloat3("direction", &light->direction.x, "%.3f");
+                }
+            },
+        };
+
+        RegisterScript(directionalLightConf);
+
+        ScriptConf pointLightConf = {
+            .name = "Canis::PointLight",
+            .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::PointLight::ScriptName, new Canis::PointLight(_entity), _callCreate); },
+            .Add = [this](Entity& _entity) -> void {
+                if (CANIS_GET_SCRIPT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_SCRIPT(_entity, Transform3D);
+
+                CANIS_ADD_SCRIPT(_entity, PointLight);
+            },
+            .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, PointLight) != nullptr); },
+            .Remove = [this](Entity& _entity) -> void { CANIS_REMOVE_SCRIPT(_entity, PointLight); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, PointLight); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (CANIS_GET_SCRIPT(_entity, Canis::PointLight))
+                {
+                    PointLight& light = *CANIS_GET_SCRIPT(_entity, PointLight);
+                    YAML::Node comp;
+                    comp["enabled"] = light.enabled;
+                    comp["color"] = light.color;
+                    comp["intensity"] = light.intensity;
+                    comp["range"] = light.range;
+                    _node["Canis::PointLight"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::PointLight"])
+                {
+                    auto &light = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::PointLight, false);
+                    light.enabled = comp["enabled"].as<bool>(true);
+                    light.color = comp["color"].as<Vector4>(Color(1.0f));
+                    light.intensity = comp["intensity"].as<float>(1.2f);
+                    light.range = comp["range"].as<float>(12.0f);
+                    if (_callCreate)
+                        light.Create();
+                }
+            },
+            .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
+                PointLight* light = nullptr;
+                if ((light = CANIS_GET_SCRIPT(_entity, PointLight)) != nullptr)
+                {
+                    ImGui::Checkbox("enabled", &light->enabled);
+                    ImGui::ColorEdit3("color", &light->color.r);
+                    ImGui::InputFloat("intensity", &light->intensity);
+                    ImGui::InputFloat("range", &light->range);
+                }
+            },
+        };
+
+        RegisterScript(pointLightConf);
+
         ScriptConf materialConf = {
             .name = "Canis::Material",
             .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, Canis::Material::ScriptName, new Canis::Material(_entity), _callCreate); },
@@ -742,6 +839,32 @@ namespace Canis
                         }
                     }
 
+                    YAML::Node slotAssets = YAML::Node(YAML::NodeType::Sequence);
+                    for (i32 slotMaterialId : material.materialIds)
+                    {
+                        if (slotMaterialId < 0)
+                        {
+                            slotAssets.push_back(YAML::Node());
+                            continue;
+                        }
+
+                        const std::string slotPath = AssetManager::GetPath(slotMaterialId);
+                        if (slotPath.rfind("Path was not found", 0) == 0)
+                        {
+                            slotAssets.push_back(YAML::Node());
+                            continue;
+                        }
+
+                        YAML::Node slotAssetNode;
+                        slotAssetNode["path"] = slotPath;
+                        if (MetaFileAsset* meta = AssetManager::GetMetaFile(slotPath))
+                            slotAssetNode["uuid"] = (uint64_t)meta->uuid;
+                        slotAssets.push_back(slotAssetNode);
+                    }
+
+                    if (!slotAssets.IsNull() && slotAssets.size() > 0)
+                        comp["MaterialSlots"] = slotAssets;
+
                     _node["Canis::Material"] = comp;
                 }
             },
@@ -769,6 +892,33 @@ namespace Canis
                     if (!path.empty())
                         material.materialId = AssetManager::LoadMaterial(path);
 
+                    material.materialIds.clear();
+                    if (auto slotAssets = comp["MaterialSlots"]; slotAssets && slotAssets.IsSequence())
+                    {
+                        material.materialIds.resize(slotAssets.size(), -1);
+                        for (size_t i = 0; i < slotAssets.size(); ++i)
+                        {
+                            const YAML::Node slotNode = slotAssets[i];
+                            if (!slotNode || slotNode.IsNull())
+                                continue;
+
+                            std::string slotPath = "";
+                            if (auto uuidNode = slotNode["uuid"])
+                            {
+                                UUID uuid = uuidNode.as<uint64_t>(0);
+                                slotPath = AssetManager::GetPath(uuid);
+                                if (slotPath.rfind("Path was not found", 0) == 0)
+                                    slotPath.clear();
+                            }
+
+                            if (slotPath.empty())
+                                slotPath = slotNode["path"].as<std::string>("");
+
+                            if (!slotPath.empty())
+                                material.materialIds[i] = AssetManager::LoadMaterial(slotPath);
+                        }
+                    }
+
                     if (_callCreate)
                         material.Create();
                 }
@@ -777,35 +927,76 @@ namespace Canis
                 Material* material = nullptr;
                 if ((material = CANIS_GET_SCRIPT(_entity, Material)) != nullptr)
                 {
+                    auto getMaterialLabel = [](i32 _materialId) -> std::string
+                    {
+                        if (_materialId < 0)
+                            return "[ empty ]";
+
+                        std::string path = AssetManager::GetPath(_materialId);
+                        if (path.rfind("Path was not found", 0) == 0)
+                            return "[ missing ]";
+
+                        if (MetaFileAsset* meta = AssetManager::GetMetaFile(path))
+                            return meta->name;
+
+                        return path;
+                    };
+
+                    auto handleMaterialDrop = [](i32 &_materialId) -> void
+                    {
+                        if (!ImGui::BeginDragDropTarget())
+                            return;
+
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                        {
+                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
+                            std::string path = std::string(dropped.path);
+                            if (path.empty() || !FileExists(path.c_str()))
+                                path = AssetManager::GetPath(dropped.uuid);
+
+                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(path))
+                            {
+                                if (meta->type == MetaFileAsset::FileType::MATERIAL)
+                                    _materialId = AssetManager::LoadMaterial(path);
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    };
+
                     ImGui::ColorEdit4("material color", &material->color.r);
 
-                    std::string materialLabel = "[ empty ]";
-                    if (material->materialId > -1)
-                    {
-                        std::string path = AssetManager::GetPath(material->materialId);
-                        if (path.rfind("Path was not found", 0) != 0)
-                        {
-                            if (MetaFileAsset* meta = AssetManager::GetMetaFile(path))
-                                materialLabel = meta->name;
-                            else
-                                materialLabel = path;
-                        }
-                    }
+                    std::string materialLabel = getMaterialLabel(material->materialId);
 
                     ImGui::Text("material");
                     ImGui::SameLine();
                     ImGui::Button(materialLabel.c_str(), ImVec2(150, 0));
+                    handleMaterialDrop(material->materialId);
 
-                    if (ImGui::BeginDragDropTarget())
+                    Model3D* model3D = CANIS_GET_SCRIPT(_entity, Model3D);
+                    ModelAsset* modelAsset = nullptr;
+                    if (model3D != nullptr && model3D->modelId >= 0)
+                        modelAsset = AssetManager::GetModel(model3D->modelId);
+
+                    const i32 slotCount = (modelAsset != nullptr) ? modelAsset->GetMaterialSlotCount() : 0;
+                    ImGui::Text("material slots: %d", slotCount);
+                    if (slotCount > 0)
                     {
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                        material->materialIds.resize(static_cast<size_t>(slotCount), -1);
+
+                        for (i32 slotIndex = 0; slotIndex < slotCount; ++slotIndex)
                         {
-                            const AssetDragData dropped = *static_cast<const AssetDragData*>(payload->Data);
-                            std::string path = AssetManager::GetPath(dropped.uuid);
-                            if (GetFileExtension(path) == "material")
-                                material->materialId = AssetManager::LoadMaterial(path);
+                            const std::string slotName = modelAsset->GetMaterialSlotName(slotIndex);
+                            const std::string slotLabel = slotName.empty()
+                                ? ("slot " + std::to_string(slotIndex))
+                                : ("slot " + std::to_string(slotIndex) + " (" + slotName + ")");
+                            ImGui::Text("%s", slotLabel.c_str());
+                            ImGui::SameLine();
+
+                            std::string buttonLabel = getMaterialLabel(material->materialIds[static_cast<size_t>(slotIndex)]);
+                            buttonLabel += "##material_slot_" + std::to_string(slotIndex);
+                            ImGui::Button(buttonLabel.c_str(), ImVec2(180, 0));
+                            handleMaterialDrop(material->materialIds[static_cast<size_t>(slotIndex)]);
                         }
-                        ImGui::EndDragDropTarget();
                     }
                 }
             },
@@ -827,13 +1018,6 @@ namespace Canis
                 {
                     Material* material = CANIS_ADD_SCRIPT(_entity, Material);
                     material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
-                }
-
-                if (CANIS_GET_SCRIPT(_entity, ModelAnimation3D) == nullptr)
-                {
-                    ModelAnimation3D* animation = CANIS_ADD_SCRIPT(_entity, ModelAnimation3D);
-                    animation->animationIndex = 0;
-                    animation->animationTime = 0.0f;
                 }
             },
             .Has = [this](Entity& _entity) -> bool { return (CANIS_GET_SCRIPT(_entity, Model3D) != nullptr); },
@@ -891,28 +1075,28 @@ namespace Canis
                         model.modelId = AssetManager::LoadModel(path);
 
                     // Backward compatibility: migrate legacy animation fields on Canis::Model3D.
-                    if (!_node["Canis::ModelAnimation3D"])
-                    {
-                        const bool hasLegacyAnimation =
-                            comp["playAnimation"].IsDefined() ||
-                            comp["loop"].IsDefined() ||
-                            comp["animationSpeed"].IsDefined() ||
-                            comp["animationTime"].IsDefined() ||
-                            comp["animationIndex"].IsDefined();
-
-                        if (hasLegacyAnimation && CANIS_GET_SCRIPT(_entity, Canis::ModelAnimation3D) == nullptr)
-                        {
-                            auto &animation = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::ModelAnimation3D, false);
-                            animation.playAnimation = comp["playAnimation"].as<bool>(true);
-                            animation.loop = comp["loop"].as<bool>(true);
-                            animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
-                            animation.animationTime = comp["animationTime"].as<float>(0.0f);
-                            animation.animationIndex = comp["animationIndex"].as<i32>(0);
-
-                            if (_callCreate)
-                                animation.Create();
-                        }
-                    }
+                    //if (!_node["Canis::ModelAnimation3D"])
+                    //{
+                    //    const bool hasLegacyAnimation =
+                    //        comp["playAnimation"].IsDefined() ||
+                    //        comp["loop"].IsDefined() ||
+                    //        comp["animationSpeed"].IsDefined() ||
+                    //        comp["animationTime"].IsDefined() ||
+                    //        comp["animationIndex"].IsDefined();
+//
+                    //    if (hasLegacyAnimation && CANIS_GET_SCRIPT(_entity, Canis::ModelAnimation3D) == nullptr)
+                    //    {
+                    //        auto &animation = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Canis::ModelAnimation3D, false);
+                    //        animation.playAnimation = comp["playAnimation"].as<bool>(true);
+                    //        animation.loop = comp["loop"].as<bool>(true);
+                    //        animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
+                    //        animation.animationTime = comp["animationTime"].as<float>(0.0f);
+                    //        animation.animationIndex = comp["animationIndex"].as<i32>(0);
+//
+                    //        if (_callCreate)
+                    //            animation.Create();
+                    //    }
+                    //}
 
                     if (_callCreate)
                         model.Create();
@@ -964,11 +1148,6 @@ namespace Canis
                         ImGui::EndDragDropTarget();
                     }
 
-                    if (modelAsset != nullptr)
-                    {
-                        const i32 animationCount = modelAsset->GetAnimationCount();
-                        ImGui::Text("animations: %d", animationCount);
-                    }
                 }
             },
         };
@@ -1144,6 +1323,28 @@ namespace Canis
         };
 
         RegisterInspectorItem(inspectorCreateCircle);
+
+        InspectorItemRightClick inspectorCreateDirectionalLight = {
+            .name = "Create Directional Light",
+            .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+                Canis::Entity *lightEntity = _app.scene.CreateEntity("Directional Light");
+                CANIS_ADD_SCRIPT(lightEntity, Canis::DirectionalLight);
+            }
+        };
+
+        RegisterInspectorItem(inspectorCreateDirectionalLight);
+
+        InspectorItemRightClick inspectorCreatePointLight = {
+            .name = "Create Point Light",
+            .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+                Canis::Entity *lightEntity = _app.scene.CreateEntity("Point Light");
+                Transform3D *transform = CANIS_ADD_SCRIPT(lightEntity, Canis::Transform3D);
+                transform->position = Vector3(2.0f, 2.5f, 2.0f);
+                CANIS_ADD_SCRIPT(lightEntity, Canis::PointLight);
+            }
+        };
+
+        RegisterInspectorItem(inspectorCreatePointLight);
     }
 
     float App::FPS()

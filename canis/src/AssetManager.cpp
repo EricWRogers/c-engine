@@ -290,8 +290,21 @@ namespace Canis
             // cache id
             assetLibrary.assetPath[_path+".meta"] = id;
 
-            // uuid
-            assetLibrary.uuidAssetPath[((MetaFileAsset*)metaFile)->uuid] = _path;
+            // uuid (repair collisions from duplicated/copied .meta files)
+            MetaFileAsset* loadedMeta = (MetaFileAsset*)metaFile;
+            while (assetLibrary.uuidAssetPath.contains(loadedMeta->uuid) &&
+                   assetLibrary.uuidAssetPath[loadedMeta->uuid] != _path)
+            {
+                Debug::Warning(
+                    "Duplicate asset UUID detected (%llu) for '%s' and '%s'. Regenerating UUID for '%s'.",
+                    static_cast<unsigned long long>(loadedMeta->uuid),
+                    assetLibrary.uuidAssetPath[loadedMeta->uuid].c_str(),
+                    _path.c_str(),
+                    _path.c_str());
+                loadedMeta->uuid = UUID();
+                loadedMeta->Save();
+            }
+            assetLibrary.uuidAssetPath[loadedMeta->uuid] = _path;
 
             // increment id
             assetLibrary.nextId++;
@@ -473,6 +486,28 @@ namespace Canis
                 }
             }
 
+            if (YAML::Node roughnessNode = root["roughness"])
+            {
+                std::string roughnessPath = ResolveAssetPath(roughnessNode);
+                if (!roughnessPath.empty())
+                {
+                    material->roughnessId = LoadTexture(roughnessPath);
+                    if (material->roughnessId >= 0)
+                        material->info |= MATERIAL_HAS_ROUGHNESS;
+                }
+            }
+
+            if (YAML::Node metallicNode = root["metallic"])
+            {
+                std::string metallicPath = ResolveAssetPath(metallicNode);
+                if (!metallicPath.empty())
+                {
+                    material->metallicId = LoadTexture(metallicPath);
+                    if (material->metallicId >= 0)
+                        material->info |= MATERIAL_HAS_METALLIC;
+                }
+            }
+
             if (YAML::Node emissionNode = root["emission"])
             {
                 std::string emissionPath = ResolveAssetPath(emissionNode);
@@ -490,6 +525,10 @@ namespace Canis
                 material->info |= MATERIAL_HAS_COLOR;
             }
 
+            material->specularValue = root["specularValue"].as<float>(0.5f);
+            material->roughnessValue = root["roughnessValue"].as<float>(0.5f);
+            material->metallicValue = root["metallicValue"].as<float>(0.0f);
+
             if (YAML::Node cullNode = root["backFaceCulling"])
             {
                 if (cullNode.as<bool>(false))
@@ -505,7 +544,8 @@ namespace Canis
             for (const auto &entry : root)
             {
                 const std::string key = entry.first.as<std::string>("");
-                if (key == "shader" || key == "albedo" || key == "specular" || key == "emission" || key == "color" ||
+                if (key == "shader" || key == "albedo" || key == "specular" || key == "roughness" || key == "metallic" ||
+                    key == "emission" || key == "color" || key == "specularValue" || key == "roughnessValue" || key == "metallicValue" ||
                     key == "backFaceCulling" || key == "frontFaceCulling")
                 {
                     continue;

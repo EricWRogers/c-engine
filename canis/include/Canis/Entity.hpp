@@ -794,6 +794,36 @@ namespace Canis
         float farClip = 1000.0f;
     };
 
+    class DirectionalLight : public ScriptableEntity
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::DirectionalLight";
+
+        DirectionalLight(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        bool enabled = true;
+        Color color = Color(1.0f);
+        float intensity = 1.0f;
+        Vector3 direction = Vector3(-0.4f, -1.0f, -0.25f);
+    };
+
+    class PointLight : public ScriptableEntity
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::PointLight";
+
+        PointLight(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
+
+        void EditorInspectorDraw();
+
+        bool enabled = true;
+        Color color = Color(1.0f);
+        float intensity = 1.2f;
+        float range = 12.0f;
+    };
+
     class Model3D : public ScriptableEntity
     {
     public:
@@ -817,6 +847,7 @@ namespace Canis
         void EditorInspectorDraw();
 
         i32 materialId = -1;
+        std::vector<i32> materialIds = {};
         Color color = Color(1.0f);
     };
 

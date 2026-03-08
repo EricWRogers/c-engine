@@ -289,6 +289,26 @@ void Camera3D::EditorInspectorDraw()
     ImGui::InputFloat("farClip", &farClip);
 }
 
+void DirectionalLight::EditorInspectorDraw()
+{
+    std::string nameOfType = "DirectionalLight";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("enabled", &enabled);
+    ImGui::ColorEdit3("color", &color.r);
+    ImGui::InputFloat("intensity", &intensity);
+    ImGui::InputFloat3("direction", &direction.x, "%.3f");
+}
+
+void PointLight::EditorInspectorDraw()
+{
+    std::string nameOfType = "PointLight";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("enabled", &enabled);
+    ImGui::ColorEdit3("color", &color.r);
+    ImGui::InputFloat("intensity", &intensity);
+    ImGui::InputFloat("range", &range);
+}
+
 void Model3D::EditorInspectorDraw()
 {
     std::string nameOfType = "Model3D";

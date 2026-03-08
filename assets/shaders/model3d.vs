@@ -10,12 +10,15 @@ uniform mat4 M;
 
 out vec3 fragmentNormal;
 out vec2 fragmentUV;
+out vec3 fragmentWorldPos;
 
 void main()
 {
+    vec4 worldPos = M * vec4(vertexPosition, 1.0);
     mat3 normalMatrix = mat3(transpose(inverse(M)));
     fragmentNormal = normalize(normalMatrix * vertexNormal);
     fragmentUV = vec2(vertexUV.x, vertexUV.y);
+    fragmentWorldPos = worldPos.xyz;
 
-    gl_Position = P * V * M * vec4(vertexPosition, 1.0);
+    gl_Position = P * V * worldPos;
 }

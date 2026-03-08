@@ -130,6 +130,7 @@ namespace Canis
         std::string m_renamingPath;
         char m_renameBuffer[256] = {};
         std::string m_selectedAssetPath = {};
+        std::vector<UUID> m_hierarchyRootOrder = {};
 
         unsigned int m_gameFramebuffer = 0;
         unsigned int m_gameColorTexture = 0;

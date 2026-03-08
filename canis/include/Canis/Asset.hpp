@@ -147,6 +147,8 @@ namespace Canis
         MATERIAL_HAS_COLOR = 1u << 4u,
         MATERIAL_BACK_FACE_CULLING = 1u << 5u,
         MATERIAL_FRONT_FACE_CULLING = 1u << 6u,
+        MATERIAL_HAS_ROUGHNESS = 1u << 7u,
+        MATERIAL_HAS_METALLIC = 1u << 8u,
     };
 
     class MaterialFields
@@ -171,8 +173,13 @@ namespace Canis
         i32 shaderId = -1;
         i32 albedoId = -1;
         i32 specularId = -1;
+        i32 roughnessId = -1;
+        i32 metallicId = -1;
         i32 emissionId = -1;
         Color color = Color(1.0f);
+        float specularValue = 0.5f;
+        float roughnessValue = 0.5f;
+        float metallicValue = 0.0f;
         MaterialFields materialFields = {};
     };
 
@@ -198,6 +205,7 @@ namespace Canis
             std::vector<unsigned int> indices = {};
             i32 nodeIndex = -1;
             i32 skinIndex = -1;
+            i32 materialSlot = -1;
             i32 textureId = -1;
             bool hasSkinning = false;
         };
@@ -272,11 +280,19 @@ namespace Canis
         bool UpdateAnimation(Pose3D &_pose, i32 _clipIndex, float _timeSeconds) const;
         void ResetPose();
         void ResetPose(Pose3D &_pose) const;
-        void Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose = nullptr, i32 _overrideTextureId = -1);
+        void Draw(
+            Shader &_shader,
+            const Matrix4 &_modelMatrix,
+            const Pose3D *_pose = nullptr,
+            i32 _overrideTextureId = -1,
+            const Color &_baseColor = Color(1.0f),
+            const std::vector<MaterialAsset*> *_slotMaterialOverrides = nullptr);
 
         i32 GetAnimationCount() const { return (i32)m_animations.size(); }
         std::string GetAnimationName(i32 _index) const;
         float GetAnimationDuration(i32 _index) const;
+        i32 GetMaterialSlotCount() const { return static_cast<i32>(m_materialSlotNames.size()); }
+        std::string GetMaterialSlotName(i32 _index) const;
 
         std::string GetPath() const { return m_path; }
 
@@ -287,6 +303,7 @@ namespace Canis
         std::vector<Skin3D> m_skins = {};
         std::vector<AnimationClip3D> m_animations = {};
         std::vector<Primitive3D> m_primitives = {};
+        std::vector<std::string> m_materialSlotNames = {};
         std::vector<Vector3> m_bindTranslations = {};
         std::vector<Vector4> m_bindRotations = {};
         std::vector<Vector3> m_bindScales = {};

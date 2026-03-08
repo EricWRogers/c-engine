@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include <glm/gtc/quaternion.hpp>
+#include <stb_image.h>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_filesystem.h>
@@ -295,6 +296,54 @@ namespace Canis
 
     namespace
     {
+        bool LoadTinyGLTFImageData(
+            tinygltf::Image *_image,
+            const int /*_imageIndex*/,
+            std::string *_error,
+            std::string* /*_warning*/,
+            int /*_reqWidth*/,
+            int /*_reqHeight*/,
+            const unsigned char *_bytes,
+            int _size,
+            void* /*_userPointer*/)
+        {
+            if (_image == nullptr || _bytes == nullptr || _size <= 0)
+            {
+                if (_error != nullptr)
+                    *_error += "Invalid glTF image payload.\n";
+                return false;
+            }
+
+            int width = 0;
+            int height = 0;
+            int channels = 0;
+            stbi_uc* decoded = stbi_load_from_memory(_bytes, _size, &width, &height, &channels, 4);
+            if (decoded == nullptr)
+            {
+                if (_error != nullptr)
+                {
+                    *_error += "Failed to decode glTF image data";
+                    if (const char* reason = stbi_failure_reason())
+                    {
+                        *_error += ": ";
+                        *_error += reason;
+                    }
+                    *_error += "\n";
+                }
+                return false;
+            }
+
+            _image->width = width;
+            _image->height = height;
+            _image->component = 4;
+            _image->bits = 8;
+            _image->pixel_type = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+            _image->image.assign(decoded, decoded + (width * height * 4));
+
+            stbi_image_free(decoded);
+            return true;
+        }
+
         float ReadScalarAsFloat(const unsigned char *_data, int _componentType, bool _normalized)
         {
             switch (_componentType)
@@ -593,12 +642,14 @@ namespace Canis
         m_skins.clear();
         m_animations.clear();
         m_primitives.clear();
+        m_materialSlotNames.clear();
         m_bindTranslations.clear();
         m_bindRotations.clear();
         m_bindScales.clear();
         m_bindLocalMatrices.clear();
 
         tinygltf::TinyGLTF loader;
+        loader.SetImageLoader(LoadTinyGLTFImageData, nullptr);
         tinygltf::Model gltfModel;
         std::string error;
         std::string warning;
@@ -788,6 +839,26 @@ namespace Canis
         }
 
         const std::filesystem::path modelDirectory = std::filesystem::path(_path).parent_path();
+        std::unordered_map<int, int> gltfMaterialToSlot = {};
+        auto getMaterialSlot = [&](int _gltfMaterialIndex) -> int
+        {
+            if (_gltfMaterialIndex < 0 || _gltfMaterialIndex >= (int)gltfModel.materials.size())
+                return -1;
+
+            auto it = gltfMaterialToSlot.find(_gltfMaterialIndex);
+            if (it != gltfMaterialToSlot.end())
+                return it->second;
+
+            const int slot = static_cast<int>(m_materialSlotNames.size());
+            gltfMaterialToSlot[_gltfMaterialIndex] = slot;
+
+            std::string slotName = gltfModel.materials[_gltfMaterialIndex].name;
+            if (slotName.empty())
+                slotName = "Material " + std::to_string(slot);
+            m_materialSlotNames.push_back(slotName);
+            return slot;
+        };
+
         bool skinningWarningPrinted = false;
         for (size_t nodeIndex = 0; nodeIndex < m_nodes.size(); ++nodeIndex)
         {
@@ -816,6 +887,7 @@ namespace Canis
                 Primitive3D outputPrimitive;
                 outputPrimitive.nodeIndex = static_cast<i32>(nodeIndex);
                 outputPrimitive.skinIndex = node.skin;
+                outputPrimitive.materialSlot = getMaterialSlot(primitive.material);
 
                 const size_t vertexCount = positionAccessor.count;
                 outputPrimitive.bindVertices.resize(vertexCount);
@@ -983,6 +1055,7 @@ namespace Canis
         m_sceneRoots.clear();
         m_skins.clear();
         m_animations.clear();
+        m_materialSlotNames.clear();
         m_bindTranslations.clear();
         m_bindRotations.clear();
         m_bindScales.clear();
@@ -1119,7 +1192,13 @@ namespace Canis
         UpdateSkinning(_pose);
     }
 
-    void ModelAsset::Draw(Shader &_shader, const Matrix4 &_modelMatrix, const Pose3D *_pose, i32 _overrideTextureId)
+    void ModelAsset::Draw(
+        Shader &_shader,
+        const Matrix4 &_modelMatrix,
+        const Pose3D *_pose,
+        i32 _overrideTextureId,
+        const Color &_baseColor,
+        const std::vector<MaterialAsset*> *_slotMaterialOverrides)
     {
         const Pose3D *pose = (_pose == nullptr) ? &m_sharedPose : _pose;
 
@@ -1135,11 +1214,34 @@ namespace Canis
                     model = _modelMatrix * m_nodes[primitive.nodeIndex].globalMatrix;
             }
 
-            const i32 textureId = (_overrideTextureId >= 0) ? _overrideTextureId : primitive.textureId;
+            MaterialAsset *slotMaterial = nullptr;
+            if (_slotMaterialOverrides != nullptr && primitive.materialSlot >= 0 &&
+                primitive.materialSlot < static_cast<i32>(_slotMaterialOverrides->size()))
+            {
+                slotMaterial = (*_slotMaterialOverrides)[primitive.materialSlot];
+            }
+
+            Color drawColor = _baseColor;
+            i32 textureId = primitive.textureId;
+            if (slotMaterial != nullptr)
+            {
+                if ((slotMaterial->info & MATERIAL_HAS_COLOR) != 0u)
+                    drawColor *= slotMaterial->color;
+
+                if (slotMaterial->albedoId >= 0)
+                    textureId = slotMaterial->albedoId;
+                else if (_overrideTextureId >= 0)
+                    textureId = _overrideTextureId;
+            }
+            else if (_overrideTextureId >= 0)
+            {
+                textureId = _overrideTextureId;
+            }
 
             _shader.SetMat4("M", model);
-            _shader.SetBool("useTexture", textureId >= 0);
-            _shader.SetInt("mySampler", 0);
+            _shader.SetBool("useAlbedoMap", textureId >= 0);
+            _shader.SetInt("albedoMap", 0);
+            _shader.SetVec4("albedoValue", drawColor);
 
             glActiveTexture(GL_TEXTURE0);
             if (textureId >= 0)
@@ -1178,6 +1280,14 @@ namespace Canis
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
+    }
+
+    std::string ModelAsset::GetMaterialSlotName(i32 _index) const
+    {
+        if (_index < 0 || _index >= static_cast<i32>(m_materialSlotNames.size()))
+            return "";
+
+        return m_materialSlotNames[_index];
     }
 
     std::string ModelAsset::GetAnimationName(i32 _index) const

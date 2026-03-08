@@ -98,8 +98,13 @@ namespace Canis
         _material->shaderId = -1;
         _material->albedoId = -1;
         _material->specularId = -1;
+        _material->roughnessId = -1;
+        _material->metallicId = -1;
         _material->emissionId = -1;
         _material->color = Color(1.0f);
+        _material->specularValue = 0.5f;
+        _material->roughnessValue = 0.5f;
+        _material->metallicValue = 0.0f;
         _material->materialFields = MaterialFields();
 
         if (YAML::Node shaderNode = _root["shader"])
@@ -140,6 +145,28 @@ namespace Canis
             }
         }
 
+        if (YAML::Node roughnessNode = _root["roughness"])
+        {
+            std::string path = ResolveAssetRefPath(roughnessNode);
+            if (!path.empty())
+            {
+                _material->roughnessId = AssetManager::LoadTexture(path);
+                if (_material->roughnessId >= 0)
+                    _material->info |= MATERIAL_HAS_ROUGHNESS;
+            }
+        }
+
+        if (YAML::Node metallicNode = _root["metallic"])
+        {
+            std::string path = ResolveAssetRefPath(metallicNode);
+            if (!path.empty())
+            {
+                _material->metallicId = AssetManager::LoadTexture(path);
+                if (_material->metallicId >= 0)
+                    _material->info |= MATERIAL_HAS_METALLIC;
+            }
+        }
+
         if (YAML::Node emissionNode = _root["emission"])
         {
             std::string path = ResolveAssetRefPath(emissionNode);
@@ -157,6 +184,10 @@ namespace Canis
             _material->info |= MATERIAL_HAS_COLOR;
         }
 
+        _material->specularValue = _root["specularValue"].as<float>(0.5f);
+        _material->roughnessValue = _root["roughnessValue"].as<float>(0.5f);
+        _material->metallicValue = _root["metallicValue"].as<float>(0.0f);
+
         if (YAML::Node cullNode = _root["backFaceCulling"]; cullNode.as<bool>(false))
             _material->info |= MATERIAL_BACK_FACE_CULLING;
 
@@ -166,8 +197,9 @@ namespace Canis
         for (const auto &entry : _root)
         {
             const std::string key = entry.first.as<std::string>("");
-            if (key == "shader" || key == "albedo" || key == "specular" || key == "emission" ||
-                key == "color" || key == "backFaceCulling" || key == "frontFaceCulling")
+            if (key == "shader" || key == "albedo" || key == "specular" || key == "roughness" || key == "metallic" ||
+                key == "emission" || key == "color" || key == "specularValue" || key == "roughnessValue" || key == "metallicValue" ||
+                key == "backFaceCulling" || key == "frontFaceCulling")
             {
                 continue;
             }
@@ -325,6 +357,7 @@ namespace Canis
         if (m_scene != _scene)
         {
             Debug::Log("new scene");
+            m_hierarchyRootOrder.clear();
         }
         m_app = _app;
         m_scene = _scene;
@@ -1455,7 +1488,7 @@ namespace Canis
                     // drop BEFORE this child -> specific index
                     ImGui::PushID((void *)((uintptr_t)child ^ 0xBEEF));
                     {
-                        ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+                        ImVec2 slotSize(std::max(ImGui::GetContentRegionAvail().x, 1.0f), 1.0f);
                         ImGui::InvisibleButton("##drop_before", slotSize);
 
                         if (ImGui::BeginDragDropTarget())
@@ -1506,9 +1539,20 @@ namespace Canis
 
         std::vector<Canis::Entity *> &entities = m_scene->GetEntities();
 
-        // Build list of root entities + their indices in 'entities'
-        std::vector<Canis::Entity *> rootEntities;
-        std::vector<int> rootIndices;
+        auto findEntityByUUID = [&](Canis::UUID _uuid) -> Canis::Entity*
+        {
+            for (Canis::Entity* entity : entities)
+            {
+                if (entity != nullptr && entity->uuid == _uuid)
+                    return entity;
+            }
+
+            return nullptr;
+        };
+
+        // Build root list in stable editor-controlled order.
+        std::vector<Canis::Entity*> rootsBySceneOrder = {};
+        rootsBySceneOrder.reserve(entities.size());
 
         for (int i = 0; i < (int)entities.size(); ++i)
         {
@@ -1519,8 +1563,41 @@ namespace Canis
             if (GetHierarchyParent(entity) != nullptr)
                 continue;
 
-            rootEntities.push_back(entity);
-            rootIndices.push_back(i);
+            rootsBySceneOrder.push_back(entity);
+        }
+
+        std::vector<Canis::UUID> rootOrderThisFrame = {};
+        rootOrderThisFrame.reserve(rootsBySceneOrder.size());
+
+        // Keep roots from previously saved order if they still exist and are roots.
+        for (Canis::UUID orderedUUID : m_hierarchyRootOrder)
+        {
+            Canis::Entity* entity = findEntityByUUID(orderedUUID);
+            if (entity == nullptr || GetHierarchyParent(entity) != nullptr)
+                continue;
+
+            if (std::find(rootOrderThisFrame.begin(), rootOrderThisFrame.end(), entity->uuid) == rootOrderThisFrame.end())
+                rootOrderThisFrame.push_back(entity->uuid);
+        }
+
+        // Append new roots not yet tracked.
+        for (Canis::Entity* entity : rootsBySceneOrder)
+        {
+            if (std::find(rootOrderThisFrame.begin(), rootOrderThisFrame.end(), entity->uuid) == rootOrderThisFrame.end())
+                rootOrderThisFrame.push_back(entity->uuid);
+        }
+
+        m_hierarchyRootOrder = rootOrderThisFrame;
+
+        std::vector<Canis::Entity *> rootEntities = {};
+        rootEntities.reserve(rootOrderThisFrame.size());
+        for (Canis::UUID rootUUID : rootOrderThisFrame)
+        {
+            if (Canis::Entity* entity = findEntityByUUID(rootUUID))
+            {
+                if (GetHierarchyParent(entity) == nullptr)
+                    rootEntities.push_back(entity);
+            }
         }
 
         auto moveRootToPos = [&](Canis::Entity *droppedEntity, int targetRootPos)
@@ -1528,59 +1605,37 @@ namespace Canis
             if (!droppedEntity)
                 return;
 
-            // If it was a child, unparent it first so it becomes a root.
-            UnparentHierarchyEntity(droppedEntity);
+            bool changed = false;
 
-            // Find its index in the flat entities array
-            int from = -1;
-            for (int i = 0; i < (int)entities.size(); ++i)
+            if (GetHierarchyParent(droppedEntity) != nullptr)
             {
-                if (entities[i] == droppedEntity)
-                {
-                    from = i;
-                    break;
-                }
-            }
-            if (from == -1)
-                return;
-
-            // Clamp targetRootPos
-            if (targetRootPos < 0)
-                targetRootPos = 0;
-            if (targetRootPos > (int)rootEntities.size())
-                targetRootPos = (int)rootEntities.size();
-
-            int to;
-            if (targetRootPos == (int)rootEntities.size())
-            {
-                // After last root
-                to = rootIndices.empty() ? (int)entities.size()
-                                         : rootIndices.back() + 1;
-                if (to > (int)entities.size())
-                    to = (int)entities.size();
-            }
-            else
-            {
-                to = rootIndices[targetRootPos];
+                if (UnparentHierarchyEntity(droppedEntity))
+                    changed = true;
             }
 
-            Canis::Entity *ptr = entities[from];
-            entities.erase(entities.begin() + from);
+            std::vector<Canis::UUID> updatedOrder = rootOrderThisFrame;
 
-            if (from < to)
-                --to;
-            if (to < 0)
-                to = 0;
-            if (to > (int)entities.size())
-                to = (int)entities.size();
+            if (auto it = std::find(updatedOrder.begin(), updatedOrder.end(), droppedEntity->uuid); it != updatedOrder.end())
+                updatedOrder.erase(it);
 
-            entities.insert(entities.begin() + to, ptr);
-            refresh = true;
+            targetRootPos = std::clamp(targetRootPos, 0, static_cast<int>(updatedOrder.size()));
+            updatedOrder.insert(updatedOrder.begin() + targetRootPos, droppedEntity->uuid);
+
+            if (updatedOrder != rootOrderThisFrame)
+            {
+                rootOrderThisFrame = updatedOrder;
+                m_hierarchyRootOrder = rootOrderThisFrame;
+                refresh = true;
+                changed = true;
+            }
+
+            if (changed)
+                refresh = true;
         };
 
         // ---------- TOP ROOT DROP SLOT (move to front) ----------
         {
-            ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+            ImVec2 slotSize(std::max(ImGui::GetContentRegionAvail().x, 1.0f), 1.0f);
             ImGui::InvisibleButton("##root_drop_before_first", slotSize);
 
             if (ImGui::BeginDragDropTarget())
@@ -1616,7 +1671,7 @@ namespace Canis
 
             // drop slot AFTER this root -> position ri+1
             ImGui::PushID((void *)((uintptr_t)entity ^ 0xABCDEF));
-            ImVec2 slotSize(ImGui::GetContentRegionAvail().x, 1.0f);
+            ImVec2 slotSize(std::max(ImGui::GetContentRegionAvail().x, 1.0f), 1.0f);
             ImGui::InvisibleButton("##root_drop_after", slotSize);
 
             if (ImGui::BeginDragDropTarget())
@@ -1645,6 +1700,8 @@ namespace Canis
         if (avail.y < 24.0f)
             avail.y = 24.0f;
 
+        avail.x = std::max(avail.x, 1.0f);
+        avail.y = std::max(avail.y, 1.0f);
         ImGui::InvisibleButton("##hierarchy_root_drop_zone", avail);
 
         if (ImGui::BeginDragDropTarget())
@@ -1665,8 +1722,7 @@ namespace Canis
 
                 if (droppedEntity)
                 {
-                    if (UnparentHierarchyEntity(droppedEntity))
-                        refresh = true;
+                    moveRootToPos(droppedEntity, static_cast<int>(rootOrderThisFrame.size()));
                 }
             }
             ImGui::EndDragDropTarget();
@@ -1781,9 +1837,12 @@ namespace Canis
                     display = refPath;
             }
 
+            ImGui::PushID(_key);
+
             ImGui::Text("%s", _label);
             ImGui::SameLine();
-            ImGui::Button(display.c_str(), ImVec2(220, 0));
+            const std::string buttonLabel = display + "##asset_ref";
+            ImGui::Button(buttonLabel.c_str(), ImVec2(220, 0));
 
             if (ImGui::BeginDragDropTarget())
             {
@@ -1815,17 +1874,61 @@ namespace Canis
                 }
                 ImGui::EndDragDropTarget();
             }
+
+            // Right-click on field to clear assigned asset reference.
+            if (ImGui::BeginPopupContextItem("asset_ref_ctx"))
+            {
+                if (ImGui::MenuItem("Clear"))
+                {
+                    root.remove(_key);
+                    dirty = true;
+                }
+                ImGui::EndPopup();
+            }
+
+            // Explicit clear button.
+            ImGui::SameLine();
+            if (ImGui::SmallButton("X##clear_asset_ref"))
+            {
+                root.remove(_key);
+                dirty = true;
+            }
+
+            ImGui::PopID();
         };
 
         drawAssetField("shader", "shader", true);
         drawAssetField("albedo", "albedo", false);
         drawAssetField("specular", "specular", false);
+        drawAssetField("roughness", "roughness", false);
+        drawAssetField("metallic", "metallic", false);
         drawAssetField("emission", "emission", false);
 
         Color color = root["color"].as<Color>(Color(1.0f));
         if (ImGui::ColorEdit4("color", &color.r))
         {
             root["color"] = color;
+            dirty = true;
+        }
+
+        float specularValue = root["specularValue"].as<float>(0.5f);
+        if (ImGui::DragFloat("specularValue", &specularValue, 0.01f, 0.0f, 1.0f))
+        {
+            root["specularValue"] = specularValue;
+            dirty = true;
+        }
+
+        float roughnessValue = root["roughnessValue"].as<float>(0.5f);
+        if (ImGui::DragFloat("roughnessValue", &roughnessValue, 0.01f, 0.0f, 1.0f))
+        {
+            root["roughnessValue"] = roughnessValue;
+            dirty = true;
+        }
+
+        float metallicValue = root["metallicValue"].as<float>(0.0f);
+        if (ImGui::DragFloat("metallicValue", &metallicValue, 0.01f, 0.0f, 1.0f))
+        {
+            root["metallicValue"] = metallicValue;
             dirty = true;
         }
 
@@ -1846,8 +1949,9 @@ namespace Canis
         for (const auto &entry : root)
         {
             std::string key = entry.first.as<std::string>("");
-            if (key == "shader" || key == "albedo" || key == "specular" || key == "emission" ||
-                key == "color" || key == "backFaceCulling" || key == "frontFaceCulling")
+            if (key == "shader" || key == "albedo" || key == "specular" || key == "roughness" || key == "metallic" ||
+                key == "emission" || key == "color" || key == "specularValue" || key == "roughnessValue" || key == "metallicValue" ||
+                key == "backFaceCulling" || key == "frontFaceCulling")
             {
                 continue;
             }
@@ -2016,6 +2120,32 @@ namespace Canis
                             MetaFileAsset *meta = AssetManager::GetMetaFile(to);
                     }
 
+                    if (ImGui::MenuItem("Create Material"))
+                    {
+                        const fs::path folderPath = entry.path();
+                        const fs::path templatePath = "assets/materials/default.material";
+
+                        fs::path targetPath = folderPath / "new_material.material";
+                        int index = 1;
+                        while (fs::exists(targetPath))
+                        {
+                            targetPath = folderPath / ("new_material_" + std::to_string(index) + ".material");
+                            ++index;
+                        }
+
+                        std::error_code ec;
+                        fs::copy_file(templatePath, targetPath, ec);
+                        if (ec)
+                        {
+                            std::ofstream out(targetPath.string());
+                            out << "color: [1, 1, 1, 1]\n";
+                            out << "backFaceCulling: true\n";
+                            out.close();
+                        }
+
+                        MetaFileAsset *meta = AssetManager::GetMetaFile(targetPath.string());
+                    }
+
                     ImGui::EndPopup();
                 }
 
@@ -2060,7 +2190,7 @@ namespace Canis
                     const bool selected = (m_selectedAssetPath == fullPath);
                     ImGui::Selectable(name.c_str(), selected, ImGuiSelectableFlags_SpanAllColumns);
 
-                    if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
                         if (MetaFileAsset *meta = AssetManager::GetMetaFile(fullPath))
                         {

@@ -6,7 +6,7 @@ Entities:
     Tag: MainCamera
     Canis::Transform3D:
       active: true
-      position: [0, 7, 10]
+      position: [0, 4, 10]
       rotation: [-0.2617994, 0, 0]
       scale: [1, 1, 1]
       parent: 0
@@ -1497,7 +1497,7 @@ Entities:
     Tag: ""
     Canis::Transform3D:
       active: true
-      position: [-6, 0, -6]
+      position: [-6, 1.5239351, -6]
       rotation: [0, -0, 0]
       scale: [1, 1, 1]
       parent: 0
@@ -1704,8 +1704,8 @@ Entities:
       parent: 574876361989910688
       children:
         - 14099649372093433367
+        - 445269143082392358
         - 439112257246968011
-        - 15011890976068151411
   - Entity: 14099649372093433367
     Name: Model
     Tag: ""
@@ -1765,10 +1765,10 @@ Entities:
     Tag: ""
     Canis::Transform3D:
       active: true
-      position: [2, -1, 0]
+      position: [-4, -1, -10]
       rotation: [0, 0, 0]
       scale: [100, 100, 100]
-      parent: 16624108537191200439
+      parent: 0
       children:
         []
     Canis::Material:
@@ -1825,3 +1825,83 @@ Entities:
     Canis::Camera2D:
       position: [0, 0]
       scale: 1
+  - Entity: 13459805040789117136
+    Name: PlantPot
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [1.7161562, 0, 5.6984787]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 1, 1, 1]
+      MaterialAsset:
+        path: assets/materials/default.material
+        uuid: 17490362529814420531
+      MaterialSlots:
+        - path: assets/materials/pot_dirt.material
+          uuid: 8762238982084615048
+        - path: assets/materials/pot_leaf.material
+          uuid: 10490579299847719890
+        - path: assets/materials/pot.material
+          uuid: 1870727214792560576
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/WavyPlantPot.glb
+        uuid: 1388870626326048795
+  - Entity: 445269143082392358
+    Name: PlantPot
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [6, 0.22844481, 15.698479]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 16624108537191200439
+      children:
+        - 14547368277632018479
+    Canis::Material:
+      color: [1, 1, 1, 1]
+      MaterialAsset:
+        path: assets/materials/default.material
+        uuid: 17490362529814420531
+      MaterialSlots:
+        - path: assets/materials/pot_dirt.material
+          uuid: 8762238982084615048
+        - path: assets/materials/pot_leaf.material
+          uuid: 10490579299847719890
+        - path: assets/materials/pot.material
+          uuid: 1870727214792560576
+    Canis::Model3D:
+      color: [1, 1, 1, 1]
+      ModelAsset:
+        path: assets/models/WavyPlantPot.glb
+        uuid: 1388870626326048795
+  - Entity: 14547368277632018479
+    Name: Point Light
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-0.022231817, 3.2279973, 0.21583176]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+      parent: 445269143082392358
+      children:
+        []
+    Canis::PointLight:
+      enabled: true
+      color: [1, 1, 1, 1]
+      intensity: 5
+      range: 4
+  - Entity: 15879424392946741131
+    Name: Directional Light
+    Tag: ""
+    Canis::DirectionalLight:
+      enabled: true
+      color: [1, 1, 1, 1]
+      intensity: 1
+      direction: [-0.4, -1, -0.4]

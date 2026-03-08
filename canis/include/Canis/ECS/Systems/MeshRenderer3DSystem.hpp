@@ -19,5 +19,7 @@ namespace Canis
         Shader *m_shader = nullptr;
         RuntimeECSView m_cameraView = {};
         RuntimeECSView m_renderablesView = {};
+        RuntimeECSView m_directionalLightsView = {};
+        RuntimeECSView m_pointLightsView = {};
     };
 } // end of Canis namespace

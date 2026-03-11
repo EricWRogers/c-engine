@@ -28,11 +28,13 @@ namespace Canis
 
     void MeshRenderer3DSystem::Ready()
     {
-        // Legacy entity iteration path does not need ECS view setup.
+        // No cached views required.
     }
 
     void MeshRenderer3DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
+        (void)_deltaTime;
+
         if (m_shader == nullptr)
             return;
 
@@ -52,27 +54,30 @@ namespace Canis
             Camera3D *camera = nullptr;
             Transform3D *cameraTransform = nullptr;
 
-            for (Entity *entity : scene->GetEntities())
+            auto cameraView = _registry.view<Camera3D, Transform3D>();
+            for (const entt::entity entityHandle : cameraView)
             {
+                Camera3D &candidateCamera = cameraView.get<Camera3D>(entityHandle);
+                Transform3D &candidateTransform = cameraView.get<Transform3D>(entityHandle);
+
+                Entity *entity = candidateCamera.entity;
+                if (entity == nullptr)
+                    entity = candidateTransform.entity;
+
                 if (entity == nullptr || !entity->active)
                     continue;
 
-                Camera3D *candidateCamera = CANIS_GET_COMPONENT(entity, Camera3D);
-                Transform3D *candidateTransform = CANIS_GET_COMPONENT(entity, Transform3D);
-                if (candidateCamera == nullptr || candidateTransform == nullptr)
-                    continue;
-
-                if (candidateCamera->primary)
+                if (candidateCamera.primary)
                 {
-                    camera = candidateCamera;
-                    cameraTransform = candidateTransform;
+                    camera = &candidateCamera;
+                    cameraTransform = &candidateTransform;
                     break;
                 }
 
                 if (camera == nullptr)
                 {
-                    camera = candidateCamera;
-                    cameraTransform = candidateTransform;
+                    camera = &candidateCamera;
+                    cameraTransform = &candidateTransform;
                 }
             }
 
@@ -101,25 +106,24 @@ namespace Canis
         Vector3 directionalLightColor = Vector3(1.0f, 0.98f, 0.95f);
         float directionalLightIntensity = 1.0f;
 
-        for (Entity *entity : scene->GetEntities())
+        auto directionalLightView = _registry.view<DirectionalLight>();
+        for (const entt::entity entityHandle : directionalLightView)
         {
+            DirectionalLight &light = directionalLightView.get<DirectionalLight>(entityHandle);
+            Entity *entity = light.entity;
             if (entity == nullptr || !entity->active)
                 continue;
 
-            DirectionalLight *light = CANIS_GET_COMPONENT(entity, DirectionalLight);
-            if (light == nullptr)
-                continue;
-
-            useDirectionalLight = light->enabled;
-            directionalLightDirection = light->direction;
+            useDirectionalLight = light.enabled;
+            directionalLightDirection = light.direction;
             const float directionLength = glm::length(directionalLightDirection);
             if (directionLength > 0.0001f)
                 directionalLightDirection /= directionLength;
             else
                 directionalLightDirection = Vector3(0.0f, -1.0f, 0.0f);
 
-            directionalLightColor = Vector3(light->color.r, light->color.g, light->color.b);
-            directionalLightIntensity = light->intensity;
+            directionalLightColor = Vector3(light.color.r, light.color.g, light.color.b);
+            directionalLightIntensity = light.intensity;
             break;
         }
 
@@ -129,42 +133,46 @@ namespace Canis
         float pointLightIntensity = 1.2f;
         float pointLightRange = 12.0f;
 
-        for (Entity *entity : scene->GetEntities())
+        auto pointLightView = _registry.view<PointLight, Transform3D>();
+        for (const entt::entity entityHandle : pointLightView)
         {
+            PointLight &light = pointLightView.get<PointLight>(entityHandle);
+            Transform3D &lightTransform = pointLightView.get<Transform3D>(entityHandle);
+            Entity *entity = light.entity;
+            if (entity == nullptr)
+                entity = lightTransform.entity;
+
             if (entity == nullptr || !entity->active)
                 continue;
 
-            PointLight *light = CANIS_GET_COMPONENT(entity, PointLight);
-            Transform3D *lightTransform = CANIS_GET_COMPONENT(entity, Transform3D);
-            if (light == nullptr || lightTransform == nullptr)
-                continue;
-
-            usePointLight = light->enabled;
-            pointLightPosition = lightTransform->GetGlobalPosition();
-            pointLightColor = Vector3(light->color.r, light->color.g, light->color.b);
-            pointLightIntensity = light->intensity;
-            pointLightRange = light->range;
+            usePointLight = light.enabled;
+            pointLightPosition = lightTransform.GetGlobalPosition();
+            pointLightColor = Vector3(light.color.r, light.color.g, light.color.b);
+            pointLightIntensity = light.intensity;
+            pointLightRange = light.range;
             break;
         }
 
         Shader *currentShader = nullptr;
 
-        for (Entity *entity : scene->GetEntities())
+        auto modelView = _registry.view<Transform3D, Model3D>();
+        for (const entt::entity entityHandle : modelView)
         {
-            if (entity == nullptr || !entity->active)
+            Transform3D &transform = modelView.get<Transform3D>(entityHandle);
+            Model3D &modelRenderer = modelView.get<Model3D>(entityHandle);
+            Entity *entity = modelRenderer.entity;
+            if (entity == nullptr)
+                entity = transform.entity;
+
+            if (entity == nullptr || !entity->active || modelRenderer.modelId < 0)
                 continue;
 
-            Transform3D *transform = CANIS_GET_COMPONENT(entity, Transform3D);
-            Model3D *modelRenderer = CANIS_GET_COMPONENT(entity, Model3D);
-            if (transform == nullptr || modelRenderer == nullptr || modelRenderer->modelId < 0)
-                continue;
-
-            ModelAsset *model = AssetManager::GetModel(modelRenderer->modelId);
+            ModelAsset *model = AssetManager::GetModel(modelRenderer.modelId);
             if (model == nullptr)
                 continue;
 
             MaterialAsset *materialAsset = nullptr;
-            Material *material = CANIS_GET_COMPONENT(entity, Material);
+            Material *material = _registry.try_get<Material>(entityHandle);
             if (material != nullptr && material->materialId >= 0)
                 materialAsset = AssetManager::GetMaterial(material->materialId);
 
@@ -203,13 +211,13 @@ namespace Canis
             }
 
             const ModelAsset::Pose3D *pose = nullptr;
-            if (ModelAnimation3D *animation = CANIS_GET_COMPONENT(entity, ModelAnimation3D))
+            if (ModelAnimation3D *animation = _registry.try_get<ModelAnimation3D>(entityHandle))
             {
-                if (animation->poseModelId == modelRenderer->modelId)
+                if (animation->poseModelId == modelRenderer.modelId)
                     pose = &animation->pose;
             }
 
-            Color baseColor = modelRenderer->color;
+            Color baseColor = modelRenderer.color;
             i32 overrideTextureId = -1;
             i32 specularTextureId = -1;
             i32 roughnessTextureId = -1;
@@ -325,7 +333,7 @@ namespace Canis
 
             model->Draw(
                 *currentShader,
-                transform->GetModelMatrix(),
+                transform.GetModelMatrix(),
                 pose,
                 overrideTextureId,
                 baseColor,

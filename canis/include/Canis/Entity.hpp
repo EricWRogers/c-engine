@@ -211,145 +211,127 @@ namespace Canis
         virtual void EditorInspectorDraw() {}
     };
 
-    inline ScriptableEntity* EntityAddScriptByName(Entity& _entity, const std::string& _scriptName, bool _callCreate = true)
+    inline Entity* EntityPtr(Entity& _entity)
     {
-        return _entity.AddScript(_scriptName, _callCreate);
+        return &_entity;
     }
 
-    inline ScriptableEntity* EntityAddScriptByName(Entity* _entity, const std::string& _scriptName, bool _callCreate = true)
-    {
-        if (_entity == nullptr)
-            return nullptr;
-
-        return _entity->AddScript(_scriptName, _callCreate);
-    }
-
-    inline ScriptableEntity* EntityAttachScriptByName(Entity& _entity, const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true)
-    {
-        return _entity.AttachScript(_scriptName, _scriptableEntity, _callCreate);
-    }
-
-    inline ScriptableEntity* EntityAttachScriptByName(Entity* _entity, const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true)
-    {
-        if (_entity == nullptr)
-            return nullptr;
-
-        return _entity->AttachScript(_scriptName, _scriptableEntity, _callCreate);
-    }
-
-    inline ScriptableEntity* EntityGetScriptByName(Entity& _entity, const std::string& _scriptName)
-    {
-        return _entity.GetScript(_scriptName);
-    }
-
-    inline ScriptableEntity* EntityGetScriptByName(Entity* _entity, const std::string& _scriptName)
-    {
-        if (_entity == nullptr)
-            return nullptr;
-
-        return _entity->GetScript(_scriptName);
-    }
-
-    inline void EntityRemoveScriptByName(Entity& _entity, const std::string& _scriptName)
-    {
-        _entity.RemoveScript(_scriptName);
-    }
-
-    inline void EntityRemoveScriptByName(Entity* _entity, const std::string& _scriptName)
-    {
-        if (_entity == nullptr)
-            return;
-
-        _entity->RemoveScript(_scriptName);
-    }
-
-    inline Entity& EntityAsRef(Entity& _entity)
+    inline Entity* EntityPtr(Entity* _entity)
     {
         return _entity;
     }
 
-    inline Entity& EntityAsRef(Entity* _entity)
+    template <typename TScript, typename TEntity>
+    inline TScript* AddScriptTyped(TEntity&& _entity, bool _callCreate = true)
     {
-        return *_entity;
-    }
-
-    template <typename T>
-    inline T* EntityGetComponentByType(Entity& _entity)
-    {
-        if (!_entity.HasComponent<T>())
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
             return nullptr;
 
-        return &_entity.GetComponent<T>();
+        return static_cast<TScript*>(entity->AddScript(TScript::ScriptName, _callCreate));
     }
 
-    template <typename T>
-    inline T* EntityGetComponentByType(Entity* _entity)
+    template <typename TScript, typename TEntity>
+    inline TScript* AttachScriptTyped(TEntity&& _entity, bool _callCreate = true)
     {
-        if (_entity == nullptr)
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
             return nullptr;
 
-        return EntityGetComponentByType<T>(*_entity);
+        return static_cast<TScript*>(entity->AttachScript(TScript::ScriptName, new TScript(*entity), _callCreate));
     }
 
-    template <typename T>
-    inline T* EntityAddComponentByType(Entity& _entity)
+    template <typename TScript, typename TEntity>
+    inline TScript* GetScriptTyped(TEntity&& _entity)
     {
-        return &_entity.AddComponent<T>();
-    }
-
-    template <typename T>
-    inline T* EntityAddComponentByType(Entity* _entity)
-    {
-        if (_entity == nullptr)
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
             return nullptr;
 
-        return &_entity->AddComponent<T>();
+        return static_cast<TScript*>(entity->GetScript(TScript::ScriptName));
     }
 
-    template <typename T>
-    inline void EntityRemoveComponentByType(Entity& _entity)
+    template <typename TScript, typename TEntity>
+    inline void RemoveScriptTyped(TEntity&& _entity)
     {
-        _entity.RemoveComponent<T>();
-    }
-
-    template <typename T>
-    inline void EntityRemoveComponentByType(Entity* _entity)
-    {
-        if (_entity == nullptr)
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
             return;
 
-        _entity->RemoveComponent<T>();
+        entity->RemoveScript(TScript::ScriptName);
+    }
+
+    template <typename TScript, typename TEntity>
+    inline bool HasScriptTyped(TEntity&& _entity)
+    {
+        return GetScriptTyped<TScript>(_entity) != nullptr;
+    }
+
+    template <typename TComponent, typename TEntity>
+    inline TComponent* AddComponentTyped(TEntity&& _entity)
+    {
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
+            return nullptr;
+
+        return &entity->AddComponent<TComponent>();
+    }
+
+    template <typename TComponent, typename TEntity>
+    inline TComponent* GetComponentTyped(TEntity&& _entity)
+    {
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr || !entity->HasComponent<TComponent>())
+            return nullptr;
+
+        return &entity->GetComponent<TComponent>();
+    }
+
+    template <typename TComponent, typename TEntity>
+    inline void RemoveComponentTyped(TEntity&& _entity)
+    {
+        Entity* entity = EntityPtr(_entity);
+        if (entity == nullptr)
+            return;
+
+        entity->RemoveComponent<TComponent>();
+    }
+
+    template <typename TComponent, typename TEntity>
+    inline bool HasComponentTyped(TEntity&& _entity)
+    {
+        return GetComponentTyped<TComponent>(_entity) != nullptr;
     }
 
 #define CANIS_ADD_SCRIPT(entityExpr, type) \
-    static_cast<type*>(Canis::EntityAddScriptByName((entityExpr), type::ScriptName, true))
+    Canis::AddScriptTyped<type>((entityExpr), true)
 
 #define CANIS_ADD_SCRIPT_WITH_CREATE(entityExpr, type, callCreate) \
-    static_cast<type*>(Canis::EntityAddScriptByName((entityExpr), type::ScriptName, (callCreate)))
+    Canis::AddScriptTyped<type>((entityExpr), (callCreate))
 
 #define CANIS_ATTACH_SCRIPT(entityExpr, type, callCreate) \
-    static_cast<type*>(Canis::EntityAttachScriptByName((entityExpr), type::ScriptName, new type(Canis::EntityAsRef(entityExpr)), (callCreate)))
+    Canis::AttachScriptTyped<type>((entityExpr), (callCreate))
 
 #define CANIS_GET_SCRIPT(entityExpr, type) \
-    static_cast<type*>(Canis::EntityGetScriptByName((entityExpr), type::ScriptName))
+    Canis::GetScriptTyped<type>((entityExpr))
 
 #define CANIS_REMOVE_SCRIPT(entityExpr, type) \
-    Canis::EntityRemoveScriptByName((entityExpr), type::ScriptName)
+    Canis::RemoveScriptTyped<type>((entityExpr))
 
 #define CANIS_HAS_SCRIPT(entityExpr, type) \
-    (Canis::EntityGetScriptByName((entityExpr), type::ScriptName) != nullptr)
+    Canis::HasScriptTyped<type>((entityExpr))
 
 #define CANIS_ADD_COMPONENT(entityExpr, type) \
-    Canis::EntityAddComponentByType<Canis::type>((entityExpr))
+    Canis::AddComponentTyped<Canis::type>((entityExpr))
 
 #define CANIS_GET_COMPONENT(entityExpr, type) \
-    Canis::EntityGetComponentByType<Canis::type>((entityExpr))
+    Canis::GetComponentTyped<Canis::type>((entityExpr))
 
 #define CANIS_REMOVE_COMPONENT(entityExpr, type) \
-    Canis::EntityRemoveComponentByType<Canis::type>((entityExpr))
+    Canis::RemoveComponentTyped<Canis::type>((entityExpr))
 
 #define CANIS_HAS_COMPONENT(entityExpr, type) \
-    (Canis::EntityGetComponentByType<Canis::type>((entityExpr)) != nullptr)
+    Canis::HasComponentTyped<Canis::type>((entityExpr))
 
     enum RectAnchor
 	{

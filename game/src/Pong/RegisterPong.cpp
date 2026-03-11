@@ -37,7 +37,7 @@ namespace Pong
 ScriptConf paddleConf = {
     .name = "Pong::Paddle",
     .Construct = [](Entity& _entity, bool _callCreate) -> ScriptableEntity* {
-        return Canis::EntityAttachScriptByName(_entity, Pong::Paddle::ScriptName, new Pong::Paddle(_entity), _callCreate);
+        return _entity.AttachScript(Pong::Paddle::ScriptName, new Pong::Paddle(_entity), _callCreate);
     },
     .Add = [](Entity &_entity) -> void
     {

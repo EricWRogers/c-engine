@@ -73,7 +73,7 @@ namespace TankGame
             m_turret = CANIS_GET_COMPONENT(m_transform->children[0], RectTransform);
 
             if (m_turret != nullptr && !m_turret->children.empty())
-                m_firePoint = CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
+                m_firePoint = &m_turret->children[0]->GetComponent<RectTransform>();// CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
         }
 
         Movement(_dt);

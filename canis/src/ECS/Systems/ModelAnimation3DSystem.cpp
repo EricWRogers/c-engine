@@ -7,34 +7,20 @@
 #include <Canis/Entity.hpp>
 #include <Canis/Scene.hpp>
 #include <Canis/Time.hpp>
-#include <Canis/App.hpp>
 
 namespace Canis
 {
     void ModelAnimation3DSystem::Ready()
     {
-        u64 requiredMask = 0;
-        if (scene != nullptr && scene->app != nullptr)
-        {
-            if (ScriptConf *modelConf = scene->app->GetScriptConf(Model3D::ScriptName))
-                requiredMask |= modelConf->componentMask;
-
-            if (ScriptConf *animationConf = scene->app->GetScriptConf(ModelAnimation3D::ScriptName))
-                requiredMask |= animationConf->componentMask;
-        }
-
-        scene->InitECSView(m_animationView, requiredMask);
+        // Legacy entity iteration path does not need ECS view setup.
     }
 
     void ModelAnimation3DSystem::Update()
     {
         const float deltaTime = Time::DeltaTime();
 
-        scene->UpdateECSView(m_animationView);
-
-        for (u32 entityId : m_animationView.entities)
+        for (Entity* entity : scene->GetEntities())
         {
-            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 

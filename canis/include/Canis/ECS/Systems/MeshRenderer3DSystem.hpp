@@ -1,6 +1,5 @@
 #pragma once
 #include <Canis/System.hpp>
-#include <Canis/ECS/RuntimeECS.hpp>
 
 namespace Canis
 {
@@ -17,9 +16,5 @@ namespace Canis
 
     private:
         Shader *m_shader = nullptr;
-        RuntimeECSView m_cameraView = {};
-        RuntimeECSView m_renderablesView = {};
-        RuntimeECSView m_directionalLightsView = {};
-        RuntimeECSView m_pointLightsView = {};
     };
 } // end of Canis namespace

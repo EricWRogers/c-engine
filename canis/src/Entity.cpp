@@ -11,6 +11,14 @@
 
 namespace Canis {
 
+namespace
+{
+    bool MatchesScriptEntry(const ScriptComponentEntry& _entry, const ScriptConf& _conf)
+    {
+        return _entry.name == _conf.name;
+    }
+}
+
 ScriptableEntity* Entity::AddScriptDirect(const ScriptConf& _conf, ScriptableEntity* _scriptableEntity, bool _callCreate)
 {
     if (_scriptableEntity == nullptr)
@@ -23,35 +31,8 @@ ScriptableEntity* Entity::AddScriptDirect(const ScriptConf& _conf, ScriptableEnt
         return existing;
     }
 
-    if (scene == nullptr)
-    {
-        delete _scriptableEntity;
-        return nullptr;
-    }
-
-    ScriptableEntity* added = scene->AddComponentToEntity(
-        static_cast<u32>(id),
-        _conf.componentIndex,
-        _conf.componentMask,
-        _scriptableEntity
-    );
-
-    if (added == nullptr)
-    {
-        delete _scriptableEntity;
-        return nullptr;
-    }
-
-    if (added != _scriptableEntity)
-    {
-        delete _scriptableEntity;
-        return added;
-    }
-
     m_scriptComponents.push_back(ScriptComponentEntry{
         .name = _conf.name,
-        .componentIndex = _conf.componentIndex,
-        .componentMask = _conf.componentMask,
         .script = _scriptableEntity
     });
 
@@ -63,39 +44,42 @@ ScriptableEntity* Entity::AddScriptDirect(const ScriptConf& _conf, ScriptableEnt
 
 ScriptableEntity* Entity::GetScriptDirect(const ScriptConf& _conf)
 {
-    if (scene == nullptr)
-        return nullptr;
+    for (ScriptComponentEntry& entry : m_scriptComponents)
+    {
+        if (MatchesScriptEntry(entry, _conf))
+            return entry.script;
+    }
 
-    return scene->GetComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
+    return nullptr;
 }
 
 const ScriptableEntity* Entity::GetScriptDirect(const ScriptConf& _conf) const
 {
-    if (scene == nullptr)
-        return nullptr;
+    for (const ScriptComponentEntry& entry : m_scriptComponents)
+    {
+        if (MatchesScriptEntry(entry, _conf))
+            return entry.script;
+    }
 
-    return scene->GetComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
+    return nullptr;
 }
 
 void Entity::RemoveScriptDirect(const ScriptConf& _conf)
 {
-    if (scene == nullptr)
-        return;
-
-    ScriptableEntity* script = scene->RemoveComponentFromEntity(static_cast<u32>(id), _conf.componentIndex);
-    if (script == nullptr)
-        return;
-
-    script->Destroy();
-    delete script;
-
     for (size_t i = 0; i < m_scriptComponents.size(); ++i)
     {
-        if (m_scriptComponents[i].componentIndex == _conf.componentIndex)
+        if (!MatchesScriptEntry(m_scriptComponents[i], _conf))
+            continue;
+
+        ScriptableEntity* script = m_scriptComponents[i].script;
+        if (script != nullptr)
         {
-            m_scriptComponents.erase(m_scriptComponents.begin() + i);
-            break;
+            script->Destroy();
+            delete script;
         }
+
+        m_scriptComponents.erase(m_scriptComponents.begin() + i);
+        break;
     }
 }
 
@@ -199,27 +183,9 @@ bool Entity::HasScript(const std::string& _scriptName) const
 
 void Entity::RemoveAllScripts()
 {
-    if (scene == nullptr)
-    {
-        for (ScriptComponentEntry& entry : m_scriptComponents)
-        {
-            if (entry.script == nullptr)
-                continue;
-
-            entry.script->Destroy();
-            delete entry.script;
-        }
-
-        m_scriptComponents.clear();
-        return;
-    }
-
     for (int i = static_cast<int>(m_scriptComponents.size()) - 1; i >= 0; --i)
     {
-        ScriptComponentEntry entry = m_scriptComponents[static_cast<size_t>(i)];
-        ScriptableEntity* script = scene->RemoveComponentFromEntity(static_cast<u32>(id), entry.componentIndex);
-        if (script == nullptr)
-            script = entry.script;
+        ScriptableEntity* script = m_scriptComponents[static_cast<size_t>(i)].script;
 
         if (script != nullptr)
         {

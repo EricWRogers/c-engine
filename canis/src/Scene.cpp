@@ -397,7 +397,6 @@ namespace Canis
         entity->scene = this;
         entity->name = _name;
         entity->tag = _tag;
-        m_ecs.EnsureEntityCapacity(static_cast<u32>(entity->id));
 
         // TODO : handle better
         for (int i = 0; i < m_entities.size(); i++)
@@ -408,7 +407,6 @@ namespace Canis
                     Debug::Log("The Camera Just Died");
                 m_entities[i] = entity;
                 entity->id = i;
-                m_ecs.EnsureEntityCapacity(static_cast<u32>(entity->id));
                 QueueEntityForReady(entity->id);
                 return entity;
             }
@@ -598,50 +596,5 @@ namespace Canis
         }
 
         return nullptr;
-    }
-
-    void Scene::RegisterComponent(u32 _componentIndex, u64 _componentMask)
-    {
-        m_ecs.RegisterComponent(_componentIndex, _componentMask);
-    }
-
-    void Scene::UnregisterComponent(u32 _componentIndex)
-    {
-        m_ecs.UnregisterComponent(_componentIndex);
-    }
-
-    ScriptableEntity* Scene::AddComponentToEntity(u32 _entityId, u32 _componentIndex, u64 _componentMask, ScriptableEntity* _component)
-    {
-        return m_ecs.AddComponent(_componentIndex, _componentMask, _entityId, _component);
-    }
-
-    ScriptableEntity* Scene::GetComponentFromEntity(u32 _entityId, u32 _componentIndex)
-    {
-        return m_ecs.GetComponent(_componentIndex, _entityId);
-    }
-
-    const ScriptableEntity* Scene::GetComponentFromEntity(u32 _entityId, u32 _componentIndex) const
-    {
-        return m_ecs.GetComponent(_componentIndex, _entityId);
-    }
-
-    ScriptableEntity* Scene::RemoveComponentFromEntity(u32 _entityId, u32 _componentIndex)
-    {
-        return m_ecs.RemoveComponent(_componentIndex, _entityId);
-    }
-
-    u64 Scene::GetEntityComponentMask(u32 _entityId) const
-    {
-        return m_ecs.GetEntityMask(_entityId);
-    }
-
-    void Scene::InitECSView(RuntimeECSView& _view, u64 _requiredMask, u32 _capacity) const
-    {
-        m_ecs.InitView(_view, _requiredMask, _capacity);
-    }
-
-    void Scene::UpdateECSView(RuntimeECSView& _view) const
-    {
-        m_ecs.UpdateView(_view);
     }
 }

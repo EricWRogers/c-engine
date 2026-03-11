@@ -5,8 +5,6 @@
 #include <functional>
 #include <yaml-cpp/yaml.h>
 
-#include <Canis/Data/Types.hpp>
-
 namespace Canis
 {
 class App;
@@ -25,8 +23,6 @@ struct PropertyRegistry {
 
 struct ScriptConf {
     std::string name;
-    u32 componentIndex = u32_max;
-    u64 componentMask = 0;
     PropertyRegistry registry;
     std::function<ScriptableEntity*(Entity&, bool)> Construct = nullptr;
     std::function<void(Entity&)> Add = nullptr;

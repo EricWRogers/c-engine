@@ -1399,28 +1399,7 @@ namespace Canis
             if (_conf.name == sc.name)
                 return;
 
-        u32 componentIndex = u32_max;
-        if (!m_freeComponentIndices.empty())
-        {
-            componentIndex = m_freeComponentIndices.back();
-            m_freeComponentIndices.pop_back();
-        }
-        else
-        {
-            componentIndex = m_nextComponentIndex++;
-        }
-
-        if (componentIndex >= 63)
-        {
-            Debug::Error("Cannot register script '%s': max ECS component count reached (63).", _conf.name.c_str());
-            return;
-        }
-
-        _conf.componentIndex = componentIndex;
-        _conf.componentMask = (1ull << componentIndex);
-
         m_scriptRegistry.push_back(_conf);
-        scene.RegisterComponent(componentIndex, _conf.componentMask);
     }
 
     void App::UnregisterScript(ScriptConf &_conf)
@@ -1439,9 +1418,6 @@ namespace Canis
                     if (entity->HasScript(conf.name))
                         entity->RemoveScript(conf.name);
                 }
-
-                scene.UnregisterComponent(conf.componentIndex);
-                m_freeComponentIndices.push_back(conf.componentIndex);
 
                 m_scriptRegistry.erase(m_scriptRegistry.begin() + i);
                 i--;

@@ -13,7 +13,6 @@
 #include <Canis/Window.hpp>
 #include <Canis/AssetHandle.hpp>
 #include <Canis/AssetManager.hpp>
-#include <Canis/App.hpp>
 
 #include <Canis/OpenGL.hpp>
 
@@ -533,20 +532,7 @@ namespace Canis
 
     void SpriteRenderer2DSystem::Ready()
     {
-        u64 cameraMask = 0;
-        u64 drawablesMask = 0;
-
-        if (scene != nullptr && scene->app != nullptr)
-        {
-            if (ScriptConf *cameraConf = scene->app->GetScriptConf(Camera2D::ScriptName))
-                cameraMask |= cameraConf->componentMask;
-
-            if (ScriptConf *transformConf = scene->app->GetScriptConf(RectTransform::ScriptName))
-                drawablesMask |= transformConf->componentMask;
-        }
-
-        scene->InitECSView(m_cameraView, cameraMask);
-        scene->InitECSView(m_drawablesView, drawablesMask);
+        // Legacy entity iteration path does not need ECS view setup.
     }
 
     void SpriteRenderer2DSystem::Update()
@@ -563,11 +549,9 @@ namespace Canis
         bool cameraFound = false;
         bool editorCameraOverride = scene->HasEditorCamera2DOverride();
         Matrix4 overrideProjection = Matrix4(1.0f);
-        scene->UpdateECSView(m_cameraView);
 
-        for (u32 entityId : m_cameraView.entities)
+        for (Entity* entity : scene->GetEntities())
         {
-            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
             
@@ -614,10 +598,8 @@ namespace Canis
         Vector2 p;
         Vector2 s;
 
-        scene->UpdateECSView(m_drawablesView);
-        for (u32 entityId : m_drawablesView.entities)
+        for (Entity* entity : scene->GetEntities())
         {
-            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
             

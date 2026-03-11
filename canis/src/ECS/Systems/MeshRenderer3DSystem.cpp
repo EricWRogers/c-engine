@@ -6,7 +6,6 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Shader.hpp>
 #include <Canis/Window.hpp>
-#include <Canis/App.hpp>
 #include <algorithm>
 
 namespace Canis
@@ -29,42 +28,7 @@ namespace Canis
 
     void MeshRenderer3DSystem::Ready()
     {
-        u64 cameraMask = 0;
-        u64 renderablesMask = 0;
-        u64 directionalLightMask = 0;
-        u64 pointLightMask = 0;
-
-        if (scene != nullptr && scene->app != nullptr)
-        {
-            if (ScriptConf *cameraConf = scene->app->GetScriptConf(Camera3D::ScriptName))
-                cameraMask |= cameraConf->componentMask;
-
-            if (ScriptConf *transformConf = scene->app->GetScriptConf(Transform3D::ScriptName))
-            {
-                cameraMask |= transformConf->componentMask;
-                renderablesMask |= transformConf->componentMask;
-            }
-
-            if (ScriptConf *modelConf = scene->app->GetScriptConf(Model3D::ScriptName))
-                renderablesMask |= modelConf->componentMask;
-
-            if (ScriptConf *materialConf = scene->app->GetScriptConf(Material::ScriptName))
-                renderablesMask |= materialConf->componentMask;
-
-            if (ScriptConf *directionalLightConf = scene->app->GetScriptConf(DirectionalLight::ScriptName))
-                directionalLightMask |= directionalLightConf->componentMask;
-
-            if (ScriptConf *pointLightConf = scene->app->GetScriptConf(PointLight::ScriptName))
-                pointLightMask |= pointLightConf->componentMask;
-
-            if (ScriptConf *transformConf = scene->app->GetScriptConf(Transform3D::ScriptName))
-                pointLightMask |= transformConf->componentMask;
-        }
-
-        scene->InitECSView(m_cameraView, cameraMask);
-        scene->InitECSView(m_renderablesView, renderablesMask);
-        scene->InitECSView(m_directionalLightsView, directionalLightMask);
-        scene->InitECSView(m_pointLightsView, pointLightMask);
+        // Legacy entity iteration path does not need ECS view setup.
     }
 
     void MeshRenderer3DSystem::Update()
@@ -88,10 +52,8 @@ namespace Canis
             Camera3D *camera = nullptr;
             Transform3D *cameraTransform = nullptr;
 
-            scene->UpdateECSView(m_cameraView);
-            for (u32 entityId : m_cameraView.entities)
+            for (Entity *entity : scene->GetEntities())
             {
-                Entity *entity = scene->GetEntity(static_cast<int>(entityId));
                 if (entity == nullptr || !entity->active)
                     continue;
 
@@ -139,10 +101,8 @@ namespace Canis
         Vector3 directionalLightColor = Vector3(1.0f, 0.98f, 0.95f);
         float directionalLightIntensity = 1.0f;
 
-        scene->UpdateECSView(m_directionalLightsView);
-        for (u32 entityId : m_directionalLightsView.entities)
+        for (Entity *entity : scene->GetEntities())
         {
-            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 
@@ -169,10 +129,8 @@ namespace Canis
         float pointLightIntensity = 1.2f;
         float pointLightRange = 12.0f;
 
-        scene->UpdateECSView(m_pointLightsView);
-        for (u32 entityId : m_pointLightsView.entities)
+        for (Entity *entity : scene->GetEntities())
         {
-            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 
@@ -191,10 +149,8 @@ namespace Canis
 
         Shader *currentShader = nullptr;
 
-        scene->UpdateECSView(m_renderablesView);
-        for (u32 entityId : m_renderablesView.entities)
+        for (Entity *entity : scene->GetEntities())
         {
-            Entity *entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr || !entity->active)
                 continue;
 

@@ -6,20 +6,12 @@
 #include <Canis/Scene.hpp>
 #include <Canis/Entity.hpp>
 #include <Canis/AssetManager.hpp>
-#include <Canis/App.hpp>
 
 namespace Canis
 {
     void SpriteAnimationSystem::Ready()
     {
-        u64 requiredMask = 0;
-        if (scene != nullptr && scene->app != nullptr)
-        {
-            if (ScriptConf* animationConf = scene->app->GetScriptConf(SpriteAnimation::ScriptName))
-                requiredMask |= animationConf->componentMask;
-        }
-
-        scene->InitECSView(m_animationView, requiredMask);
+        // Legacy entity iteration path does not need ECS view setup.
     }
 
     void SpriteAnimationSystem::Update()
@@ -27,11 +19,9 @@ namespace Canis
         f32 deltaTime = Time::DeltaTime();
         SpriteAnimationAsset *spriteAnimationAsset = nullptr;
         int spriteAnimationId = 0;
-        scene->UpdateECSView(m_animationView);
 
-        for (u32 entityId : m_animationView.entities)
+        for (Entity* entity : scene->GetEntities())
         {
-            Entity* entity = scene->GetEntity(static_cast<int>(entityId));
             if (entity == nullptr)
                 continue;
 

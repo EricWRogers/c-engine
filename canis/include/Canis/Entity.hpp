@@ -20,8 +20,6 @@ namespace Canis
     struct ScriptComponentEntry
     {
         std::string name = "";
-        u32 componentIndex = u32_max;
-        u64 componentMask = 0;
         ScriptableEntity* script = nullptr;
     };
 
@@ -47,6 +45,64 @@ namespace Canis
         UUID uuid;
         
         Entity() = default;
+
+        template <typename T>
+        T* AddScript(bool _callCreate = true)
+        {
+            if (T* scriptableEntity = GetScript<T>())
+                return scriptableEntity;
+
+            T* scriptableEntity = new T(*this);
+
+            m_scriptComponents.push_back(ScriptComponentEntry{
+                .name = "",
+                .script = scriptableEntity
+            });
+
+            if (_callCreate)
+                scriptableEntity->Create();
+
+            return scriptableEntity;
+        }
+
+        template <typename T>
+        T* GetScript()
+        {
+            for (ScriptComponentEntry& entry : m_scriptComponents)
+            {
+                if (T* scriptableEntity = dynamic_cast<T*>(entry.script))
+                    return scriptableEntity;
+            }
+
+            return nullptr;
+        }
+
+        template <typename T>
+        const T* GetScript() const
+        {
+            for (const ScriptComponentEntry& entry : m_scriptComponents)
+            {
+                if (const T* scriptableEntity = dynamic_cast<const T*>(entry.script))
+                    return scriptableEntity;
+            }
+
+            return nullptr;
+        }
+
+        template <typename T>
+        void RemoveScript()
+        {
+            for (size_t i = 0; i < m_scriptComponents.size(); ++i)
+            {
+                if (T* scriptableEntity = dynamic_cast<T*>(m_scriptComponents[i].script))
+                {
+                    scriptableEntity->Destroy();
+                    delete scriptableEntity;
+                    m_scriptComponents.erase(m_scriptComponents.begin() + i);
+                    return;
+                }
+            }
+        }
 
         ScriptableEntity* AddScript(const std::string& _scriptName, bool _callCreate = true);
         ScriptableEntity* AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true);

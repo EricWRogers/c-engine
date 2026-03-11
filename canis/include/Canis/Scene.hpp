@@ -1,6 +1,5 @@
 #pragma once
 #include <Canis/UUID.hpp>
-#include <Canis/ECS/RuntimeECS.hpp>
 #include <Canis/Math.hpp>
 
 #include <string>
@@ -18,7 +17,6 @@ namespace Canis
     class Window;
     class InputManager;
     class Entity;
-    class ScriptableEntity;
     class System;
     struct ScriptConf;
 
@@ -107,16 +105,6 @@ namespace Canis
         }
 
         std::vector<Entity*>& GetEntities() { return m_entities; }
-
-        void RegisterComponent(u32 _componentIndex, u64 _componentMask);
-        void UnregisterComponent(u32 _componentIndex);
-        ScriptableEntity* AddComponentToEntity(u32 _entityId, u32 _componentIndex, u64 _componentMask, ScriptableEntity* _component);
-        ScriptableEntity* GetComponentFromEntity(u32 _entityId, u32 _componentIndex);
-        const ScriptableEntity* GetComponentFromEntity(u32 _entityId, u32 _componentIndex) const;
-        ScriptableEntity* RemoveComponentFromEntity(u32 _entityId, u32 _componentIndex);
-        u64 GetEntityComponentMask(u32 _entityId) const;
-        void InitECSView(RuntimeECSView& _view, u64 _requiredMask, u32 _capacity = 64) const;
-        void UpdateECSView(RuntimeECSView& _view) const;
         const std::vector<SystemTiming>& GetSystemTimings() const { return m_systemTimings; }
     private:
         std::string m_name = "main";
@@ -125,7 +113,6 @@ namespace Canis
         InputManager *m_inputManager;
 
         std::vector<Entity*> m_entities = {};
-        RuntimeECS m_ecs = {};
         std::vector<System*> m_systems = {};
         std::vector<System*> m_updateSystems = {};
         std::vector<System*> m_renderSystems = {};

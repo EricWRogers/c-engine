@@ -1,6 +1,5 @@
 #pragma once
 #include <Canis/System.hpp>
-#include <Canis/ECS/RuntimeECS.hpp>
 
 namespace Canis
 {
@@ -14,8 +13,5 @@ namespace Canis
         void Ready() override;
 
         void Update() override;
-
-    private:
-        RuntimeECSView m_animationView = {};
     };
 } // end of Canis namespace

@@ -55,7 +55,7 @@ namespace Canis
         for (System* system : m_updateSystems)
         {
             const Uint64 start = SDL_GetTicksNS();
-            system->Update();
+            system->Update(m_registry, _deltaTime);
             const float elapsedMs = static_cast<float>(SDL_GetTicksNS() - start) / 1000000.0f;
             if (SystemTiming* timing = GetSystemTiming(system))
                 timing->updateMs = elapsedMs;
@@ -113,7 +113,7 @@ namespace Canis
         for (System* renderer : m_renderSystems)
         {
             const Uint64 start = SDL_GetTicksNS();
-            renderer->Update();
+            renderer->Update(m_registry, _deltaTime);
             const float elapsedMs = static_cast<float>(SDL_GetTicksNS() - start) / 1000000.0f;
             if (SystemTiming* timing = GetSystemTiming(renderer))
                 timing->renderMs = elapsedMs;
@@ -131,6 +131,7 @@ namespace Canis
         }
 
         m_entities.clear();
+        m_registry.clear();
 
         for (System* system : m_systems)
         {
@@ -220,11 +221,11 @@ namespace Canis
                 if (entity == nullptr)
                     continue;
 
-                if (RectTransform* transform = CANIS_GET_SCRIPT(entity, RectTransform))
+                if (RectTransform* transform = CANIS_GET_COMPONENT(entity, RectTransform))
                 {
                     if (transform->parent != nullptr)
                     {
-                        if (RectTransform* parentTransform = CANIS_GET_SCRIPT(transform->parent, RectTransform))
+                        if (RectTransform* parentTransform = CANIS_GET_COMPONENT(transform->parent, RectTransform))
                         {
                             auto& siblings = parentTransform->children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
@@ -241,16 +242,16 @@ namespace Canis
                         if (child == nullptr)
                             continue;
 
-                        if (RectTransform* childTransform = CANIS_GET_SCRIPT(child, RectTransform))
+                        if (RectTransform* childTransform = CANIS_GET_COMPONENT(child, RectTransform))
                             childTransform->parent = entity;
                     }
                 }
 
-                if (Transform3D* transform = CANIS_GET_SCRIPT(entity, Transform3D))
+                if (Transform3D* transform = CANIS_GET_COMPONENT(entity, Transform3D))
                 {
                     if (transform->parent != nullptr)
                     {
-                        if (Transform3D* parentTransform = CANIS_GET_SCRIPT(transform->parent, Transform3D))
+                        if (Transform3D* parentTransform = CANIS_GET_COMPONENT(transform->parent, Transform3D))
                         {
                             auto& siblings = parentTransform->children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
@@ -267,7 +268,7 @@ namespace Canis
                         if (child == nullptr)
                             continue;
 
-                        if (Transform3D* childTransform = CANIS_GET_SCRIPT(child, Transform3D))
+                        if (Transform3D* childTransform = CANIS_GET_COMPONENT(child, Transform3D))
                             childTransform->parent = entity;
                     }
                 }
@@ -397,6 +398,7 @@ namespace Canis
         entity->scene = this;
         entity->name = _name;
         entity->tag = _tag;
+        entity->m_entityHandle = m_registry.create();
 
         // TODO : handle better
         for (int i = 0; i < m_entities.size(); i++)
@@ -536,14 +538,34 @@ namespace Canis
                 childIdsToDestroy.push_back(childId);
         };
 
-        if (RectTransform* rectTransform = CANIS_GET_SCRIPT(entity, RectTransform))
+        if (RectTransform* rectTransform = CANIS_GET_COMPONENT(entity, RectTransform))
         {
+            if (rectTransform->parent != nullptr)
+            {
+                if (RectTransform* parentTransform = CANIS_GET_COMPONENT(rectTransform->parent, RectTransform))
+                {
+                    auto& siblings = parentTransform->children;
+                    siblings.erase(std::remove(siblings.begin(), siblings.end(), entity), siblings.end());
+                }
+                rectTransform->parent = nullptr;
+            }
+
             for (Entity* child : rectTransform->children)
                 queueChildForDestroy(child);
         }
 
-        if (Transform3D* transform3D = CANIS_GET_SCRIPT(entity, Transform3D))
+        if (Transform3D* transform3D = CANIS_GET_COMPONENT(entity, Transform3D))
         {
+            if (transform3D->parent != nullptr)
+            {
+                if (Transform3D* parentTransform = CANIS_GET_COMPONENT(transform3D->parent, Transform3D))
+                {
+                    auto& siblings = parentTransform->children;
+                    siblings.erase(std::remove(siblings.begin(), siblings.end(), entity), siblings.end());
+                }
+                transform3D->parent = nullptr;
+            }
+
             for (Entity* child : transform3D->children)
                 queueChildForDestroy(child);
         }
@@ -555,6 +577,8 @@ namespace Canis
         m_entities[_id] = nullptr;
 
         entity->RemoveAllScripts();
+        if (entity->m_entityHandle != entt::null && m_registry.valid(entity->m_entityHandle))
+            m_registry.destroy(entity->m_entityHandle);
         delete entity;
     }
 

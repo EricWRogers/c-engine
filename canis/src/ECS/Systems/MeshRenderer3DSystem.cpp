@@ -31,7 +31,7 @@ namespace Canis
         // Legacy entity iteration path does not need ECS view setup.
     }
 
-    void MeshRenderer3DSystem::Update()
+    void MeshRenderer3DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
         if (m_shader == nullptr)
             return;
@@ -57,8 +57,8 @@ namespace Canis
                 if (entity == nullptr || !entity->active)
                     continue;
 
-                Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
-                Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
+                Camera3D *candidateCamera = CANIS_GET_COMPONENT(entity, Camera3D);
+                Transform3D *candidateTransform = CANIS_GET_COMPONENT(entity, Transform3D);
                 if (candidateCamera == nullptr || candidateTransform == nullptr)
                     continue;
 
@@ -106,7 +106,7 @@ namespace Canis
             if (entity == nullptr || !entity->active)
                 continue;
 
-            DirectionalLight *light = CANIS_GET_SCRIPT(entity, DirectionalLight);
+            DirectionalLight *light = CANIS_GET_COMPONENT(entity, DirectionalLight);
             if (light == nullptr)
                 continue;
 
@@ -134,8 +134,8 @@ namespace Canis
             if (entity == nullptr || !entity->active)
                 continue;
 
-            PointLight *light = CANIS_GET_SCRIPT(entity, PointLight);
-            Transform3D *lightTransform = CANIS_GET_SCRIPT(entity, Transform3D);
+            PointLight *light = CANIS_GET_COMPONENT(entity, PointLight);
+            Transform3D *lightTransform = CANIS_GET_COMPONENT(entity, Transform3D);
             if (light == nullptr || lightTransform == nullptr)
                 continue;
 
@@ -154,8 +154,8 @@ namespace Canis
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Transform3D *transform = CANIS_GET_SCRIPT(entity, Transform3D);
-            Model3D *modelRenderer = CANIS_GET_SCRIPT(entity, Model3D);
+            Transform3D *transform = CANIS_GET_COMPONENT(entity, Transform3D);
+            Model3D *modelRenderer = CANIS_GET_COMPONENT(entity, Model3D);
             if (transform == nullptr || modelRenderer == nullptr || modelRenderer->modelId < 0)
                 continue;
 
@@ -164,7 +164,7 @@ namespace Canis
                 continue;
 
             MaterialAsset *materialAsset = nullptr;
-            Material *material = CANIS_GET_SCRIPT(entity, Material);
+            Material *material = CANIS_GET_COMPONENT(entity, Material);
             if (material != nullptr && material->materialId >= 0)
                 materialAsset = AssetManager::GetMaterial(material->materialId);
 
@@ -203,7 +203,7 @@ namespace Canis
             }
 
             const ModelAsset::Pose3D *pose = nullptr;
-            if (ModelAnimation3D *animation = CANIS_GET_SCRIPT(entity, ModelAnimation3D))
+            if (ModelAnimation3D *animation = CANIS_GET_COMPONENT(entity, ModelAnimation3D))
             {
                 if (animation->poseModelId == modelRenderer->modelId)
                     pose = &animation->pose;

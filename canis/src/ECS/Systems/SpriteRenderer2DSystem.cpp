@@ -535,9 +535,9 @@ namespace Canis
         // Legacy entity iteration path does not need ECS view setup.
     }
 
-    void SpriteRenderer2DSystem::Update()
+    void SpriteRenderer2DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
-        m_time += Canis::Time::DeltaTime();
+        m_time += _deltaTime;
         
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -555,7 +555,7 @@ namespace Canis
             if (entity == nullptr)
                 continue;
             
-            camera2D = CANIS_GET_SCRIPT(entity, Camera2D);
+            camera2D = CANIS_GET_COMPONENT(entity, Camera2D);
 
             if (camera2D != nullptr)
             {
@@ -603,9 +603,9 @@ namespace Canis
             if (entity == nullptr)
                 continue;
             
-            RectTransform* transform = CANIS_GET_SCRIPT(entity, RectTransform);
-            Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
-            Text* text = CANIS_GET_SCRIPT(entity, Text);
+            RectTransform* transform = CANIS_GET_COMPONENT(entity, RectTransform);
+            Sprite2D* sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
+            Text* text = CANIS_GET_COMPONENT(entity, Text);
 
             if (transform == nullptr)
                 continue;

@@ -14,9 +14,9 @@ namespace Canis
         // Legacy entity iteration path does not need ECS view setup.
     }
 
-    void SpriteAnimationSystem::Update()
+    void SpriteAnimationSystem::Update(entt::registry &_registry, float _deltaTime)
     {
-        f32 deltaTime = Time::DeltaTime();
+        f32 deltaTime = _deltaTime;
         SpriteAnimationAsset *spriteAnimationAsset = nullptr;
         int spriteAnimationId = 0;
 
@@ -25,7 +25,7 @@ namespace Canis
             if (entity == nullptr)
                 continue;
 
-            SpriteAnimation* animation = CANIS_GET_SCRIPT(entity, SpriteAnimation);
+            SpriteAnimation* animation = CANIS_GET_COMPONENT(entity, SpriteAnimation);
 
             if (animation == nullptr)
                 continue;
@@ -34,7 +34,7 @@ namespace Canis
 
             if (animation->countDown < 0.0f)
             {
-                Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
+                Sprite2D* sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
                 if (sprite == nullptr)
                     continue;
 
@@ -65,7 +65,7 @@ namespace Canis
 
             if (animation->redraw)
             {
-                Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
+                Sprite2D* sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
                 if (sprite == nullptr)
                     continue;
                 

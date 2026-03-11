@@ -12,7 +12,7 @@ namespace Canis
 
         void Create() override;
         void Ready() override;
-        void Update() override;
+        void Update(entt::registry &_registry, float _deltaTime) override;
 
     private:
         Shader *m_shader = nullptr;

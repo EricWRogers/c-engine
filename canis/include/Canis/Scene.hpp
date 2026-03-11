@@ -1,6 +1,7 @@
 #pragma once
 #include <Canis/UUID.hpp>
 #include <Canis/Math.hpp>
+#include <Canis/External/entt.hpp>
 
 #include <string>
 #include <vector>
@@ -50,6 +51,8 @@ namespace Canis
 
         Window& GetWindow() { return *m_window; }
         InputManager& GetInputManager() { return *m_inputManager; }
+        entt::registry& GetRegistry() { return m_registry; }
+        const entt::registry& GetRegistry() const { return m_registry; }
 
         void SetEditorCamera3DOverride(const Matrix4 &_view, const Matrix4 &_projection);
         void SetEditorCamera2DOverride(const Matrix4 &_cameraMatrix, const Vector2 &_position);
@@ -113,6 +116,7 @@ namespace Canis
         InputManager *m_inputManager;
 
         std::vector<Entity*> m_entities = {};
+        entt::registry m_registry = {};
         std::vector<System*> m_systems = {};
         std::vector<System*> m_updateSystems = {};
         std::vector<System*> m_renderSystems = {};

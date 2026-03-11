@@ -46,14 +46,36 @@ namespace TankGame
     void Tank::Create() { }
 
     void Tank::Ready() {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
-        m_turret = CANIS_GET_SCRIPT(m_transform->children[0], RectTransform);
-        m_firePoint = CANIS_GET_SCRIPT(m_turret->children[0], RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_turret = nullptr;
+        m_firePoint = nullptr;
+
+        if (m_transform != nullptr && !m_transform->children.empty())
+        {
+            m_turret = CANIS_GET_COMPONENT(m_transform->children[0], RectTransform);
+            if (m_turret != nullptr && !m_turret->children.empty())
+                m_firePoint = CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
+        }
     }
 
     void Tank::Destroy() { }
 
     void Tank::Update(float _dt) {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        if (m_transform == nullptr)
+            return;
+
+        m_turret = nullptr;
+        m_firePoint = nullptr;
+
+        if (!m_transform->children.empty())
+        {
+            m_turret = CANIS_GET_COMPONENT(m_transform->children[0], RectTransform);
+
+            if (m_turret != nullptr && !m_turret->children.empty())
+                m_firePoint = CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
+        }
+
         Movement(_dt);
         
         Turret(_dt);
@@ -62,6 +84,9 @@ namespace TankGame
     }
 
     void Tank::Movement(float _dt) {
+        if (m_transform == nullptr)
+            return;
+
         // movement
         if (entity.scene->GetInputManager().GetKey(Canis::Key::W))
             m_transform->Move(m_transform->GetRight() * speed * _dt);
@@ -78,6 +103,9 @@ namespace TankGame
     }
 
     void Tank::Turret(float _dt) {
+        if (m_transform == nullptr || m_turret == nullptr)
+            return;
+
         // turret
         Vector2 screenSize = Vector2(entity.scene->GetWindow().GetScreenWidth(), entity.scene->GetWindow().GetScreenHeight());
         // mouse screen space to world space
@@ -91,11 +119,14 @@ namespace TankGame
     }
 
     void Tank::UpdateGun(float _dt) {
+        if (m_firePoint == nullptr)
+            return;
+
         if (entity.scene->GetInputManager().GetLeftClick())
         {
             Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
-            Canis::RectTransform* bulletTransform = CANIS_ADD_SCRIPT(bulletEntity, RectTransform);
-            Canis::Sprite2D* bulletSprite = CANIS_ADD_SCRIPT(bulletEntity, Sprite2D);
+            Canis::RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
+            Canis::Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
             bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
 
             Bullet* bullet = CANIS_ADD_SCRIPT(bulletEntity, Bullet);

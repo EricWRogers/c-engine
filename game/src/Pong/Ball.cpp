@@ -11,6 +11,8 @@ namespace Pong
 
     void Ball::Ready()
     {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
         direction = glm::normalize(Vector2(-1.0f, 0.0f));
     }
 
@@ -18,9 +20,13 @@ namespace Pong
 
     void Ball::Update(float _dt)
     {
-        Vector2 delta = direction * speed * Time::DeltaTime();
-        transform.position += delta;
-        transform.rotation += DEG2RAD * 5000.0f * Time::DeltaTime();
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        if (m_transform == nullptr)
+            return;
+
+        Vector2 delta = direction * speed * _dt;
+        m_transform->position += delta;
+        m_transform->rotation += DEG2RAD * 5000.0f * _dt;
 
         CheckWalls();
     }
@@ -30,29 +36,31 @@ namespace Pong
     void Ball::CheckWalls()
     {
         Canis::Window &window = entity.scene->GetWindow();
+        if (m_transform == nullptr)
+            return;
 
-        if (window.GetScreenWidth() * 0.5f <= transform.position.x + transform.size.x * 0.5f)
+        if (window.GetScreenWidth() * 0.5f <= m_transform->position.x + m_transform->size.x * 0.5f)
         {
             if (direction.x > 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (-window.GetScreenWidth() * 0.5f >= transform.position.x - transform.size.x * 0.5f)
+        else if (-window.GetScreenWidth() * 0.5f >= m_transform->position.x - m_transform->size.x * 0.5f)
         {
             if (direction.x < 0.0f)
             {
                 direction.x *= -1.0f;
             }
         }
-        else if (window.GetScreenHeight() * 0.5f <= transform.position.y + transform.size.y * 0.5f)
+        else if (window.GetScreenHeight() * 0.5f <= m_transform->position.y + m_transform->size.y * 0.5f)
         {
             if (direction.y > 0.0f)
             {
                 direction.y *= -1.0f;
             }
         }
-        else if (-window.GetScreenHeight() * 0.5f >= transform.position.y - transform.size.y * 0.5f)
+        else if (-window.GetScreenHeight() * 0.5f >= m_transform->position.y - m_transform->size.y * 0.5f)
         {
             if (direction.y < 0.0f)
             {

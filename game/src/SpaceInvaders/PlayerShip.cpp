@@ -51,7 +51,7 @@ namespace SpaceInvaders
 
     void PlayerShip::Ready()
     {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
         m_fireTimer = 0.0f;
     }
 
@@ -59,6 +59,7 @@ namespace SpaceInvaders
 
     void PlayerShip::Update(float _dt)
     {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
         if (m_transform == nullptr)
             return;
 
@@ -91,8 +92,8 @@ namespace SpaceInvaders
             m_fireTimer = fireCooldown;
 
             Entity* bulletEntity = entity.scene->CreateEntity("PlayerBullet", "PlayerBullet");
-            RectTransform* bulletTransform = CANIS_ADD_SCRIPT(bulletEntity, Canis::RectTransform);
-            Sprite2D* bulletSprite = CANIS_ADD_SCRIPT(bulletEntity, Canis::Sprite2D);
+            RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
+            Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
             Projectile* bullet = CANIS_ADD_SCRIPT(bulletEntity, SpaceInvaders::Projectile);
 
             bulletTransform->size = Vector2(14.0f, 24.0f);
@@ -121,8 +122,7 @@ namespace SpaceInvaders
             }
         }
 
-        if (m_transform == nullptr)
-            m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
 
         if (m_transform != nullptr)
             m_transform->position.x = 0.0f;

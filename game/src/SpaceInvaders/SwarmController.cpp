@@ -72,7 +72,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = CANIS_GET_SCRIPT(enemy, Canis::RectTransform);
+            RectTransform* transform = CANIS_GET_COMPONENT(enemy, RectTransform);
             if (transform == nullptr)
                 continue;
 
@@ -90,7 +90,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = CANIS_GET_SCRIPT(enemy, Canis::RectTransform);
+            RectTransform* transform = CANIS_GET_COMPONENT(enemy, RectTransform);
             if (transform == nullptr)
                 continue;
 
@@ -121,7 +121,7 @@ namespace SpaceInvaders
         std::vector<Entity*> shooters = {};
         shooters.reserve(enemies.size());
         for (Entity* enemy : enemies)
-            if (enemy != nullptr && enemy->active && CANIS_GET_SCRIPT(enemy, Canis::RectTransform) != nullptr)
+            if (enemy != nullptr && enemy->active && CANIS_GET_COMPONENT(enemy, RectTransform) != nullptr)
                 shooters.push_back(enemy);
 
         if (shooters.empty())
@@ -129,13 +129,13 @@ namespace SpaceInvaders
 
         std::uniform_int_distribution<size_t> dist(0u, shooters.size() - 1u);
         Entity* shooter = shooters[dist(g_rng)];
-        RectTransform* shooterTransform = CANIS_GET_SCRIPT(shooter, Canis::RectTransform);
+        RectTransform* shooterTransform = CANIS_GET_COMPONENT(shooter, RectTransform);
         if (shooterTransform == nullptr)
             return;
 
         Entity* bulletEntity = entity.scene->CreateEntity("EnemyBullet", "EnemyBullet");
-        RectTransform* bulletTransform = CANIS_ADD_SCRIPT(bulletEntity, Canis::RectTransform);
-        Sprite2D* bulletSprite = CANIS_ADD_SCRIPT(bulletEntity, Canis::Sprite2D);
+        RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
+        Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
         Projectile* bullet = CANIS_ADD_SCRIPT(bulletEntity, SpaceInvaders::Projectile);
 
         bulletTransform->size = Vector2(16.0f, 24.0f);

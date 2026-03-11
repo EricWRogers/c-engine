@@ -2,6 +2,7 @@
 #include <string>
 
 #include <Canis/External/GetNameOfType.hpp>
+#include <Canis/External/entt.hpp>
 
 namespace Canis
 {
@@ -23,7 +24,7 @@ namespace Canis
 
         virtual void Create() {}
         virtual void Ready() {}
-        virtual void Update() {}
+        virtual void Update(entt::registry &_registry, float _deltaTime) {}
         virtual void OnDestroy() {}
 
         bool IsCreated() { return m_isCreated; }

@@ -15,17 +15,17 @@ namespace Canis
         // Legacy entity iteration path does not need ECS view setup.
     }
 
-    void ModelAnimation3DSystem::Update()
+    void ModelAnimation3DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
-        const float deltaTime = Time::DeltaTime();
+        const float deltaTime = _deltaTime;
 
         for (Entity* entity : scene->GetEntities())
         {
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Model3D *modelRenderer = CANIS_GET_SCRIPT(entity, Model3D);
-            ModelAnimation3D *modelAnimation = CANIS_GET_SCRIPT(entity, ModelAnimation3D);
+            Model3D *modelRenderer = CANIS_GET_COMPONENT(entity, Model3D);
+            ModelAnimation3D *modelAnimation = CANIS_GET_COMPONENT(entity, ModelAnimation3D);
             if (modelRenderer == nullptr || modelAnimation == nullptr || modelRenderer->modelId < 0)
                 continue;
 

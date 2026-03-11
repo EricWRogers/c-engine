@@ -302,19 +302,12 @@ void ModelAnimation3D::EditorInspectorDraw()
     ImGui::InputInt("animationIndex", &animationIndex);
 }
 
-Camera2D::Camera2D(Canis::Entity &_entity)
-    : Canis::ScriptableEntity(_entity), m_position(0.0f, 0.0f), m_scale(8.0f),
-      m_needsMatrixUpdate(true), m_screenWidth(500), m_screenHeight(500) {
-    m_cameraMatrix = Matrix4(1.0f);
-    m_view = Matrix4(1.0f);
-    m_projection = Matrix4(1.0f);
-}
-
-Camera2D::~Camera2D() {}
-
 void Camera2D::Create() {
-    m_screenWidth = entity.scene->GetWindow().GetScreenWidth();
-    m_screenHeight = entity.scene->GetWindow().GetScreenHeight();
+    if (entity == nullptr || entity->scene == nullptr)
+        return;
+
+    m_screenWidth = entity->scene->GetWindow().GetScreenWidth();
+    m_screenHeight = entity->scene->GetWindow().GetScreenHeight();
     m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
                                       (float)m_screenHeight, 0.0f, 100.0f);
     SetPosition(Vector2(0.0f)); // Vector2((float)m_screenWidth / 2,
@@ -348,8 +341,11 @@ void Camera2D::EditorInspectorDraw()
 
 void Camera2D::UpdateMatrix()
 {
-    m_screenWidth = entity.scene->GetWindow().GetScreenWidth();
-    m_screenHeight = entity.scene->GetWindow().GetScreenHeight();
+    if (entity == nullptr || entity->scene == nullptr)
+        return;
+
+    m_screenWidth = entity->scene->GetWindow().GetScreenWidth();
+    m_screenHeight = entity->scene->GetWindow().GetScreenHeight();
     m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
                                       (float)m_screenHeight, 0.0f, 100.0f);
                                       

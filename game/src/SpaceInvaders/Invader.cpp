@@ -41,13 +41,14 @@ namespace SpaceInvaders
 
     void Invader::Ready()
     {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
     }
 
     void Invader::Destroy() {}
 
     void Invader::Update(float _dt)
     {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
         if (m_transform == nullptr)
             return;
 

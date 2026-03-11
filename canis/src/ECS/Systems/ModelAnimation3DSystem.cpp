@@ -12,79 +12,85 @@ namespace Canis
 {
     void ModelAnimation3DSystem::Ready()
     {
-        // Legacy entity iteration path does not need ECS view setup.
+        // No cached views required.
     }
 
-    void ModelAnimation3DSystem::Update()
+    void ModelAnimation3DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
-        const float deltaTime = Time::DeltaTime();
+        const float deltaTime = _deltaTime;
 
-        for (Entity* entity : scene->GetEntities())
+        auto animationView = _registry.view<Model3D, ModelAnimation3D>();
+        for (const entt::entity entityHandle : animationView)
         {
+            Model3D &modelRenderer = animationView.get<Model3D>(entityHandle);
+            ModelAnimation3D &modelAnimation = animationView.get<ModelAnimation3D>(entityHandle);
+
+            Entity *entity = modelRenderer.entity;
+            if (entity == nullptr)
+                entity = modelAnimation.entity;
+
             if (entity == nullptr || !entity->active)
                 continue;
 
-            Model3D *modelRenderer = CANIS_GET_SCRIPT(entity, Model3D);
-            ModelAnimation3D *modelAnimation = CANIS_GET_SCRIPT(entity, ModelAnimation3D);
-            if (modelRenderer == nullptr || modelAnimation == nullptr || modelRenderer->modelId < 0)
+            if (modelRenderer.modelId < 0)
                 continue;
 
-            ModelAsset *model = AssetManager::GetModel(modelRenderer->modelId);
+            ModelAsset *model = AssetManager::GetModel(modelRenderer.modelId);
             if (model == nullptr)
                 continue;
 
-            if (modelAnimation->poseModelId != modelRenderer->modelId)
+            if (modelAnimation.poseModelId != modelRenderer.modelId)
             {
-                modelAnimation->poseModelId = modelRenderer->modelId;
-                modelAnimation->poseInitialized = false;
-                modelAnimation->lastEvaluatedAnimationIndex = -1;
-                modelAnimation->lastEvaluatedAnimationTime = 0.0f;
+                modelAnimation.poseModelId = modelRenderer.modelId;
+                modelAnimation.poseInitialized = false;
+                modelAnimation.lastEvaluatedAnimationIndex = -1;
+                modelAnimation.lastEvaluatedAnimationTime = 0.0f;
             }
 
             const i32 animationCount = model->GetAnimationCount();
             if (animationCount <= 0)
             {
-                if (!modelAnimation->poseInitialized)
+                if (!modelAnimation.poseInitialized)
                 {
-                    model->ResetPose(modelAnimation->pose);
-                    modelAnimation->poseInitialized = true;
+                    model->ResetPose(modelAnimation.pose);
+                    modelAnimation.poseInitialized = true;
                 }
                 continue;
             }
 
-            modelAnimation->animationIndex = std::clamp(modelAnimation->animationIndex, 0, animationCount - 1);
-            const float animationDuration = model->GetAnimationDuration(modelAnimation->animationIndex);
+            modelAnimation.animationIndex = std::clamp(modelAnimation.animationIndex, 0, animationCount - 1);
+            const float animationDuration = model->GetAnimationDuration(modelAnimation.animationIndex);
 
-            if (modelAnimation->playAnimation && animationDuration > 0.0f)
+            if (modelAnimation.playAnimation && animationDuration > 0.0f)
             {
-                modelAnimation->animationTime += deltaTime * modelAnimation->animationSpeed;
+                modelAnimation.animationTime += deltaTime * modelAnimation.animationSpeed;
 
-                if (modelAnimation->loop)
+                if (modelAnimation.loop)
                 {
-                    while (modelAnimation->animationTime < 0.0f)
-                        modelAnimation->animationTime += animationDuration;
+                    while (modelAnimation.animationTime < 0.0f)
+                        modelAnimation.animationTime += animationDuration;
 
-                    while (modelAnimation->animationTime >= animationDuration)
-                        modelAnimation->animationTime -= animationDuration;
+                    while (modelAnimation.animationTime >= animationDuration)
+                        modelAnimation.animationTime -= animationDuration;
                 }
                 else
                 {
-                    modelAnimation->animationTime = std::clamp(modelAnimation->animationTime, 0.0f, animationDuration);
+                    modelAnimation.animationTime = std::clamp(modelAnimation.animationTime, 0.0f, animationDuration);
                 }
             }
 
             const bool animationChanged =
-                (modelAnimation->lastEvaluatedAnimationIndex != modelAnimation->animationIndex) ||
-                (std::fabs(modelAnimation->lastEvaluatedAnimationTime - modelAnimation->animationTime) > 1e-6f);
+                (modelAnimation.lastEvaluatedAnimationIndex != modelAnimation.animationIndex) ||
+                (std::fabs(modelAnimation.lastEvaluatedAnimationTime - modelAnimation.animationTime) > 1e-6f);
 
-            if (!modelAnimation->poseInitialized || animationChanged)
+            if (!modelAnimation.poseInitialized || animationChanged)
             {
-                if (!model->UpdateAnimation(modelAnimation->pose, modelAnimation->animationIndex, modelAnimation->animationTime))
-                    model->ResetPose(modelAnimation->pose);
+                if (!model->UpdateAnimation(modelAnimation.pose, modelAnimation.animationIndex, modelAnimation.animationTime))
+                    model->ResetPose(modelAnimation.pose);
 
-                modelAnimation->poseInitialized = true;
-                modelAnimation->lastEvaluatedAnimationIndex = modelAnimation->animationIndex;
-                modelAnimation->lastEvaluatedAnimationTime = modelAnimation->animationTime;
+                modelAnimation.poseInitialized = true;
+                modelAnimation.lastEvaluatedAnimationIndex = modelAnimation.animationIndex;
+                modelAnimation.lastEvaluatedAnimationTime = modelAnimation.animationTime;
             }
         }
     }

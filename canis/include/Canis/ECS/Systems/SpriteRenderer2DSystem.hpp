@@ -70,7 +70,7 @@ namespace Canis
 
         void Ready() override;
 
-        void Update() override;
+        void Update(entt::registry &_registry, float _deltaTime) override;
     private:
         void DrawText(Entity* _entity, RectTransform* _transform, Text* _text, const Vector2& _cameraPosition, float _halfWidth, float _halfHeight);
         float m_time = 0.0f;

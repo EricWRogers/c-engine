@@ -12,6 +12,6 @@ namespace Canis
 
         void Ready() override;
 
-        void Update() override;
+        void Update(entt::registry &_registry, float _deltaTime) override;
     };
 } // end of Canis namespace

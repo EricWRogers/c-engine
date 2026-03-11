@@ -41,12 +41,16 @@ namespace TankGame
     void Bullet::Create() { }
 
     void Bullet::Ready() {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
     }
 
     void Bullet::Destroy() { }
 
     void Bullet::Update(float _dt) {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        if (m_transform == nullptr)
+            return;
+
         m_transform->Move(m_transform->GetUp() * speed * _dt);
 
         lifeTime -= _dt;

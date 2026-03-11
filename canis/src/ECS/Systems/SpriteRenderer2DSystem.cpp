@@ -532,12 +532,12 @@ namespace Canis
 
     void SpriteRenderer2DSystem::Ready()
     {
-        // Legacy entity iteration path does not need ECS view setup.
+        // No cached views required.
     }
 
-    void SpriteRenderer2DSystem::Update()
+    void SpriteRenderer2DSystem::Update(entt::registry &_registry, float _deltaTime)
     {
-        m_time += Canis::Time::DeltaTime();
+        m_time += _deltaTime;
         
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
@@ -549,19 +549,14 @@ namespace Canis
         bool cameraFound = false;
         bool editorCameraOverride = scene->HasEditorCamera2DOverride();
         Matrix4 overrideProjection = Matrix4(1.0f);
+        camera2D = nullptr;
 
-        for (Entity* entity : scene->GetEntities())
+        auto cameraView = _registry.view<Camera2D>();
+        for (const entt::entity entityHandle : cameraView)
         {
-            if (entity == nullptr)
-                continue;
-            
-            camera2D = CANIS_GET_SCRIPT(entity, Camera2D);
-
-            if (camera2D != nullptr)
-            {
-                cameraFound = true;
-                break;
-            }
+            camera2D = &cameraView.get<Camera2D>(entityHandle);
+            cameraFound = true;
+            break;
         }
 
         if (editorCameraOverride)
@@ -598,24 +593,23 @@ namespace Canis
         Vector2 p;
         Vector2 s;
 
-        for (Entity* entity : scene->GetEntities())
+        auto renderView = _registry.view<RectTransform>();
+        for (const entt::entity entityHandle : renderView)
         {
+            RectTransform &transform = renderView.get<RectTransform>(entityHandle);
+            Entity *entity = transform.entity;
             if (entity == nullptr)
                 continue;
-            
-            RectTransform* transform = CANIS_GET_SCRIPT(entity, RectTransform);
-            Sprite2D* sprite = CANIS_GET_SCRIPT(entity, Sprite2D);
-            Text* text = CANIS_GET_SCRIPT(entity, Text);
 
-            if (transform == nullptr)
-                continue;
+            Sprite2D* sprite = _registry.try_get<Sprite2D>(entityHandle);
+            Text* text = _registry.try_get<Text>(entityHandle);
 
             if (sprite != nullptr)
             {
-                p = transform->GetPosition();
-                s = transform->GetScale();
-                s.x = s.x * transform->size.x;
-                s.y = s.y * transform->size.y;
+                p = transform.GetPosition();
+                s = transform.GetScale();
+                s.x = s.x * transform.size.x;
+                s.y = s.y * transform.size.y;
                 if (p.x > camPos.x - s.x - halfWidth  &&
                     p.x < camPos.x + s.x + halfWidth  &&
                     p.y > camPos.y - s.y - halfHeight &&
@@ -626,15 +620,15 @@ namespace Canis
                         Vector4(p.x, p.y, s.x, s.y),
                         sprite->uv,
                         sprite->textureHandle.texture,
-                        transform->depth,
+                        transform.depth,
                         sprite->color,
-                        transform->GetRotation(),
-                        transform->originOffset);
+                        transform.GetRotation(),
+                        transform.originOffset);
                 }
             }
 
             if (text != nullptr && entity->active)
-                DrawText(entity, transform, text, camPos, halfWidth, halfHeight);
+                DrawText(entity, &transform, text, camPos, halfWidth, halfHeight);
         }
 
         End();

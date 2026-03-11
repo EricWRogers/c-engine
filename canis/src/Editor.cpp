@@ -417,7 +417,7 @@ namespace Canis
                 if (entity == nullptr)
                     continue;
 
-                Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
+                Camera2D *camera = CANIS_GET_COMPONENT(entity, Camera2D);
 
                 if (camera == nullptr)
                     continue;
@@ -425,7 +425,7 @@ namespace Canis
                 camera2D = camera;
             }
 
-            if (CANIS_GET_SCRIPT(entity, RectTransform) && camera2D)
+            if (CANIS_GET_COMPONENT(entity, RectTransform) && camera2D)
             {
                 m_debugDraw = DebugDraw::RECT;
             }
@@ -578,7 +578,7 @@ namespace Canis
             if (entity == nullptr)
                 continue;
 
-            Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
+            Camera2D *camera = CANIS_GET_COMPONENT(entity, Camera2D);
             if (camera)
             {
                 camera2D = camera;
@@ -810,7 +810,7 @@ namespace Canis
         ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
         ImGuizmo::Enable(true);
 
-        if (Transform3D *transform3D = CANIS_GET_SCRIPT(selected, Transform3D))
+        if (Transform3D *transform3D = CANIS_GET_COMPONENT(selected, Transform3D))
         {
             const bool useEditorSceneCamera =
                 m_mode != EditorMode::PLAY &&
@@ -856,7 +856,7 @@ namespace Canis
 
                 if (transform3D->parent != nullptr)
                 {
-                    if (Transform3D *parentTransform = CANIS_GET_SCRIPT(transform3D->parent, Transform3D))
+                    if (Transform3D *parentTransform = CANIS_GET_COMPONENT(transform3D->parent, Transform3D))
                     {
                         const Vector3 parentWorldPosition = parentTransform->GetGlobalPosition();
                         const Vector3 parentWorldRotation = parentTransform->GetGlobalRotation();
@@ -900,7 +900,7 @@ namespace Canis
             return;
         }
 
-        RectTransform *rtc = CANIS_GET_SCRIPT(selected, RectTransform);
+        RectTransform *rtc = CANIS_GET_COMPONENT(selected, RectTransform);
         if (!rtc)
             return;
 
@@ -1196,9 +1196,9 @@ namespace Canis
             return false;
 
         std::vector<Canis::Entity*>* children = nullptr;
-        if (auto *parentRT = CANIS_GET_SCRIPT(_parent, RectTransform))
+        if (auto *parentRT = CANIS_GET_COMPONENT(_parent, RectTransform))
             children = &parentRT->children;
-        else if (auto *parentTransform = CANIS_GET_SCRIPT(_parent, Transform3D))
+        else if (auto *parentTransform = CANIS_GET_COMPONENT(_parent, Transform3D))
             children = &parentTransform->children;
 
         if (children == nullptr)
@@ -1222,10 +1222,10 @@ namespace Canis
         if (_entity == nullptr)
             return nullptr;
 
-        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
+        if (Canis::RectTransform* transform = CANIS_GET_COMPONENT(_entity, RectTransform))
             return &transform->children;
 
-        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
+        if (Canis::Transform3D* transform = CANIS_GET_COMPONENT(_entity, Transform3D))
             return &transform->children;
 
         return nullptr;
@@ -1236,10 +1236,10 @@ namespace Canis
         if (_entity == nullptr)
             return nullptr;
 
-        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
+        if (Canis::RectTransform* transform = CANIS_GET_COMPONENT(_entity, RectTransform))
             return transform->parent;
 
-        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
+        if (Canis::Transform3D* transform = CANIS_GET_COMPONENT(_entity, Transform3D))
             return transform->parent;
 
         return nullptr;
@@ -1250,18 +1250,18 @@ namespace Canis
         if (_child == nullptr)
             return false;
 
-        if (Canis::RectTransform* childTransform = CANIS_GET_SCRIPT(_child, Canis::RectTransform))
+        if (Canis::RectTransform* childTransform = CANIS_GET_COMPONENT(_child, RectTransform))
         {
-            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::RectTransform) == nullptr)
+            if (_parent != nullptr && CANIS_GET_COMPONENT(_parent, RectTransform) == nullptr)
                 return false;
 
             childTransform->SetParent(_parent);
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = CANIS_GET_SCRIPT(_child, Canis::Transform3D))
+        if (Canis::Transform3D* childTransform = CANIS_GET_COMPONENT(_child, Transform3D))
         {
-            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::Transform3D) == nullptr)
+            if (_parent != nullptr && CANIS_GET_COMPONENT(_parent, Transform3D) == nullptr)
                 return false;
 
             childTransform->SetParent(_parent);
@@ -1276,18 +1276,18 @@ namespace Canis
         if (_child == nullptr)
             return false;
 
-        if (Canis::RectTransform* childTransform = CANIS_GET_SCRIPT(_child, Canis::RectTransform))
+        if (Canis::RectTransform* childTransform = CANIS_GET_COMPONENT(_child, RectTransform))
         {
-            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::RectTransform) == nullptr)
+            if (_parent != nullptr && CANIS_GET_COMPONENT(_parent, RectTransform) == nullptr)
                 return false;
 
             childTransform->SetParentAtIndex(_parent, _index);
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = CANIS_GET_SCRIPT(_child, Canis::Transform3D))
+        if (Canis::Transform3D* childTransform = CANIS_GET_COMPONENT(_child, Transform3D))
         {
-            if (_parent != nullptr && CANIS_GET_SCRIPT(_parent, Canis::Transform3D) == nullptr)
+            if (_parent != nullptr && CANIS_GET_COMPONENT(_parent, Transform3D) == nullptr)
                 return false;
 
             childTransform->SetParentAtIndex(_parent, _index);
@@ -1302,7 +1302,7 @@ namespace Canis
         if (_entity == nullptr)
             return false;
 
-        if (Canis::RectTransform* transform = CANIS_GET_SCRIPT(_entity, Canis::RectTransform))
+        if (Canis::RectTransform* transform = CANIS_GET_COMPONENT(_entity, RectTransform))
         {
             if (transform->parent == nullptr)
                 return false;
@@ -1311,7 +1311,7 @@ namespace Canis
             return true;
         }
 
-        if (Canis::Transform3D* transform = CANIS_GET_SCRIPT(_entity, Canis::Transform3D))
+        if (Canis::Transform3D* transform = CANIS_GET_COMPONENT(_entity, Transform3D))
         {
             if (transform->parent == nullptr)
                 return false;
@@ -2634,7 +2634,7 @@ namespace Canis
             if (m_scene->GetEntities()[i] == nullptr)
                 continue;
 
-            RectTransform *transform = CANIS_GET_SCRIPT(m_scene->GetEntities()[i], RectTransform);
+            RectTransform *transform = CANIS_GET_COMPONENT(m_scene->GetEntities()[i], RectTransform);
 
             if (transform == nullptr)
                 continue;
@@ -2653,7 +2653,7 @@ namespace Canis
 
             Vector2 globalScale = transform->GetScale();
 
-            if (CANIS_GET_SCRIPT(m_scene->GetEntities()[i], Text) == nullptr)
+            if (CANIS_GET_COMPONENT(m_scene->GetEntities()[i], Text) == nullptr)
             {
                 if (selectionMouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
                     selectionMouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
@@ -2744,12 +2744,12 @@ namespace Canis
 
         static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];
-        RectTransform &rtc = *CANIS_GET_SCRIPT(debugRectTransformEntity, RectTransform);
+        RectTransform &rtc = *CANIS_GET_COMPONENT(debugRectTransformEntity, RectTransform);
         Vector2 pos = rtc.GetPosition();
         Vector2 scale = rtc.GetScale();
         Vector2 vertices[4];
 
-        Text* textComponent = CANIS_GET_SCRIPT(debugRectTransformEntity, Text);
+        Text* textComponent = CANIS_GET_COMPONENT(debugRectTransformEntity, Text);
         if (textComponent) {
             vertices[0] = {pos.x, pos.y};
             vertices[1] = {pos.x + (rtc.size.x * scale.x), pos.y};

@@ -19,7 +19,7 @@ using namespace Canis;
     Add = [](Entity &_entity) -> void { (void)CANIS_ADD_SCRIPT(_entity, type); } \
 
 #define DEFAULT_CONSTRUCT(type) \
-    Construct = [](Entity &_entity, bool _callCreate) -> ScriptableEntity* { return Canis::EntityAttachScriptByName(_entity, type::ScriptName, new type(_entity), _callCreate); } \
+    Construct = [](Entity &_entity, bool _callCreate) -> ScriptableEntity* { return _entity.AttachScript(type::ScriptName, new type(_entity), _callCreate); } \
 
 template<typename... Ts>
 inline void AddRequiredScripts(Entity& _entity)

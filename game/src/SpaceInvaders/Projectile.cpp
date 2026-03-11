@@ -58,13 +58,14 @@ namespace SpaceInvaders
 
     void Projectile::Ready()
     {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
     }
 
     void Projectile::Destroy() {}
 
     void Projectile::Update(float _dt)
     {
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
         if (m_transform == nullptr)
             return;
 
@@ -94,7 +95,7 @@ namespace SpaceInvaders
                 if (enemy == nullptr || !enemy->active)
                     continue;
 
-                RectTransform* enemyTransform = CANIS_GET_SCRIPT(enemy, Canis::RectTransform);
+                RectTransform* enemyTransform = CANIS_GET_COMPONENT(enemy, RectTransform);
                 if (enemyTransform == nullptr)
                     continue;
 
@@ -122,7 +123,7 @@ namespace SpaceInvaders
             {
                 if (playerEntity->active)
                 {
-                    RectTransform* playerTransform = CANIS_GET_SCRIPT(playerEntity, Canis::RectTransform);
+                    RectTransform* playerTransform = CANIS_GET_COMPONENT(playerEntity, RectTransform);
                     if (playerTransform != nullptr && OverlapsAABB(*m_transform, *playerTransform))
                     {
                         if (PlayerShip* playerShip = CANIS_GET_SCRIPT(playerEntity, SpaceInvaders::PlayerShip))

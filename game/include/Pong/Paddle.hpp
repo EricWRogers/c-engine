@@ -6,6 +6,9 @@ namespace Pong
 {
     class Paddle : public Canis::ScriptableEntity
     {
+    private:
+        Canis::RectTransform* m_transform = nullptr;
+        Canis::Sprite2D* m_sprite = nullptr;
     public:
         static constexpr const char* ScriptName = "Pong::Paddle";
 
@@ -13,9 +16,6 @@ namespace Pong
         float speed = 100.0f;
         int playerNum = 1;
         Canis::Entity* ball = nullptr;
-
-        Canis::RectTransform &transform = *CANIS_GET_SCRIPT(entity, Canis::RectTransform);
-        Canis::Sprite2D &sprite = *CANIS_GET_SCRIPT(entity, Canis::Sprite2D);
 
         Paddle(Canis::Entity &_entity) : Canis::ScriptableEntity(_entity) {}
 

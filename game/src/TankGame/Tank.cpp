@@ -100,10 +100,10 @@ namespace TankGame
 
             Bullet* bullet = CANIS_ADD_SCRIPT(bulletEntity, Bullet);
             bulletTransform->SetPosition(m_firePoint->GetPosition());
-            bulletTransform->rotation = -(DEG2RAD*45.0f) + m_firePoint->GetRotation();
+            bulletTransform->rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
 
             bullet->speed = 550.0f;
-            bullet->lifeTime = 50.0f;
+            bullet->lifeTime = 5.0f;
         }
     }
 

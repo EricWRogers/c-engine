@@ -37,7 +37,7 @@ namespace TankGame
 
     void FollowMouse::Ready()
     {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
     }
 
     void FollowMouse::Destroy() {}
@@ -62,7 +62,7 @@ namespace TankGame
             if (e == nullptr || !e->active)
                 continue;
 
-            if (Camera2D* camera = CANIS_GET_SCRIPT(e, Canis::Camera2D))
+            if (Camera2D* camera = CANIS_GET_COMPONENT(e, Camera2D))
             {
                 camera2D = camera;
                 break;

@@ -594,7 +594,7 @@ namespace Canis
         if (m_index >= 0 && m_index < m_scene->GetEntities().size() && m_scene->GetEntities()[m_index] != nullptr)
         {
             Entity &selected = *m_scene->GetEntities()[m_index];
-            if (CANIS_GET_SCRIPT(selected, RectTransform))
+            if (CANIS_GET_COMPONENT(selected, RectTransform))
                 DrawBoundingBox(camera2D);
         }
         
@@ -1162,7 +1162,7 @@ namespace Canis
 
     void Editor::InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable)
     {
-        ImGui::Text(_name.c_str());
+        ImGui::Text("%s", _name.c_str());
 
         ImGui::SameLine();
 
@@ -2610,7 +2610,7 @@ namespace Canis
             {
                 if (!entity)
                     continue;
-                if (Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D))
+                if (Camera2D *camera = CANIS_GET_COMPONENT(entity, Camera2D))
                 {
                     camPos = camera->GetPosition();
                     camScale = camera->GetScale();

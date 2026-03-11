@@ -39,7 +39,7 @@ namespace TankGame
 
     void Bounce::Ready()
     {
-        m_transform = CANIS_GET_SCRIPT(entity, Canis::RectTransform);
+        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
         if (m_transform != nullptr)
             m_restScale = m_transform->scale;
     }

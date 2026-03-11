@@ -99,8 +99,26 @@ namespace Canis
                 if (imguiWantsMouse && eventWindowID != mainWindowID && eventWindowID != gameWindowID)
                     continue;
                 #endif
-                    mouse.x = event.motion.x;
-                    mouse.y = screenHeight - event.motion.y;
+                    if (eventWindowID == gameWindowID &&
+                        m_gameMouseViewportEnabled &&
+                        m_gameMouseViewportDrawWidth > 0.0f &&
+                        m_gameMouseViewportDrawHeight > 0.0f &&
+                        m_gameMouseViewportLogicalWidth > 0.0f &&
+                        m_gameMouseViewportLogicalHeight > 0.0f)
+                    {
+                        const float localX = event.motion.x - m_gameMouseViewportX;
+                        const float localY = event.motion.y - m_gameMouseViewportY;
+                        const float scaleX = m_gameMouseViewportLogicalWidth / m_gameMouseViewportDrawWidth;
+                        const float scaleY = m_gameMouseViewportLogicalHeight / m_gameMouseViewportDrawHeight;
+
+                        mouse.x = localX * scaleX;
+                        mouse.y = m_gameMouseViewportLogicalHeight - (localY * scaleY);
+                    }
+                    else
+                    {
+                        mouse.x = event.motion.x;
+                        mouse.y = screenHeight - event.motion.y;
+                    }
                     mouseRel.x = event.motion.xrel;
                     mouseRel.y = event.motion.yrel;
                     
@@ -258,6 +276,28 @@ namespace Canis
         }
         
         return true;
+    }
+
+    void InputManager::SetGameMouseViewport(float _x, float _y, float _drawWidth, float _drawHeight, float _logicalWidth, float _logicalHeight)
+    {
+        m_gameMouseViewportEnabled = true;
+        m_gameMouseViewportX = _x;
+        m_gameMouseViewportY = _y;
+        m_gameMouseViewportDrawWidth = _drawWidth;
+        m_gameMouseViewportDrawHeight = _drawHeight;
+        m_gameMouseViewportLogicalWidth = _logicalWidth;
+        m_gameMouseViewportLogicalHeight = _logicalHeight;
+    }
+
+    void InputManager::ClearGameMouseViewport()
+    {
+        m_gameMouseViewportEnabled = false;
+        m_gameMouseViewportX = 0.0f;
+        m_gameMouseViewportY = 0.0f;
+        m_gameMouseViewportDrawWidth = 0.0f;
+        m_gameMouseViewportDrawHeight = 0.0f;
+        m_gameMouseViewportLogicalWidth = 0.0f;
+        m_gameMouseViewportLogicalHeight = 0.0f;
     }
 
     void InputManager::PressKey(unsigned int _keyID)

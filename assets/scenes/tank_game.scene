@@ -1376,3 +1376,29 @@ Entities:
       FontAsset:
         uuid: 17943956253491084457
         fontSize: 32
+  - Entity: 1800012345678901234
+    Name: MouseFollower
+    Tag: ""
+    Canis::RectTransform:
+      active: true
+      position: [0, 0]
+      size: [24, 24]
+      scale: [1, 1]
+      originOffset: [0, 0]
+      depth: 0.002
+      rotation: 0
+      parent: 0
+      children:
+        []
+    Canis::Sprite2D:
+      color: [0.95, 0.2, 0.2, 1]
+      uv: [0, 0, 1, 1]
+      flipX: false
+      flipY: false
+      TextureAsset:
+        uuid: 16060716090729117806
+    TankGame::FollowMouse:
+      offset: [0, 0]
+    TankGame::Bounce:
+      scaleMultiplier: 1.5
+      duration: 0.18

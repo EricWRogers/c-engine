@@ -10,6 +10,8 @@
 #include "../include/Pong/Paddle.hpp"
 #include <TankGame/Tank.hpp>
 #include <TankGame/Bullet.hpp>
+#include <TankGame/FollowMouse.hpp>
+#include <TankGame/Bounce.hpp>
 #include <SpaceInvaders/GameController.hpp>
 #include <SpaceInvaders/PlayerShip.hpp>
 #include <SpaceInvaders/SwarmController.hpp>
@@ -38,6 +40,8 @@ extern "C"
         app.RegisterInspectorItem(inspectorCreateBall);
         TankGame::RegisterTankScript(app);
         TankGame::RegisterBulletScript(app);
+        TankGame::RegisterFollowMouseScript(app);
+        TankGame::RegisterBounceScript(app);
         Pong::RegisterBallScript(app);
         Pong::RegisterPaddleScript(app);
         SpaceInvaders::RegisterGameControllerScript(app);
@@ -69,6 +73,8 @@ extern "C"
         Pong::UnRegisterPaddleScript(app);
         TankGame::UnRegisterTankScript(app);
         TankGame::UnRegisterBulletScript(app);
+        TankGame::UnRegisterFollowMouseScript(app);
+        TankGame::UnRegisterBounceScript(app);
         SpaceInvaders::UnRegisterProjectileScript(app);
         SpaceInvaders::UnRegisterInvaderScript(app);
         SpaceInvaders::UnRegisterSwarmControllerScript(app);

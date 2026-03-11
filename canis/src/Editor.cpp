@@ -570,12 +570,6 @@ namespace Canis
         if (!m_scene)
             return;
 
-        if (m_index < 0 || m_index >= m_scene->GetEntities().size())
-            return;
-
-        if (m_scene->GetEntities()[m_index] == nullptr)
-            return;
-
         Camera2D *camera2D = nullptr;
         std::vector<Entity *> &entities = m_scene->GetEntities();
 
@@ -595,11 +589,14 @@ namespace Canis
         if (!camera2D)
             return;
 
-        Entity &selected = *m_scene->GetEntities()[m_index];
-        if (!CANIS_GET_SCRIPT(selected, RectTransform))
-            return;
+        DrawSelectionMouseDebug(camera2D);
 
-        DrawBoundingBox(camera2D);
+        if (m_index >= 0 && m_index < m_scene->GetEntities().size() && m_scene->GetEntities()[m_index] != nullptr)
+        {
+            Entity &selected = *m_scene->GetEntities()[m_index];
+            if (CANIS_GET_SCRIPT(selected, RectTransform))
+                DrawBoundingBox(camera2D);
+        }
         
         //ImGui::Render();
         //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -686,6 +683,11 @@ namespace Canis
     {
         ImGui::Begin("Game");
 
+        m_playViewportPosX = 0.0f;
+        m_playViewportPosY = 0.0f;
+        m_playViewportDrawWidth = 0.0f;
+        m_playViewportDrawHeight = 0.0f;
+
         if (ImGuiViewport *viewport = ImGui::GetWindowViewport())
         {
             if (viewport->PlatformHandle != nullptr)
@@ -710,6 +712,7 @@ namespace Canis
         {
             if (m_playColorTexture != 0)
             {
+                ImVec2 cursorScreen = ImGui::GetCursorScreenPos();
                 float targetW = static_cast<float>((m_playTextureWidth > 0) ? m_playTextureWidth : 1);
                 float targetH = static_cast<float>((m_playTextureHeight > 0) ? m_playTextureHeight : 1);
                 float targetAspect = targetW / targetH;
@@ -724,6 +727,10 @@ namespace Canis
 
                 ImVec2 cursor = ImGui::GetCursorPos();
                 ImVec2 offset((avail.x - drawSize.x) * 0.5f, (avail.y - drawSize.y) * 0.5f);
+                m_playViewportPosX = cursorScreen.x + offset.x;
+                m_playViewportPosY = cursorScreen.y + offset.y;
+                m_playViewportDrawWidth = drawSize.x;
+                m_playViewportDrawHeight = drawSize.y;
                 ImGui::SetCursorPos(ImVec2(cursor.x + offset.x, cursor.y + offset.y));
 
                 ImGui::Image(
@@ -731,11 +738,41 @@ namespace Canis
                     drawSize,
                     ImVec2(0.0f, 1.0f),
                     ImVec2(1.0f, 0.0f));
+
+                if (m_scene != nullptr)
+                {
+                    float logicalWidth = static_cast<float>((m_playTextureWidth > 0) ? m_playTextureWidth : m_playViewportWidth);
+                    float logicalHeight = static_cast<float>((m_playTextureHeight > 0) ? m_playTextureHeight : m_playViewportHeight);
+                    logicalWidth = std::max(1.0f, logicalWidth);
+                    logicalHeight = std::max(1.0f, logicalHeight);
+
+                    float localViewportPosX = m_playViewportPosX;
+                    float localViewportPosY = m_playViewportPosY;
+                    if (ImGuiViewport *view = ImGui::GetWindowViewport())
+                    {
+                        localViewportPosX -= view->Pos.x;
+                        localViewportPosY -= view->Pos.y;
+                    }
+
+                    m_scene->GetInputManager().SetGameMouseViewport(
+                        localViewportPosX,
+                        localViewportPosY,
+                        m_playViewportDrawWidth,
+                        m_playViewportDrawHeight,
+                        logicalWidth,
+                        logicalHeight);
+                }
             }
             else
             {
+                if (m_scene != nullptr)
+                    m_scene->GetInputManager().ClearGameMouseViewport();
                 ImGui::Text("Game view unavailable.");
             }
+        }
+        else if (m_scene != nullptr)
+        {
+            m_scene->GetInputManager().ClearGameMouseViewport();
         }
 
         ImGui::End();
@@ -775,47 +812,17 @@ namespace Canis
 
         if (Transform3D *transform3D = CANIS_GET_SCRIPT(selected, Transform3D))
         {
-            Camera3D *camera3D = nullptr;
-            Transform3D *cameraTransform = nullptr;
-            std::vector<Entity *> &entities = m_scene->GetEntities();
+            const bool useEditorSceneCamera =
+                m_mode != EditorMode::PLAY &&
+                m_mode != EditorMode::HIDDEN &&
+                m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_3D;
 
-            for (Entity *entity : entities)
-            {
-                if (entity == nullptr || !entity->active)
-                    continue;
-
-                Camera3D *candidateCamera = CANIS_GET_SCRIPT(entity, Camera3D);
-                Transform3D *candidateTransform = CANIS_GET_SCRIPT(entity, Transform3D);
-                if (candidateCamera == nullptr || candidateTransform == nullptr)
-                    continue;
-
-                if (candidateCamera->primary)
-                {
-                    camera3D = candidateCamera;
-                    cameraTransform = candidateTransform;
-                    break;
-                }
-
-                if (camera3D == nullptr)
-                {
-                    camera3D = candidateCamera;
-                    cameraTransform = candidateTransform;
-                }
-            }
-
-            if (camera3D == nullptr || cameraTransform == nullptr)
+            if (!useEditorSceneCamera)
                 return;
 
-            Matrix4 projection = Matrix4(1.0f);
-            const float aspect = (m_gameTextureHeight > 0)
-                ? (static_cast<float>(m_gameTextureWidth) / static_cast<float>(m_gameTextureHeight))
-                : 1.0f;
-            projection = glm::perspective(DEG2RAD * camera3D->fovDegrees, aspect, camera3D->nearClip, camera3D->farClip);
-
-            const Vector3 eye = cameraTransform->GetGlobalPosition();
-            const Vector3 target = eye + cameraTransform->GetForward();
-            const Vector3 up = cameraTransform->GetUp();
-            Matrix4 view = glm::lookAt(eye, target, up);
+            // Overrides are cleared before UI draw; keep using the last scene-camera matrices.
+            Matrix4 projection = m_scene->GetEditorCamera3DProjection();
+            Matrix4 view = m_scene->GetEditorCamera3DView();
 
             Matrix4 model = transform3D->GetModelMatrix();
 
@@ -897,26 +904,22 @@ namespace Canis
         if (!rtc)
             return;
 
-        Camera2D *camera2D = nullptr;
-        std::vector<Entity *> &entities = m_scene->GetEntities();
-        for (Entity *entity : entities)
-        {
-            if (!entity)
-                continue;
-            Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D);
-            if (camera)
-            {
-                camera2D = camera;
-                break;
-            }
-        }
+        const bool useEditorSceneCamera2D =
+            m_mode != EditorMode::PLAY &&
+            m_mode != EditorMode::HIDDEN &&
+            m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_2D;
 
-        if (!camera2D)
+        if (!useEditorSceneCamera2D)
             return;
 
-        //Debug::Log("%f, %f", camera2D->GetPosition().x, camera2D->GetPosition().y);
-        camera2D->UpdateMatrix();
-        Matrix4 projection = camera2D->GetProjectionMatrix();
+        const float renderWidth = std::max(1.0f, (m_gameTextureWidth > 0)
+            ? static_cast<float>(m_gameTextureWidth)
+            : static_cast<float>((m_gameViewportWidth > 0) ? m_gameViewportWidth : m_window->GetWindowWidth()));
+        const float renderHeight = std::max(1.0f, (m_gameTextureHeight > 0)
+            ? static_cast<float>(m_gameTextureHeight)
+            : static_cast<float>((m_gameViewportHeight > 0) ? m_gameViewportHeight : m_window->GetWindowHeight()));
+
+        Matrix4 projection = glm::ortho(0.0f, renderWidth, 0.0f, renderHeight, 0.0f, 100.0f);
 
         Vector2 pos = rtc->GetPosition();
         Vector2 globalScale = rtc->GetScale();
@@ -926,9 +929,11 @@ namespace Canis
         model = glm::rotate(model, rtc->rotation, Vector3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, Vector3(rtc->size.x * globalScale.x, rtc->size.y * globalScale.y, 1.0f));
 
-        Matrix4 view = camera2D->GetViewMatrix();
+        Matrix4 view = Matrix4(1.0f);
+        view = glm::translate(view, Vector3(-m_editorCamera2DPosition.x + renderWidth * 0.5f,
+                                            -m_editorCamera2DPosition.y + renderHeight * 0.5f, 0.0f));
         // Keep camera's 2D behavior, but avoid zero Z scale for gizmo rendering.
-        view[2][2] = 1.0f;
+        view = glm::scale(view, Vector3(m_editorCamera2DScale, m_editorCamera2DScale, 1.0f));
 
         ImGuizmo::SetOrthographic(true);
 
@@ -2543,7 +2548,8 @@ namespace Canis
 
         ImGui::SameLine();
         int sceneCameraMode = static_cast<int>(m_sceneCameraMode);
-        const char* sceneCameraModeLabels[] = { "Scene Cam: 3D", "Scene Cam: 2D" };
+        const char* sceneCameraModeLabels[] = { "3D", "2D" };
+        ImGui::SetNextItemWidth(70.0f);
         if (ImGui::Combo("##SceneCameraMode", &sceneCameraMode, sceneCameraModeLabels, IM_ARRAYSIZE(sceneCameraModeLabels)))
             m_sceneCameraMode = static_cast<SceneCameraMode>(sceneCameraMode);
 
@@ -2572,9 +2578,6 @@ namespace Canis
             m_gameViewportDrawWidth <= 0.0f || m_gameViewportDrawHeight <= 0.0f)
             return;
 
-        if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-            return;
-
         ImVec2 mousePos = ImGui::GetMousePos();
         float localX = mousePos.x - m_gameViewportPosX;
         float localY = mousePos.y - m_gameViewportPosY;
@@ -2590,21 +2593,39 @@ namespace Canis
 
         Vector2 camPos(0.0f);
         float camScale = 1.0f;
-        std::vector<Entity *> &entities = m_scene->GetEntities();
-        for (Entity *entity : entities)
+        const bool useEditorSceneCamera2D =
+            m_mode != EditorMode::PLAY &&
+            m_mode != EditorMode::HIDDEN &&
+            m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_2D;
+
+        if (useEditorSceneCamera2D)
         {
-            if (!entity)
-                continue;
-            if (Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D))
+            camPos = m_editorCamera2DPosition;
+            camScale = m_editorCamera2DScale;
+        }
+        else
+        {
+            std::vector<Entity *> &entities = m_scene->GetEntities();
+            for (Entity *entity : entities)
             {
-                camPos = camera->GetPosition();
-                camScale = camera->GetScale();
-                break;
+                if (!entity)
+                    continue;
+                if (Camera2D *camera = CANIS_GET_SCRIPT(entity, Camera2D))
+                {
+                    camPos = camera->GetPosition();
+                    camScale = camera->GetScale();
+                    break;
+                }
             }
         }
 
         if (camScale != 0.0f)
             mouse = (mouse / camScale) + camPos;
+
+        m_selectionMouseWorld = mouse;
+
+        if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            return;
 
         bool mouseLock = false;
 
@@ -2620,11 +2641,12 @@ namespace Canis
 
             Vector2 globalPos = transform->GetPosition();    // rect_transform.GetGlobalPosition(window->GetScreenWidth(), window->GetScreenHeight());
             float globalRotation = transform->GetRotation(); // rect_transform.GetGlobalRotation();
+            Vector2 selectionMouse = mouse;
 
             if (globalRotation != 0.0f)
             {
                 RotatePointAroundPivot(
-                    mouse,
+                    selectionMouse,
                     globalPos /* + rect_transform.rotationOriginOffset */,
                     globalRotation);
             }
@@ -2633,19 +2655,19 @@ namespace Canis
 
             if (CANIS_GET_SCRIPT(m_scene->GetEntities()[i], Text) == nullptr)
             {
-                if (mouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
-                    mouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
-                    mouse.y > globalPos.y - transform->size.y * 0.5f * globalScale.y &&
-                    mouse.y < globalPos.y + transform->size.y * 0.5f * globalScale.y &&
+                if (selectionMouse.x > globalPos.x - transform->size.x * 0.5f * globalScale.x &&
+                    selectionMouse.x < globalPos.x + transform->size.x * 0.5f * globalScale.x &&
+                    selectionMouse.y > globalPos.y - transform->size.y * 0.5f * globalScale.y &&
+                    selectionMouse.y < globalPos.y + transform->size.y * 0.5f * globalScale.y &&
                     !mouseLock)
                 {
                     m_index = i;
                 }
             } else {
-                if (mouse.x > globalPos.x &&
-                    mouse.x < globalPos.x + transform->size.x * globalScale.x &&
-                    mouse.y > globalPos.y &&
-                    mouse.y < globalPos.y + transform->size.y * globalScale.y &&
+                if (selectionMouse.x > globalPos.x &&
+                    selectionMouse.x < globalPos.x + transform->size.x * globalScale.x &&
+                    selectionMouse.y > globalPos.y &&
+                    selectionMouse.y < globalPos.y + transform->size.y * globalScale.y &&
                     !mouseLock)
                 {
                     m_index = i;
@@ -2654,11 +2676,71 @@ namespace Canis
         }
     }
 
+    void Editor::DrawSelectionMouseDebug(Camera2D *_camera2D)
+    {
+        if (_camera2D == nullptr)
+            return;
+
+        Matrix4 projection = Matrix4(1.0f);
+        if (m_scene != nullptr && m_scene->HasEditorCamera2DOverride())
+        {
+            projection = m_scene->GetEditorCamera2DMatrix();
+        }
+        else
+        {
+            _camera2D->UpdateMatrix();
+            projection = _camera2D->GetCameraMatrix();
+        }
+
+        static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
+
+        const float halfSize = 7.0f;
+        Vector2 vertices[4] = {
+            Vector2(m_selectionMouseWorld.x - halfSize, m_selectionMouseWorld.y),
+            Vector2(m_selectionMouseWorld.x + halfSize, m_selectionMouseWorld.y),
+            Vector2(m_selectionMouseWorld.x, m_selectionMouseWorld.y - halfSize),
+            Vector2(m_selectionMouseWorld.x, m_selectionMouseWorld.y + halfSize)
+        };
+
+        for (Vector2 &v : vertices)
+            v = Vector2(projection * Vector4(v.x, v.y, 0.0f, 1.0f));
+
+        GLuint VAO, VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        debugLineShader.Use();
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_LINES, 0, 4);
+        debugLineShader.UnUse();
+
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+    }
+
     void Editor::DrawBoundingBox(Camera2D *_camera2D)
     {
-        Matrix4 projection = Matrix4(1.0f);
+        if (_camera2D == nullptr)
+            return;
 
-        projection = _camera2D->GetCameraMatrix();
+        Matrix4 projection = Matrix4(1.0f);
+        if (m_scene != nullptr && m_scene->HasEditorCamera2DOverride())
+        {
+            projection = m_scene->GetEditorCamera2DMatrix();
+        }
+        else
+        {
+            _camera2D->UpdateMatrix();
+            projection = _camera2D->GetCameraMatrix();
+        }
 
         static Canis::Shader debugLineShader("assets/shaders/debug_line.vs", "assets/shaders/debug_line.fs");
         Entity &debugRectTransformEntity = *m_scene->GetEntities()[m_index];

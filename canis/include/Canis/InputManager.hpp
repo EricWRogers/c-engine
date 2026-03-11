@@ -71,6 +71,8 @@ namespace Canis
 
         bool Update(void* _window);
         void SetGameInputWindowID(unsigned int _windowID) { m_gameInputWindowID = _windowID; }
+        void SetGameMouseViewport(float _x, float _y, float _drawWidth, float _drawHeight, float _logicalWidth, float _logicalHeight);
+        void ClearGameMouseViewport();
 
         bool GetKey(unsigned int _keyID);
         bool JustPressedKey(unsigned int _keyID);
@@ -143,5 +145,12 @@ namespace Canis
 
         InputDevice m_lastInputDeviceType = InputDevice::MOUSE;
         unsigned int m_gameInputWindowID = 0u;
+        bool m_gameMouseViewportEnabled = false;
+        float m_gameMouseViewportX = 0.0f;
+        float m_gameMouseViewportY = 0.0f;
+        float m_gameMouseViewportDrawWidth = 0.0f;
+        float m_gameMouseViewportDrawHeight = 0.0f;
+        float m_gameMouseViewportLogicalWidth = 0.0f;
+        float m_gameMouseViewportLogicalHeight = 0.0f;
     };
 } // end of Canis namespace

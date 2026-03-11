@@ -86,6 +86,7 @@ namespace Canis
 
         void SelectSprite2D();
         void DrawBoundingBox(Camera2D *_camera2D);
+        void DrawSelectionMouseDebug(Camera2D *_camera2D);
 
         //bool IsDescendantOf(Entity _potentialAncestor, Entity _entity);
 
@@ -124,6 +125,7 @@ namespace Canis
         float m_editorCamera3DLookSensitivity = 0.12f;
         Vector2 m_editorCamera2DPosition = Vector2(0.0f);
         float m_editorCamera2DScale = 1.0f;
+        Vector2 m_selectionMouseWorld = Vector2(0.0f);
 
         // asset panel
         bool m_isRenamingAsset = false;
@@ -151,6 +153,10 @@ namespace Canis
         unsigned int m_playDepthRbo = 0;
         int m_playViewportWidth = 0;
         int m_playViewportHeight = 0;
+        float m_playViewportPosX = 0.0f;
+        float m_playViewportPosY = 0.0f;
+        float m_playViewportDrawWidth = 0.0f;
+        float m_playViewportDrawHeight = 0.0f;
         int m_playTextureWidth = 0;
         int m_playTextureHeight = 0;
 

@@ -94,11 +94,22 @@ add_subdirectory(external/glm)
 set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
 set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
 set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+
 if (MINGW)
-  # MinGW environments commonly lack import libs for dxcompiler.
   set(JPH_USE_DXC OFF CACHE BOOL "" FORCE)
+else()
+  set(JPH_USE_DXC ON CACHE BOOL "" FORCE)
 endif()
-add_subdirectory(external/JoltPhysics/Build EXCLUDE_FROM_ALL)
+
+set(JOLT_BUILD_DIR "${CMAKE_SOURCE_DIR}/external/JoltPhysics/Build")
+
+if (EXISTS "${JOLT_BUILD_DIR}/CMakeLists.txt")
+  add_subdirectory(external/JoltPhysics/Build EXCLUDE_FROM_ALL)
+else()
+  message(FATAL_ERROR
+    "JoltPhysics submodule is not initialized. "
+    "Run: git submodule update --init --recursive external/JoltPhysics")
+endif()
 
 # Jolt's CMake sets C++17 globally; restore project requirement.
 set(CMAKE_CXX_STANDARD 20)

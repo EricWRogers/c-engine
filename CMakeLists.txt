@@ -90,5 +90,15 @@ add_subdirectory(external/yaml-cpp)
 # glm
 add_subdirectory(external/glm)
 
+# Jolt Physics
+set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
+set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
+set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/JoltPhysics/Build EXCLUDE_FROM_ALL)
+
+# Jolt's CMake sets C++17 globally; restore project requirement.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 add_subdirectory(canis)
 add_subdirectory(game)

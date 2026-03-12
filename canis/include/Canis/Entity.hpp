@@ -978,6 +978,91 @@ namespace Canis
         }
     };
 
+    namespace Rigidbody3DMotionType
+    {
+        constexpr int STATIC = 0;
+        constexpr int KINEMATIC = 1;
+        constexpr int DYNAMIC = 2;
+    }
+
+    struct Rigidbody3D
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::Rigidbody3D";
+
+        Rigidbody3D() = default;
+        explicit Rigidbody3D(Canis::Entity& _entity) : entity(&_entity) {}
+        Entity* entity = nullptr;
+
+        void Create() {}
+        void EditorInspectorDraw();
+
+        bool active = true;
+        int motionType = Rigidbody3DMotionType::DYNAMIC;
+        float mass = 1.0f;
+        float friction = 0.2f;
+        float restitution = 0.0f;
+        float linearDamping = 0.05f;
+        float angularDamping = 0.05f;
+        bool useGravity = true;
+        bool isSensor = false;
+        bool allowSleeping = true;
+        bool lockRotationX = false;
+        bool lockRotationY = false;
+        bool lockRotationZ = false;
+        Vector3 linearVelocity = Vector3(0.0f);
+        Vector3 angularVelocity = Vector3(0.0f);
+    };
+
+    struct BoxCollider3D
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::BoxCollider3D";
+
+        BoxCollider3D() = default;
+        explicit BoxCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        Entity* entity = nullptr;
+
+        void Create() {}
+        void EditorInspectorDraw();
+
+        bool active = true;
+        Vector3 size = Vector3(1.0f);
+    };
+
+    struct SphereCollider3D
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::SphereCollider3D";
+
+        SphereCollider3D() = default;
+        explicit SphereCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        Entity* entity = nullptr;
+
+        void Create() {}
+        void EditorInspectorDraw();
+
+        bool active = true;
+        float radius = 0.5f;
+    };
+
+    struct CapsuleCollider3D
+    {
+    public:
+        static constexpr const char* ScriptName = "Canis::CapsuleCollider3D";
+
+        CapsuleCollider3D() = default;
+        explicit CapsuleCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        Entity* entity = nullptr;
+
+        void Create() {}
+        void EditorInspectorDraw();
+
+        bool active = true;
+        float halfHeight = 0.5f;
+        float radius = 0.25f;
+    };
+
     struct Camera3D
     {
     public:

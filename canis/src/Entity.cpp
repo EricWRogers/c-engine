@@ -245,6 +245,57 @@ void Transform3D::EditorInspectorDraw()
     ImGui::InputFloat3("scale", &scale.x, "%.3f");
 }
 
+void Rigidbody3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "Rigidbody3D";
+    ImGui::Text("%s", nameOfType.c_str());
+
+    const char *motionTypeLabels[] = {"Static", "Kinematic", "Dynamic"};
+    if (motionType < Rigidbody3DMotionType::STATIC || motionType > Rigidbody3DMotionType::DYNAMIC)
+        motionType = Rigidbody3DMotionType::DYNAMIC;
+
+    ImGui::Checkbox("active", &active);
+    ImGui::Combo("motionType", &motionType, motionTypeLabels, IM_ARRAYSIZE(motionTypeLabels));
+    ImGui::InputFloat("mass", &mass);
+    ImGui::InputFloat("friction", &friction);
+    ImGui::InputFloat("restitution", &restitution);
+    ImGui::InputFloat("linearDamping", &linearDamping);
+    ImGui::InputFloat("angularDamping", &angularDamping);
+    ImGui::Checkbox("useGravity", &useGravity);
+    ImGui::Checkbox("isSensor", &isSensor);
+    ImGui::Checkbox("allowSleeping", &allowSleeping);
+    ImGui::Checkbox("lockRotationX", &lockRotationX);
+    ImGui::Checkbox("lockRotationY", &lockRotationY);
+    ImGui::Checkbox("lockRotationZ", &lockRotationZ);
+    ImGui::InputFloat3("linearVelocity", &linearVelocity.x, "%.3f");
+    ImGui::InputFloat3("angularVelocity", &angularVelocity.x, "%.3f");
+}
+
+void BoxCollider3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "BoxCollider3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("active", &active);
+    ImGui::InputFloat3("size", &size.x, "%.3f");
+}
+
+void SphereCollider3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "SphereCollider3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("active", &active);
+    ImGui::InputFloat("radius", &radius);
+}
+
+void CapsuleCollider3D::EditorInspectorDraw()
+{
+    std::string nameOfType = "CapsuleCollider3D";
+    ImGui::Text("%s", nameOfType.c_str());
+    ImGui::Checkbox("active", &active);
+    ImGui::InputFloat("halfHeight", &halfHeight);
+    ImGui::InputFloat("radius", &radius);
+}
+
 void Camera3D::EditorInspectorDraw()
 {
     std::string nameOfType = "Camera3D";

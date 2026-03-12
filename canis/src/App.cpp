@@ -655,6 +655,244 @@ namespace Canis
 
         RegisterScript(transform3DConf);
 
+        ScriptConf rigidbody3DConf = {
+            .name = "Canis::Rigidbody3D",
+            .Construct = nullptr,
+            .Add = [this](Entity &_entity) -> void {
+                if (CANIS_GET_COMPONENT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_COMPONENT(_entity, Transform3D);
+
+                if (CANIS_GET_COMPONENT(_entity, BoxCollider3D) == nullptr
+                    && CANIS_GET_COMPONENT(_entity, SphereCollider3D) == nullptr
+                    && CANIS_GET_COMPONENT(_entity, CapsuleCollider3D) == nullptr)
+                {
+                    CANIS_ADD_COMPONENT(_entity, BoxCollider3D);
+                }
+
+                CANIS_ADD_COMPONENT(_entity, Rigidbody3D);
+            },
+            .Has = [this](Entity &_entity) -> bool { return (CANIS_GET_COMPONENT(_entity, Rigidbody3D) != nullptr); },
+            .Remove = [this](Entity &_entity) -> void { CANIS_REMOVE_COMPONENT(_entity, Rigidbody3D); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)CANIS_GET_COMPONENT(_entity, Rigidbody3D); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (Rigidbody3D *rigidbody = CANIS_GET_COMPONENT(_entity, Rigidbody3D))
+                {
+                    YAML::Node comp;
+                    comp["active"] = rigidbody->active;
+                    comp["motionType"] = rigidbody->motionType;
+                    comp["mass"] = rigidbody->mass;
+                    comp["friction"] = rigidbody->friction;
+                    comp["restitution"] = rigidbody->restitution;
+                    comp["linearDamping"] = rigidbody->linearDamping;
+                    comp["angularDamping"] = rigidbody->angularDamping;
+                    comp["useGravity"] = rigidbody->useGravity;
+                    comp["isSensor"] = rigidbody->isSensor;
+                    comp["allowSleeping"] = rigidbody->allowSleeping;
+                    comp["lockRotationX"] = rigidbody->lockRotationX;
+                    comp["lockRotationY"] = rigidbody->lockRotationY;
+                    comp["lockRotationZ"] = rigidbody->lockRotationZ;
+                    comp["linearVelocity"] = rigidbody->linearVelocity;
+                    comp["angularVelocity"] = rigidbody->angularVelocity;
+                    _node["Canis::Rigidbody3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::Rigidbody3D"])
+                {
+                    auto &rigidbody = *CANIS_ADD_COMPONENT(_entity, Rigidbody3D);
+                    rigidbody.active = comp["active"].as<bool>(true);
+                    rigidbody.motionType = comp["motionType"].as<int>(Rigidbody3DMotionType::DYNAMIC);
+                    rigidbody.mass = comp["mass"].as<float>(1.0f);
+                    rigidbody.friction = comp["friction"].as<float>(0.2f);
+                    rigidbody.restitution = comp["restitution"].as<float>(0.0f);
+                    rigidbody.linearDamping = comp["linearDamping"].as<float>(0.05f);
+                    rigidbody.angularDamping = comp["angularDamping"].as<float>(0.05f);
+                    rigidbody.useGravity = comp["useGravity"].as<bool>(true);
+                    rigidbody.isSensor = comp["isSensor"].as<bool>(false);
+                    rigidbody.allowSleeping = comp["allowSleeping"].as<bool>(true);
+                    rigidbody.lockRotationX = comp["lockRotationX"].as<bool>(false);
+                    rigidbody.lockRotationY = comp["lockRotationY"].as<bool>(false);
+                    rigidbody.lockRotationZ = comp["lockRotationZ"].as<bool>(false);
+                    rigidbody.linearVelocity = comp["linearVelocity"].as<Vector3>(Vector3(0.0f));
+                    rigidbody.angularVelocity = comp["angularVelocity"].as<Vector3>(Vector3(0.0f));
+                    if (_callCreate)
+                        rigidbody.Create();
+                }
+            },
+            .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
+                (void)_editor;
+                Rigidbody3D *rigidbody = CANIS_GET_COMPONENT(_entity, Rigidbody3D);
+                if (rigidbody == nullptr)
+                    return;
+
+                const char *motionTypeLabels[] = {"Static", "Kinematic", "Dynamic"};
+                if (rigidbody->motionType < Rigidbody3DMotionType::STATIC
+                    || rigidbody->motionType > Rigidbody3DMotionType::DYNAMIC)
+                {
+                    rigidbody->motionType = Rigidbody3DMotionType::DYNAMIC;
+                }
+
+                ImGui::Checkbox(("active##" + _conf.name).c_str(), &rigidbody->active);
+                ImGui::Combo(("motionType##" + _conf.name).c_str(), &rigidbody->motionType, motionTypeLabels, IM_ARRAYSIZE(motionTypeLabels));
+                ImGui::InputFloat(("mass##" + _conf.name).c_str(), &rigidbody->mass);
+                ImGui::InputFloat(("friction##" + _conf.name).c_str(), &rigidbody->friction);
+                ImGui::InputFloat(("restitution##" + _conf.name).c_str(), &rigidbody->restitution);
+                ImGui::InputFloat(("linearDamping##" + _conf.name).c_str(), &rigidbody->linearDamping);
+                ImGui::InputFloat(("angularDamping##" + _conf.name).c_str(), &rigidbody->angularDamping);
+                ImGui::Checkbox(("useGravity##" + _conf.name).c_str(), &rigidbody->useGravity);
+                ImGui::Checkbox(("isSensor##" + _conf.name).c_str(), &rigidbody->isSensor);
+                ImGui::Checkbox(("allowSleeping##" + _conf.name).c_str(), &rigidbody->allowSleeping);
+                ImGui::Checkbox(("lockRotationX##" + _conf.name).c_str(), &rigidbody->lockRotationX);
+                ImGui::Checkbox(("lockRotationY##" + _conf.name).c_str(), &rigidbody->lockRotationY);
+                ImGui::Checkbox(("lockRotationZ##" + _conf.name).c_str(), &rigidbody->lockRotationZ);
+                ImGui::InputFloat3(("linearVelocity##" + _conf.name).c_str(), &rigidbody->linearVelocity.x, "%.3f");
+                ImGui::InputFloat3(("angularVelocity##" + _conf.name).c_str(), &rigidbody->angularVelocity.x, "%.3f");
+            },
+        };
+
+        RegisterScript(rigidbody3DConf);
+
+        ScriptConf boxCollider3DConf = {
+            .name = "Canis::BoxCollider3D",
+            .Construct = nullptr,
+            .Add = [this](Entity &_entity) -> void {
+                if (CANIS_GET_COMPONENT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_COMPONENT(_entity, Transform3D);
+
+                CANIS_REMOVE_COMPONENT(_entity, SphereCollider3D);
+                CANIS_REMOVE_COMPONENT(_entity, CapsuleCollider3D);
+                CANIS_ADD_COMPONENT(_entity, BoxCollider3D);
+            },
+            .Has = [this](Entity &_entity) -> bool { return (CANIS_GET_COMPONENT(_entity, BoxCollider3D) != nullptr); },
+            .Remove = [this](Entity &_entity) -> void { CANIS_REMOVE_COMPONENT(_entity, BoxCollider3D); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)CANIS_GET_COMPONENT(_entity, BoxCollider3D); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (BoxCollider3D *boxCollider = CANIS_GET_COMPONENT(_entity, BoxCollider3D))
+                {
+                    YAML::Node comp;
+                    comp["active"] = boxCollider->active;
+                    comp["size"] = boxCollider->size;
+                    _node["Canis::BoxCollider3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::BoxCollider3D"])
+                {
+                    auto &boxCollider = *CANIS_ADD_COMPONENT(_entity, BoxCollider3D);
+                    boxCollider.active = comp["active"].as<bool>(true);
+                    boxCollider.size = comp["size"].as<Vector3>(Vector3(1.0f));
+                    if (_callCreate)
+                        boxCollider.Create();
+                }
+            },
+            .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
+                (void)_editor;
+                BoxCollider3D *boxCollider = CANIS_GET_COMPONENT(_entity, BoxCollider3D);
+                if (boxCollider == nullptr)
+                    return;
+
+                ImGui::Checkbox(("active##" + _conf.name).c_str(), &boxCollider->active);
+                ImGui::InputFloat3(("size##" + _conf.name).c_str(), &boxCollider->size.x, "%.3f");
+            },
+        };
+
+        RegisterScript(boxCollider3DConf);
+
+        ScriptConf sphereCollider3DConf = {
+            .name = "Canis::SphereCollider3D",
+            .Construct = nullptr,
+            .Add = [this](Entity &_entity) -> void {
+                if (CANIS_GET_COMPONENT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_COMPONENT(_entity, Transform3D);
+
+                CANIS_REMOVE_COMPONENT(_entity, BoxCollider3D);
+                CANIS_REMOVE_COMPONENT(_entity, CapsuleCollider3D);
+                CANIS_ADD_COMPONENT(_entity, SphereCollider3D);
+            },
+            .Has = [this](Entity &_entity) -> bool { return (CANIS_GET_COMPONENT(_entity, SphereCollider3D) != nullptr); },
+            .Remove = [this](Entity &_entity) -> void { CANIS_REMOVE_COMPONENT(_entity, SphereCollider3D); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)CANIS_GET_COMPONENT(_entity, SphereCollider3D); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (SphereCollider3D *sphereCollider = CANIS_GET_COMPONENT(_entity, SphereCollider3D))
+                {
+                    YAML::Node comp;
+                    comp["active"] = sphereCollider->active;
+                    comp["radius"] = sphereCollider->radius;
+                    _node["Canis::SphereCollider3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::SphereCollider3D"])
+                {
+                    auto &sphereCollider = *CANIS_ADD_COMPONENT(_entity, SphereCollider3D);
+                    sphereCollider.active = comp["active"].as<bool>(true);
+                    sphereCollider.radius = comp["radius"].as<float>(0.5f);
+                    if (_callCreate)
+                        sphereCollider.Create();
+                }
+            },
+            .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
+                (void)_editor;
+                SphereCollider3D *sphereCollider = CANIS_GET_COMPONENT(_entity, SphereCollider3D);
+                if (sphereCollider == nullptr)
+                    return;
+
+                ImGui::Checkbox(("active##" + _conf.name).c_str(), &sphereCollider->active);
+                ImGui::InputFloat(("radius##" + _conf.name).c_str(), &sphereCollider->radius);
+            },
+        };
+
+        RegisterScript(sphereCollider3DConf);
+
+        ScriptConf capsuleCollider3DConf = {
+            .name = "Canis::CapsuleCollider3D",
+            .Construct = nullptr,
+            .Add = [this](Entity &_entity) -> void {
+                if (CANIS_GET_COMPONENT(_entity, Transform3D) == nullptr)
+                    CANIS_ADD_COMPONENT(_entity, Transform3D);
+
+                CANIS_REMOVE_COMPONENT(_entity, BoxCollider3D);
+                CANIS_REMOVE_COMPONENT(_entity, SphereCollider3D);
+                CANIS_ADD_COMPONENT(_entity, CapsuleCollider3D);
+            },
+            .Has = [this](Entity &_entity) -> bool { return (CANIS_GET_COMPONENT(_entity, CapsuleCollider3D) != nullptr); },
+            .Remove = [this](Entity &_entity) -> void { CANIS_REMOVE_COMPONENT(_entity, CapsuleCollider3D); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)CANIS_GET_COMPONENT(_entity, CapsuleCollider3D); },
+            .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
+                if (CapsuleCollider3D *capsuleCollider = CANIS_GET_COMPONENT(_entity, CapsuleCollider3D))
+                {
+                    YAML::Node comp;
+                    comp["active"] = capsuleCollider->active;
+                    comp["halfHeight"] = capsuleCollider->halfHeight;
+                    comp["radius"] = capsuleCollider->radius;
+                    _node["Canis::CapsuleCollider3D"] = comp;
+                }
+            },
+            .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
+                if (auto comp = _node["Canis::CapsuleCollider3D"])
+                {
+                    auto &capsuleCollider = *CANIS_ADD_COMPONENT(_entity, CapsuleCollider3D);
+                    capsuleCollider.active = comp["active"].as<bool>(true);
+                    capsuleCollider.halfHeight = comp["halfHeight"].as<float>(0.5f);
+                    capsuleCollider.radius = comp["radius"].as<float>(0.25f);
+                    if (_callCreate)
+                        capsuleCollider.Create();
+                }
+            },
+            .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
+                (void)_editor;
+                CapsuleCollider3D *capsuleCollider = CANIS_GET_COMPONENT(_entity, CapsuleCollider3D);
+                if (capsuleCollider == nullptr)
+                    return;
+
+                ImGui::Checkbox(("active##" + _conf.name).c_str(), &capsuleCollider->active);
+                ImGui::InputFloat(("halfHeight##" + _conf.name).c_str(), &capsuleCollider->halfHeight);
+                ImGui::InputFloat(("radius##" + _conf.name).c_str(), &capsuleCollider->radius);
+            },
+        };
+
+        RegisterScript(capsuleCollider3DConf);
+
         ScriptConf camera3DConf = {
             .name = "Canis::Camera3D",
             .Construct = nullptr,

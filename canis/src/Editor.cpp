@@ -488,8 +488,9 @@ namespace Canis
 
         m_scene->ClearEditorCameraOverrides();
 
-        // Keep gameplay camera behavior in play mode.
-        if (m_mode == EditorMode::PLAY || m_mode == EditorMode::HIDDEN)
+        // Scene view should always use the editor camera.
+        // Game panel already renders with runtime/game cameras in pass 1.
+        if (m_mode == EditorMode::HIDDEN)
             return;
 
         InputManager& input = m_scene->GetInputManager();
@@ -813,7 +814,6 @@ namespace Canis
         if (Transform3D *transform3D = CANIS_GET_COMPONENT(selected, Transform3D))
         {
             const bool useEditorSceneCamera =
-                m_mode != EditorMode::PLAY &&
                 m_mode != EditorMode::HIDDEN &&
                 m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_3D;
 
@@ -905,7 +905,6 @@ namespace Canis
             return;
 
         const bool useEditorSceneCamera2D =
-            m_mode != EditorMode::PLAY &&
             m_mode != EditorMode::HIDDEN &&
             m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_2D;
 
@@ -2761,7 +2760,6 @@ namespace Canis
         Vector2 camPos(0.0f);
         float camScale = 1.0f;
         const bool useEditorSceneCamera2D =
-            m_mode != EditorMode::PLAY &&
             m_mode != EditorMode::HIDDEN &&
             m_sceneCameraMode == SceneCameraMode::SCENE_CAMERA_2D;
 

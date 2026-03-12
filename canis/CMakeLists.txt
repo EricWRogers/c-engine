@@ -10,6 +10,8 @@ file(GLOB_RECURSE CANIS_HEADERS include/Canis/*.h*)
 add_library(${CANIS_ENGINE_LIB} SHARED ${CANIS_HEADERS} ${CANIS_SOURCES})
 set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
 )
 
 target_include_directories(${CANIS_ENGINE_LIB}
@@ -26,6 +28,7 @@ target_link_libraries(${CANIS_ENGINE_LIB}
     stb
     imguizmo
     libglew_static
+    Jolt
 )
 
 find_package(Freetype QUIET)
@@ -55,6 +58,11 @@ target_link_libraries(${PROJECT_NAME}
     stb
     libglew_static
     imguizmo
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
 )
 
 target_precompile_headers(${PROJECT_NAME}

@@ -11,6 +11,7 @@
 #include <Canis/ECS/Systems/SpriteRenderer2DSystem.hpp>
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 #include <Canis/ECS/Systems/MeshRenderer3DSystem.hpp>
+#include <Canis/ECS/Systems/JoltPhysics3DSystem.hpp>
 #include <algorithm>
 #include <cctype>
 #include <SDL3/SDL_timer.h>
@@ -169,6 +170,7 @@ namespace Canis
         CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
         CreateSystem<Canis::ModelAnimation3DSystem>();
         CreateSystem<Canis::SpriteAnimationSystem>();
+        CreateSystem<Canis::JoltPhysics3DSystem>();
         m_environmentSkyboxUUID = UUID(0);
         
         for (System* system : m_systems)

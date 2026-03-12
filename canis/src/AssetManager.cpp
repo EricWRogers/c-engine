@@ -587,6 +587,45 @@ namespace Canis
 
             return nullptr;
         }
+
+        int LoadSkybox(const std::string &_path)
+        {
+            auto &assetLibrary = GetAssetLibrary();
+            auto it = assetLibrary.assetPath.find(_path);
+            if (it != assetLibrary.assetPath.end())
+                return it->second;
+
+            SkyboxAsset *skybox = new SkyboxAsset();
+            if (!skybox->Load(_path))
+            {
+                delete skybox;
+                return -1;
+            }
+
+            const int id = assetLibrary.nextId;
+            assetLibrary.assets[id] = skybox;
+            assetLibrary.assetPath[_path] = id;
+            assetLibrary.nextId++;
+
+            return id;
+        }
+
+        SkyboxAsset* GetSkybox(const std::string &_path)
+        {
+            const int id = LoadSkybox(_path);
+            if (id < 0)
+                return nullptr;
+
+            return GetSkybox(id);
+        }
+
+        SkyboxAsset* GetSkybox(i32 _skyboxID)
+        {
+            if (GetAssetLibrary().assets.contains(_skyboxID))
+                return (SkyboxAsset *)GetAssetLibrary().assets[_skyboxID];
+
+            return nullptr;
+        }
     } // end of AssetManager namespace
 
 } // end of Canis namespace

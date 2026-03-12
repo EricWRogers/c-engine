@@ -38,20 +38,16 @@ namespace TankGame
 
     DEFAULT_UNREGISTER_SCRIPT(conf, Bullet)
 
-    void Bullet::Create() { }
+    void Bullet::Create() {}
 
-    void Bullet::Ready() {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
-    }
+    void Bullet::Ready() {}
 
-    void Bullet::Destroy() { }
+    void Bullet::Destroy() {}
 
     void Bullet::Update(float _dt) {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
-        if (m_transform == nullptr)
-            return;
+        RectTransform& transform = entity.GetComponent<RectTransform>();
 
-        m_transform->Move(m_transform->GetUp() * speed * _dt);
+        transform.Move(transform.GetUp() * speed * _dt);
 
         lifeTime -= _dt;
 

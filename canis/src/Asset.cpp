@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <functional>
 #include <string.h>
+#include <cctype>
 #include <unordered_map>
 
 #include <glm/gtc/quaternion.hpp>
@@ -30,6 +31,55 @@
 
 namespace Canis
 {
+    namespace
+    {
+        std::string ResolveAssetRefPath(const YAML::Node &_node)
+        {
+            if (!_node)
+                return "";
+
+            if (_node.IsMap())
+            {
+                if (YAML::Node uuidNode = _node["uuid"])
+                {
+                    UUID uuid = uuidNode.as<uint64_t>(0);
+                    if ((uint64_t)uuid != 0)
+                    {
+                        std::string path = AssetManager::GetPath(uuid);
+                        if (path != "Path was not found in AssetLibrary")
+                            return path;
+                    }
+                }
+
+                if (YAML::Node pathNode = _node["path"])
+                    return pathNode.as<std::string>("");
+
+                return "";
+            }
+
+            if (_node.IsScalar())
+            {
+                const std::string value = _node.as<std::string>("");
+                if (value.empty())
+                    return "";
+
+                const bool isNumeric = std::all_of(value.begin(), value.end(), [](unsigned char c)
+                    { return std::isdigit(c) != 0; });
+                if (isNumeric)
+                {
+                    UUID uuid = (UUID)std::stoull(value);
+                    std::string path = AssetManager::GetPath(uuid);
+                    if (path != "Path was not found in AssetLibrary")
+                        return path;
+                }
+
+                return value;
+            }
+
+            return "";
+        }
+    } // namespace
+
     Asset::Asset() {}
 
     Asset::~Asset() {}
@@ -44,6 +94,92 @@ namespace Canis
     bool TextureAsset::Free()
     {
         glDeleteTextures(1, &m_texture.id);
+        return true;
+    }
+
+    bool SkyboxAsset::Load(std::string _path)
+    {
+        Free();
+
+        if (!FileExists(_path.c_str()))
+        {
+            Debug::Warning("Skybox file not found: %s", _path.c_str());
+            return false;
+        }
+
+        YAML::Node root = YAML::LoadFile(_path);
+
+        static const char *faceNames[] = { "right", "left", "top", "bottom", "front", "back" };
+        std::string facePaths[6];
+        for (int i = 0; i < 6; i++)
+        {
+            facePaths[i] = ResolveAssetRefPath(root[faceNames[i]]);
+            if (facePaths[i].empty())
+            {
+                Debug::Warning("Skybox '%s' is missing '%s' texture.", _path.c_str(), faceNames[i]);
+                return false;
+            }
+        }
+
+        glGenTextures(1, &m_cubemapTexture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapTexture);
+
+        stbi_set_flip_vertically_on_load(false);
+        bool loadedAllFaces = true;
+
+        for (int i = 0; i < 6; i++)
+        {
+            int width = 0;
+            int height = 0;
+            int channels = 0;
+            stbi_uc *data = stbi_load(facePaths[i].c_str(), &width, &height, &channels, 4);
+            if (!data)
+            {
+                Debug::Warning("Failed to load skybox face texture: %s", facePaths[i].c_str());
+                loadedAllFaces = false;
+                break;
+            }
+
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0,
+                GL_RGBA,
+                width,
+                height,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                data);
+            stbi_image_free(data);
+        }
+
+        stbi_set_flip_vertically_on_load(true);
+
+        if (!loadedAllFaces)
+        {
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            Free();
+            return false;
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        m_loaded = true;
+        return true;
+    }
+
+    bool SkyboxAsset::Free()
+    {
+        if (m_cubemapTexture != 0)
+            glDeleteTextures(1, &m_cubemapTexture);
+
+        m_cubemapTexture = 0;
+        m_loaded = false;
         return true;
     }
 
@@ -200,6 +336,8 @@ namespace Canis
                 return "MODEL";
             case MetaFileAsset::FileType::MATERIAL:
                 return "MATERIAL";
+            case MetaFileAsset::FileType::SKYBOX:
+                return "SKYBOX";
             default:
                 return "FILE_UNKNOWN";
         }
@@ -221,6 +359,8 @@ namespace Canis
             return MetaFileAsset::FileType::MODEL;
         else if (_type == "MATERIAL")
             return MetaFileAsset::FileType::MATERIAL;
+        else if (_type == "SKYBOX")
+            return MetaFileAsset::FileType::SKYBOX;
         else
             return MetaFileAsset::FileType::FILE_UNKNOWN;
     }
@@ -249,6 +389,8 @@ namespace Canis
                 type = FileType::MODEL;
             else if (extension == "material")
                 type = FileType::MATERIAL;
+            else if (extension == "skybox")
+                type = FileType::SKYBOX;
             else
                 type = FileType::FILE_UNKNOWN;
 

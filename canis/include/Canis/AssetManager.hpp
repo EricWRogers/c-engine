@@ -140,5 +140,9 @@ namespace Canis
         int LoadMaterial(const std::string &_path);
         MaterialAsset* GetMaterial(const std::string &_path);
         MaterialAsset* GetMaterial(i32 _materialID);
+
+        int LoadSkybox(const std::string &_path);
+        SkyboxAsset* GetSkybox(const std::string &_path);
+        SkyboxAsset* GetSkybox(i32 _skyboxID);
     } // end of AssetManager namespace
 } // end of Canis namespace

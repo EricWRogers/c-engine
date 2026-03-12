@@ -80,6 +80,7 @@ namespace Canis
         void DrawDirectoryRecursive(const std::string &_dirPath);
         void CommitAssetRename();
         bool DrawMaterialAssetInspector(const std::string &_materialPath);
+        bool DrawSkyboxAssetInspector(const std::string &_skyboxPath);
         void DrawProjectSettings();
         void DrawSystemPanel();
         void DrawEditorPanel();

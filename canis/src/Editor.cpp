@@ -1749,6 +1749,12 @@ namespace Canis
                 ImGui::End();
                 return;
             }
+
+            if (DrawSkyboxAssetInspector(m_selectedAssetPath))
+            {
+                ImGui::End();
+                return;
+            }
         }
 
         std::vector<Entity *> &entities = m_scene->GetEntities();
@@ -1992,6 +1998,90 @@ namespace Canis
         return true;
     }
 
+    bool Editor::DrawSkyboxAssetInspector(const std::string &_skyboxPath)
+    {
+        MetaFileAsset *meta = AssetManager::GetMetaFile(_skyboxPath);
+        if (meta == nullptr || meta->type != MetaFileAsset::FileType::SKYBOX)
+            return false;
+
+        ImGui::Text("Asset: %s", meta->name.c_str());
+
+        YAML::Node root;
+        if (FileExists(_skyboxPath.c_str()))
+            root = YAML::LoadFile(_skyboxPath);
+        if (!root || !root.IsMap())
+            root = YAML::Node(YAML::NodeType::Map);
+
+        bool changed = false;
+
+        auto drawFaceAssetField = [&](const char *_label, const char *_key) -> void
+        {
+            std::string refPath = ResolveAssetRefPath(root[_key]);
+            std::string buttonLabel = "[ none ]";
+            if (!refPath.empty())
+            {
+                if (MetaFileAsset *assetMeta = AssetManager::GetMetaFile(refPath))
+                    buttonLabel = assetMeta->name;
+                else
+                    buttonLabel = refPath;
+            }
+
+            ImGui::Text("%s", _label);
+            ImGui::SameLine();
+
+            ImGui::PushID(_key);
+            ImGui::Button(buttonLabel.c_str(), ImVec2(170, 0));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+                {
+                    const AssetDragData dropped = *static_cast<const AssetDragData *>(payload->Data);
+                    std::string path = AssetManager::GetPath(dropped.uuid);
+                    if (MetaFileAsset *droppedMeta = AssetManager::GetMetaFile(path))
+                    {
+                        if (droppedMeta->type == MetaFileAsset::FileType::TEXTURE)
+                        {
+                            SetAssetRefUUID(root, _key, path);
+                            changed = true;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            if (ImGui::BeginPopupContextItem("skybox_asset_ref_ctx"))
+            {
+                if (ImGui::MenuItem("Clear"))
+                {
+                    root.remove(_key);
+                    changed = true;
+                }
+                ImGui::EndPopup();
+            }
+            ImGui::PopID();
+        };
+
+        drawFaceAssetField("right (+X)", "right");
+        drawFaceAssetField("left (-X)", "left");
+        drawFaceAssetField("top (+Y)", "top");
+        drawFaceAssetField("bottom (-Y)", "bottom");
+        drawFaceAssetField("front (+Z)", "front");
+        drawFaceAssetField("back (-Z)", "back");
+
+        if (changed)
+        {
+            std::ofstream fout(_skyboxPath);
+            fout << root;
+            fout.close();
+
+            AssetManager::Free<SkyboxAsset>(_skyboxPath);
+            AssetManager::LoadSkybox(_skyboxPath);
+        }
+
+        return true;
+    }
+
     void Editor::DrawAddComponentDropDown(bool _refresh)
     {
         if (m_index < 0 || m_index >= (int)m_scene->GetEntities().size())
@@ -2040,6 +2130,49 @@ namespace Canis
 
         if (background != m_window->GetClearColor())
             m_window->SetClearColor(background);
+
+        ImGui::Text("Skybox");
+        ImGui::SameLine();
+
+        UUID skyboxUUID = m_scene->GetEnvironmentSkyboxUUID();
+        std::string skyboxLabel = "[ none ]";
+        if ((uint64_t)skyboxUUID != 0)
+        {
+            const std::string skyboxPath = AssetManager::GetPath(skyboxUUID);
+            if (skyboxPath != "Path was not found in AssetLibrary")
+            {
+                if (MetaFileAsset *meta = AssetManager::GetMetaFile(skyboxPath))
+                    skyboxLabel = meta->name;
+                else
+                    skyboxLabel = skyboxPath;
+            }
+        }
+
+        ImGui::Button(skyboxLabel.c_str(), ImVec2(180, 0));
+        if (ImGui::IsItemHovered() && ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+            m_scene->SetEnvironmentSkyboxUUID(UUID(0));
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+            {
+                const AssetDragData dropped = *static_cast<const AssetDragData *>(payload->Data);
+                std::string path = AssetManager::GetPath(dropped.uuid);
+                if (MetaFileAsset *meta = AssetManager::GetMetaFile(path))
+                {
+                    if (meta->type == MetaFileAsset::FileType::SKYBOX)
+                        m_scene->SetEnvironmentSkyboxUUID(meta->uuid);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::BeginPopupContextItem("skybox_env_ctx"))
+        {
+            if (ImGui::MenuItem("Clear"))
+                m_scene->SetEnvironmentSkyboxUUID(UUID(0));
+            ImGui::EndPopup();
+        }
 
         ImGui::End();
     }
@@ -2151,6 +2284,39 @@ namespace Canis
                         MetaFileAsset *meta = AssetManager::GetMetaFile(targetPath.string());
                     }
 
+                    if (ImGui::MenuItem("Create Skybox"))
+                    {
+                        const fs::path folderPath = entry.path();
+
+                        fs::path targetPath = folderPath / "new_skybox.skybox";
+                        int index = 1;
+                        while (fs::exists(targetPath))
+                        {
+                            targetPath = folderPath / ("new_skybox_" + std::to_string(index) + ".skybox");
+                            ++index;
+                        }
+
+                        YAML::Node skyboxRoot(YAML::NodeType::Map);
+                        auto makeFaceRef = []() -> YAML::Node
+                        {
+                            YAML::Node node(YAML::NodeType::Map);
+                            node["uuid"] = (uint64_t)0;
+                            return node;
+                        };
+                        skyboxRoot["right"] = makeFaceRef();
+                        skyboxRoot["left"] = makeFaceRef();
+                        skyboxRoot["top"] = makeFaceRef();
+                        skyboxRoot["bottom"] = makeFaceRef();
+                        skyboxRoot["front"] = makeFaceRef();
+                        skyboxRoot["back"] = makeFaceRef();
+
+                        std::ofstream out(targetPath.string());
+                        out << skyboxRoot;
+                        out.close();
+
+                        MetaFileAsset *meta = AssetManager::GetMetaFile(targetPath.string());
+                    }
+
                     ImGui::EndPopup();
                 }
 
@@ -2199,7 +2365,8 @@ namespace Canis
                     {
                         if (MetaFileAsset *meta = AssetManager::GetMetaFile(fullPath))
                         {
-                            if (meta->type == MetaFileAsset::FileType::MATERIAL)
+                            if (meta->type == MetaFileAsset::FileType::MATERIAL ||
+                                meta->type == MetaFileAsset::FileType::SKYBOX)
                                 m_selectedAssetPath = fullPath;
                         }
                     }

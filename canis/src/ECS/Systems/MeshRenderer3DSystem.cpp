@@ -10,6 +10,53 @@
 
 namespace Canis
 {
+    namespace
+    {
+        static const float kSkyboxVertices[] = {
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f
+        };
+    } // namespace
+
     void MeshRenderer3DSystem::Create()
     {
         int id = AssetManager::LoadShader("assets/shaders/model3d");
@@ -24,11 +71,91 @@ namespace Canis
         }
 
         m_shader = shader;
+
+        int skyboxShaderId = AssetManager::LoadShader("assets/shaders/skybox");
+        Shader *skyboxShader = AssetManager::Get<ShaderAsset>(skyboxShaderId)->GetShader();
+        if (!skyboxShader->IsLinked())
+        {
+            skyboxShader->AddAttribute("aPos");
+            skyboxShader->Link();
+        }
+
+        m_skyboxShader = skyboxShader;
+        CreateSkyboxGeometry();
     }
 
     void MeshRenderer3DSystem::Ready()
     {
         // No cached views required.
+    }
+
+    void MeshRenderer3DSystem::OnDestroy()
+    {
+        if (m_skyboxVbo != 0)
+            glDeleteBuffers(1, &m_skyboxVbo);
+        if (m_skyboxVao != 0)
+            glDeleteVertexArrays(1, &m_skyboxVao);
+
+        m_skyboxVbo = 0;
+        m_skyboxVao = 0;
+        m_skyboxShader = nullptr;
+        m_shader = nullptr;
+    }
+
+    void MeshRenderer3DSystem::CreateSkyboxGeometry()
+    {
+        if (m_skyboxVao == 0)
+            glGenVertexArrays(1, &m_skyboxVao);
+
+        if (m_skyboxVbo == 0)
+            glGenBuffers(1, &m_skyboxVbo);
+
+        glBindVertexArray(m_skyboxVao);
+        glBindBuffer(GL_ARRAY_BUFFER, m_skyboxVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(kSkyboxVertices), kSkyboxVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    void MeshRenderer3DSystem::DrawSkybox(const Matrix4 &_projection, const Matrix4 &_view)
+    {
+        if (m_skyboxShader == nullptr || m_skyboxVao == 0)
+            return;
+
+        const UUID skyboxUUID = scene->GetEnvironmentSkyboxUUID();
+        if ((uint64_t)skyboxUUID == 0)
+            return;
+
+        const std::string skyboxPath = AssetManager::GetPath(skyboxUUID);
+        if (skyboxPath == "Path was not found in AssetLibrary")
+            return;
+
+        SkyboxAsset *skybox = AssetManager::GetSkybox(skyboxPath);
+        if (skybox == nullptr || !skybox->IsLoaded())
+            return;
+
+        const Matrix4 skyboxView = Matrix4(glm::mat3(_view));
+
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+
+        m_skyboxShader->Use();
+        m_skyboxShader->SetMat4("projection", _projection);
+        m_skyboxShader->SetMat4("view", skyboxView);
+        m_skyboxShader->SetInt("skybox", 0);
+
+        glBindVertexArray(m_skyboxVao);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetTexture());
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        glBindVertexArray(0);
+        m_skyboxShader->UnUse();
+
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
     }
 
     void MeshRenderer3DSystem::Update(entt::registry &_registry, float _deltaTime)
@@ -100,6 +227,8 @@ namespace Canis
         glDepthFunc(GL_LESS);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        DrawSkybox(projection, view);
 
         bool useDirectionalLight = true;
         Vector3 directionalLightDirection = Vector3(-0.4f, -1.0f, -0.25f);

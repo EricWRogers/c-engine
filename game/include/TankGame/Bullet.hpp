@@ -6,8 +6,6 @@ namespace TankGame
 {
     class Bullet : public Canis::ScriptableEntity
     {
-    private:
-        Canis::RectTransform* m_transform = nullptr;
     public:
         static constexpr const char* ScriptName = "TankGame::Bullet";
 

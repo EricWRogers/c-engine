@@ -64,6 +64,8 @@ namespace Canis
         const Matrix4& GetEditorCamera3DProjection() const { return m_editorCamera3DProjection; }
         const Matrix4& GetEditorCamera2DMatrix() const { return m_editorCamera2DMatrix; }
         const Vector2& GetEditorCamera2DPosition() const { return m_editorCamera2DPosition; }
+        UUID GetEnvironmentSkyboxUUID() const { return m_environmentSkyboxUUID; }
+        void SetEnvironmentSkyboxUUID(UUID _uuid) { m_environmentSkyboxUUID = _uuid; }
 
 
         Entity* CreateEntity(std::string _name = "", std::string _tag = "");
@@ -130,6 +132,7 @@ namespace Canis
         Matrix4 m_editorCamera3DProjection = Matrix4(1.0f);
         Matrix4 m_editorCamera2DMatrix = Matrix4(1.0f);
         Vector2 m_editorCamera2DPosition = Vector2(0.0f);
+        UUID m_environmentSkyboxUUID = UUID(0);
 
         // this is used when duplicating entity
         std::unordered_map<UUID, UUID> m_targetUUIDNewUUID;

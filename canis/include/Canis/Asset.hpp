@@ -41,6 +41,19 @@ namespace Canis
         std::string GetPath() { return m_path; }
     };
 
+    class SkyboxAsset : public Asset
+    {
+    private:
+        unsigned int m_cubemapTexture = 0;
+        bool m_loaded = false;
+
+    public:
+        bool Load(std::string _path) override;
+        bool Free() override;
+        unsigned int GetTexture() const { return m_cubemapTexture; }
+        bool IsLoaded() const { return m_loaded; }
+    };
+
     class ShaderAsset : public Asset
     {
     private:
@@ -93,6 +106,7 @@ namespace Canis
             ANIMATIONCLIP2D,
             MODEL,
             MATERIAL,
+            SKYBOX,
         };
 
         MetaFileAsset() {}

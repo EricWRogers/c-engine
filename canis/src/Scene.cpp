@@ -4,6 +4,7 @@
 #include <Canis/Editor.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/Entity.hpp>
+#include <Canis/AssetManager.hpp>
 #include <Canis/System.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/ECS/Systems/SpriteAnimationSystem.hpp>
@@ -11,6 +12,7 @@
 #include <Canis/ECS/Systems/ModelAnimation3DSystem.hpp>
 #include <Canis/ECS/Systems/MeshRenderer3DSystem.hpp>
 #include <algorithm>
+#include <cctype>
 #include <SDL3/SDL_timer.h>
 
 namespace Canis
@@ -167,6 +169,7 @@ namespace Canis
         CreateRenderSystem<Canis::SpriteRenderer2DSystem>();
         CreateSystem<Canis::ModelAnimation3DSystem>();
         CreateSystem<Canis::SpriteAnimationSystem>();
+        m_environmentSkyboxUUID = UUID(0);
         
         for (System* system : m_systems)
         {
@@ -185,6 +188,39 @@ namespace Canis
             m_window->SetClearColor(
                 environment["ClearColor"].as<Vector4>(Vector4(0.05f, 0.05f, 0.05f, 1.0f))
             );
+
+            if (YAML::Node skyboxNode = environment["SkyboxAsset"])
+            {
+                if (skyboxNode.IsMap())
+                {
+                    m_environmentSkyboxUUID = skyboxNode["uuid"].as<uint64_t>(0);
+                    if ((uint64_t)m_environmentSkyboxUUID == 0)
+                    {
+                        const std::string path = skyboxNode["path"].as<std::string>("");
+                        if (!path.empty())
+                        {
+                            if (MetaFileAsset *meta = AssetManager::GetMetaFile(path))
+                                m_environmentSkyboxUUID = meta->uuid;
+                        }
+                    }
+                }
+                else if (skyboxNode.IsScalar())
+                {
+                    const std::string rawValue = skyboxNode.as<std::string>("");
+                    const bool isNumeric = std::all_of(rawValue.begin(), rawValue.end(), [](unsigned char c)
+                        { return std::isdigit(c) != 0; });
+
+                    if (isNumeric && !rawValue.empty())
+                    {
+                        m_environmentSkyboxUUID = (UUID)std::stoull(rawValue);
+                    }
+                    else if (!rawValue.empty())
+                    {
+                        if (MetaFileAsset *meta = AssetManager::GetMetaFile(rawValue))
+                            m_environmentSkyboxUUID = meta->uuid;
+                    }
+                }
+            }
         }
 
         auto entities = _root["Entities"];
@@ -360,6 +396,12 @@ namespace Canis
 
         YAML::Node environment;
         environment["ClearColor"] = m_window->GetClearColor();
+        if ((uint64_t)m_environmentSkyboxUUID != 0)
+        {
+            YAML::Node skyboxAsset(YAML::NodeType::Map);
+            skyboxAsset["uuid"] = (uint64_t)m_environmentSkyboxUUID;
+            environment["SkyboxAsset"] = skyboxAsset;
+        }
         node["Environment"] = environment;
 
         YAML::Node entities = YAML::Node(YAML::NodeType::Sequence);

@@ -17,13 +17,14 @@ set_target_properties(${CANIS_ENGINE_LIB} PROPERTIES
 target_include_directories(${CANIS_ENGINE_LIB}
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    $<TARGET_PROPERTY:yaml-cpp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(${CANIS_ENGINE_LIB}
     PUBLIC
     glm
     imgui
-    yaml-cpp
     PRIVATE
+    yaml-cpp
     SDL3::SDL3
     stb
     imguizmo

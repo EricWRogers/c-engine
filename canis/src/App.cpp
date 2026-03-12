@@ -25,7 +25,7 @@ namespace Canis
     void App::Run()
     {
         Debug::Log("App Run");
-#ifdef Win32
+#ifdef _WIN32
         const char *sharedObjectPath = "./libGameCode.dll";
 #elif __APPLE__
         const char *sharedObjectPath = "./libGameCode.dylib";
@@ -433,7 +433,7 @@ namespace Canis
                     text.text = comp["text"].as<std::string>("");
                     text.color = comp["color"].as<Vector4>(Color(1.0f));
                     text.alignment = comp["alignment"].as<unsigned int>(Canis::TextAlignment::LEFT);
-                    text.horizontalBoundary = comp["horizontalBoundary"].as<unsigned int>(Canis::TextBoundary::OVERFLOW);
+                    text.horizontalBoundary = comp["horizontalBoundary"].as<unsigned int>(Canis::TextBoundary::TB_OVERFLOW);
                     text._status = BIT::ONE;
 
                     if (auto fontAsset = comp["FontAsset"])

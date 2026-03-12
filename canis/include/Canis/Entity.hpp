@@ -1228,7 +1228,7 @@ namespace Canis
 
     namespace TextBoundary
     {
-        constexpr unsigned int OVERFLOW = 0u;
+        constexpr unsigned int TB_OVERFLOW = 0u;
         constexpr unsigned int WRAP = 1u;
     }
 
@@ -1254,7 +1254,7 @@ namespace Canis
         std::string text = "";
         Color color = Color(1.0f);
         unsigned int alignment = TextAlignment::LEFT;
-        unsigned int horizontalBoundary = TextBoundary::OVERFLOW;
+        unsigned int horizontalBoundary = TextBoundary::TB_OVERFLOW;
         unsigned int _status = BIT::ONE;
     };
 

@@ -94,6 +94,10 @@ add_subdirectory(external/glm)
 set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
 set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
 set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+if (MINGW)
+  # MinGW environments commonly lack import libs for dxcompiler.
+  set(JPH_USE_DXC OFF CACHE BOOL "" FORCE)
+endif()
 add_subdirectory(external/JoltPhysics/Build EXCLUDE_FROM_ALL)
 
 # Jolt's CMake sets C++17 globally; restore project requirement.

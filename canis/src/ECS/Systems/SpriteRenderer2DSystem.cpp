@@ -90,7 +90,7 @@ namespace Canis
 
         if ((_text->_status & BIT::ONE) > 0)
         {
-            if (_text->horizontalBoundary == TextBoundary::OVERFLOW && scaleX != 0.0f)
+            if (_text->horizontalBoundary == TextBoundary::TB_OVERFLOW && scaleX != 0.0f)
                 _transform->size.x = layoutWidth / std::abs(scaleX);
             if (scaleY != 0.0f)
                 _transform->size.y = layoutHeight / std::abs(scaleY);

@@ -36,7 +36,7 @@ set_target_properties(GameCode PROPERTIES
 if (WIN32)
     add_custom_command(TARGET GameCode POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/../${ASSETS_DIR_NAME}/
+            ${CMAKE_SOURCE_DIR}/${ASSETS_DIR_NAME}/
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ASSETS_DIR_NAME})
     add_custom_command(TARGET GameCode POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

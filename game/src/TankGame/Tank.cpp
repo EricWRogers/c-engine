@@ -30,7 +30,10 @@ namespace TankGame
         tankConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
             TankGame::Tank *tank = nullptr;
-            if ((tank = CANIS_GET_SCRIPT(_entity, TankGame::Tank)) != nullptr)
+            tank = _entity.HasScript(TankGame::Tank::ScriptName)
+                ? &_entity.GetScript<TankGame::Tank>()
+                : nullptr;
+            if (tank != nullptr)
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank->speed);
                 ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank->turnSpeed);
@@ -46,22 +49,30 @@ namespace TankGame
     void Tank::Create() { }
 
     void Tank::Ready() {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         m_turret = nullptr;
         m_firePoint = nullptr;
 
         if (m_transform != nullptr && !m_transform->children.empty())
         {
-            m_turret = CANIS_GET_COMPONENT(m_transform->children[0], RectTransform);
+            Entity* turretEntity = m_transform->children[0];
+            m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
+                ? &turretEntity->GetComponent<RectTransform>()
+                : nullptr;
             if (m_turret != nullptr && !m_turret->children.empty())
-                m_firePoint = CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
+            {
+                Entity* firePointEntity = m_turret->children[0];
+                m_firePoint = (firePointEntity != nullptr && firePointEntity->HasComponent<RectTransform>())
+                    ? &firePointEntity->GetComponent<RectTransform>()
+                    : nullptr;
+            }
         }
     }
 
     void Tank::Destroy() { }
 
     void Tank::Update(float _dt) {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 
@@ -70,10 +81,13 @@ namespace TankGame
 
         if (!m_transform->children.empty())
         {
-            m_turret = CANIS_GET_COMPONENT(m_transform->children[0], RectTransform);
+            Entity* turretEntity = m_transform->children[0];
+            m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
+                ? &turretEntity->GetComponent<RectTransform>()
+                : nullptr;
 
             if (m_turret != nullptr && !m_turret->children.empty())
-                m_firePoint = &m_turret->children[0]->GetComponent<RectTransform>();// CANIS_GET_COMPONENT(m_turret->children[0], RectTransform);
+                m_firePoint = &m_turret->children[0]->GetComponent<RectTransform>();
         }
 
         Movement(_dt);
@@ -125,13 +139,13 @@ namespace TankGame
         if (entity.scene->GetInputManager().GetLeftClick())
         {
             Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
-            Canis::RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
-            Canis::Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
-            bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
+            RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
+            Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
+            bulletSprite.textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
 
-            Bullet* bullet = CANIS_ADD_SCRIPT(bulletEntity, Bullet);
-            bulletTransform->SetPosition(m_firePoint->GetPosition());
-            bulletTransform->rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
+            Bullet* bullet = &bulletEntity->AddScript<Bullet>();
+            bulletTransform.SetPosition(m_firePoint->GetPosition());
+            bulletTransform.rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
 
             bullet->speed = 550.0f;
             bullet->lifeTime = 5.0f;

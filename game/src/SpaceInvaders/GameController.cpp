@@ -29,7 +29,10 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (GameController *controller = CANIS_GET_SCRIPT(_entity, SpaceInvaders::GameController))
+            GameController* controller = _entity.HasScript(SpaceInvaders::GameController::ScriptName)
+                ? &_entity.GetScript<SpaceInvaders::GameController>()
+                : nullptr;
+            if (controller != nullptr)
             {
                 ImGui::InputInt(("score##" + _conf.name).c_str(), &controller->score);
                 ImGui::InputInt(("lives##" + _conf.name).c_str(), &controller->lives);
@@ -46,13 +49,13 @@ namespace SpaceInvaders
     void GameController::Create() {}
     void GameController::Ready()
     {
-        if (!CANIS_HAS_SCRIPT(entity, SpaceInvaders::SwarmController))
-            (void)CANIS_ADD_SCRIPT(entity, SpaceInvaders::SwarmController);
+        if (!entity.HasScript(SpaceInvaders::SwarmController::ScriptName))
+            (void)entity.AddScript<SpaceInvaders::SwarmController>();
 
         if (Entity* player = entity.scene->GetEntityWithTag("Player"))
         {
-            if (!CANIS_HAS_SCRIPT(player, SpaceInvaders::PlayerShip))
-                (void)CANIS_ADD_SCRIPT(player, SpaceInvaders::PlayerShip);
+            if (!player->HasScript(SpaceInvaders::PlayerShip::ScriptName))
+                (void)player->AddScript<SpaceInvaders::PlayerShip>();
         }
 
         std::vector<Entity*> enemies = entity.scene->GetEntitiesWithTag("Enemy");
@@ -61,10 +64,13 @@ namespace SpaceInvaders
             if (enemy == nullptr)
                 continue;
 
-            if (!CANIS_HAS_SCRIPT(enemy, SpaceInvaders::Invader))
-                (void)CANIS_ADD_SCRIPT(enemy, SpaceInvaders::Invader);
+            if (!enemy->HasScript(SpaceInvaders::Invader::ScriptName))
+                (void)enemy->AddScript<SpaceInvaders::Invader>();
 
-            if (Invader* invader = CANIS_GET_SCRIPT(enemy, SpaceInvaders::Invader))
+            Invader* invader = enemy->HasScript(SpaceInvaders::Invader::ScriptName)
+                ? &enemy->GetScript<SpaceInvaders::Invader>()
+                : nullptr;
+            if (invader != nullptr)
                 invader->points = (enemy->name == "UFO") ? 50 : 10;
         }
     }

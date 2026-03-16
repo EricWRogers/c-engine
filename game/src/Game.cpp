@@ -88,11 +88,11 @@ extern "C"
     void SpawnAwesome(Canis::App &_app)
     {
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
-        Canis::RectTransform * transform = CANIS_ADD_COMPONENT(entityOne, RectTransform);
-        Canis::Sprite2D *sprite = CANIS_ADD_COMPONENT(entityOne, Sprite2D);
-        CANIS_ADD_SCRIPT(entityOne, Pong::Ball);
+        RectTransform& transform = entityOne->AddComponent<RectTransform>();
+        Sprite2D& sprite = entityOne->AddComponent<Sprite2D>();
+        (void)entityOne->AddScript<Pong::Ball>();
 
-        sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
-        transform->size = Vector2(32.0f);
+        sprite.textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
+        transform.size = Vector2(32.0f);
     }
 }

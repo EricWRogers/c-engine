@@ -33,7 +33,10 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (SwarmController *swarm = CANIS_GET_SCRIPT(_entity, SpaceInvaders::SwarmController))
+            SwarmController* swarm = _entity.HasScript(SpaceInvaders::SwarmController::ScriptName)
+                ? &_entity.GetScript<SpaceInvaders::SwarmController>()
+                : nullptr;
+            if (swarm != nullptr)
             {
                 ImGui::InputFloat(("horizontalSpeed##" + _conf.name).c_str(), &swarm->horizontalSpeed);
                 ImGui::InputFloat(("stepDown##" + _conf.name).c_str(), &swarm->stepDown);
@@ -72,7 +75,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = CANIS_GET_COMPONENT(enemy, RectTransform);
+            RectTransform* transform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
             if (transform == nullptr)
                 continue;
 
@@ -90,7 +93,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = CANIS_GET_COMPONENT(enemy, RectTransform);
+            RectTransform* transform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
             if (transform == nullptr)
                 continue;
 
@@ -103,7 +106,10 @@ namespace SpaceInvaders
             {
                 if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
                 {
-                    if (GameController* controller = CANIS_GET_SCRIPT(controllerEntity, SpaceInvaders::GameController))
+                    GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
+                        ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
+                        : nullptr;
+                    if (controller != nullptr)
                         controller->SetGameOver("invaders reached player line");
                 }
             }
@@ -121,7 +127,7 @@ namespace SpaceInvaders
         std::vector<Entity*> shooters = {};
         shooters.reserve(enemies.size());
         for (Entity* enemy : enemies)
-            if (enemy != nullptr && enemy->active && CANIS_GET_COMPONENT(enemy, RectTransform) != nullptr)
+            if (enemy != nullptr && enemy->active && enemy->HasComponent<RectTransform>())
                 shooters.push_back(enemy);
 
         if (shooters.empty())
@@ -129,20 +135,20 @@ namespace SpaceInvaders
 
         std::uniform_int_distribution<size_t> dist(0u, shooters.size() - 1u);
         Entity* shooter = shooters[dist(g_rng)];
-        RectTransform* shooterTransform = CANIS_GET_COMPONENT(shooter, RectTransform);
+        RectTransform* shooterTransform = shooter->HasComponent<RectTransform>() ? &shooter->GetComponent<RectTransform>() : nullptr;
         if (shooterTransform == nullptr)
             return;
 
         Entity* bulletEntity = entity.scene->CreateEntity("EnemyBullet", "EnemyBullet");
-        RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
-        Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
-        Projectile* bullet = CANIS_ADD_SCRIPT(bulletEntity, SpaceInvaders::Projectile);
+        RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
+        Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
+        Projectile* bullet = &bulletEntity->AddScript<SpaceInvaders::Projectile>();
 
-        bulletTransform->size = Vector2(16.0f, 24.0f);
-        bulletTransform->position = shooterTransform->GetPosition() + Vector2(0.0f, -24.0f);
+        bulletTransform.size = Vector2(16.0f, 24.0f);
+        bulletTransform.position = shooterTransform->GetPosition() + Vector2(0.0f, -24.0f);
 
-        bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
-        bulletSprite->color = Color(1.0f, 0.45f, 0.45f, 1.0f);
+        bulletSprite.textureHandle = AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
+        bulletSprite.color = Color(1.0f, 0.45f, 0.45f, 1.0f);
 
         bullet->fromPlayer = false;
         bullet->velocity = Vector2(0.0f, -enemyBulletSpeed);

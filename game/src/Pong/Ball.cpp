@@ -11,8 +11,8 @@ namespace Pong
 
     void Ball::Ready()
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
-        m_sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_sprite = entity.HasComponent<Sprite2D>() ? &entity.GetComponent<Sprite2D>() : nullptr;
         direction = glm::normalize(Vector2(-1.0f, 0.0f));
     }
 
@@ -20,7 +20,7 @@ namespace Pong
 
     void Ball::Update(float _dt)
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 

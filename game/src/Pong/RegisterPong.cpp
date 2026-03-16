@@ -21,7 +21,10 @@ namespace Pong
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
             Pong::Ball *ball = nullptr;
-            if ((ball = CANIS_GET_SCRIPT(_entity, Pong::Ball)) != nullptr)
+            ball = _entity.HasScript(Pong::Ball::ScriptName)
+                ? &_entity.GetScript<Pong::Ball>()
+                : nullptr;
+            if (ball != nullptr)
             {
                 ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
@@ -43,18 +46,18 @@ ScriptConf paddleConf = {
     {
         // TODO: require a RectTransform component
         // TODO: require a Sprite2D component
-        CANIS_ADD_SCRIPT(_entity, Paddle);
+        (void)_entity.AddScript<Paddle>();
     },
     .Has = [](Entity &_entity) -> bool
-    { return (CANIS_GET_SCRIPT(_entity, Paddle) != nullptr); },
+    { return _entity.HasScript(Paddle::ScriptName); },
     .Remove = [](Entity &_entity) -> void
-    { CANIS_REMOVE_SCRIPT(_entity, Paddle); },
-    .Get = [](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, Paddle); },
+    { _entity.RemoveScript(Paddle::ScriptName); },
+    .Get = [](Entity& _entity) -> void* { return _entity.HasScript(Paddle::ScriptName) ? (void*)&_entity.GetScript<Paddle>() : nullptr; },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        if (CANIS_GET_SCRIPT(_entity, Paddle))
+        if (_entity.HasScript(Paddle::ScriptName))
         {
-            Paddle &paddle = *CANIS_GET_SCRIPT(_entity, Paddle);
+            Paddle &paddle = _entity.GetScript<Paddle>();
 
             YAML::Node comp;
 
@@ -70,7 +73,7 @@ ScriptConf paddleConf = {
     {
         if (auto paddleComponent = _node[paddleConf.name])
         {
-            auto &paddle = *CANIS_ADD_SCRIPT_WITH_CREATE(_entity, Paddle, false);
+            auto &paddle = _entity.AddScript<Paddle>(false);
             paddle.direction = paddleComponent["direction"].as<Vector2>(paddle.direction);
             paddle.speed = paddleComponent["speed"].as<float>(paddle.speed);
             paddle.playerNum = paddleComponent["playerNum"].as<int>(paddle.playerNum);
@@ -82,7 +85,8 @@ ScriptConf paddleConf = {
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
         Paddle *paddle = nullptr;
-        if ((paddle = CANIS_GET_SCRIPT(_entity, Paddle)) != nullptr)
+        paddle = _entity.HasScript(Paddle::ScriptName) ? &_entity.GetScript<Paddle>() : nullptr;
+        if (paddle != nullptr)
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");
             ImGui::InputFloat(("speed##" + _conf.name).c_str(), &paddle->speed);

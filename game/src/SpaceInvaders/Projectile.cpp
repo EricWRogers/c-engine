@@ -41,7 +41,10 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (Projectile *projectile = CANIS_GET_SCRIPT(_entity, SpaceInvaders::Projectile))
+            Projectile* projectile = _entity.HasScript(SpaceInvaders::Projectile::ScriptName)
+                ? &_entity.GetScript<SpaceInvaders::Projectile>()
+                : nullptr;
+            if (projectile != nullptr)
             {
                 ImGui::InputFloat2(("velocity##" + _conf.name).c_str(), &projectile->velocity.x);
                 ImGui::InputFloat(("lifeTime##" + _conf.name).c_str(), &projectile->lifeTime);
@@ -58,14 +61,14 @@ namespace SpaceInvaders
 
     void Projectile::Ready()
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
     }
 
     void Projectile::Destroy() {}
 
     void Projectile::Update(float _dt)
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 
@@ -95,7 +98,7 @@ namespace SpaceInvaders
                 if (enemy == nullptr || !enemy->active)
                     continue;
 
-                RectTransform* enemyTransform = CANIS_GET_COMPONENT(enemy, RectTransform);
+                RectTransform* enemyTransform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
                 if (enemyTransform == nullptr)
                     continue;
 
@@ -103,12 +106,18 @@ namespace SpaceInvaders
                     continue;
 
                 int points = 10;
-                if (Invader* invader = CANIS_GET_SCRIPT(enemy, SpaceInvaders::Invader))
+                Invader* invader = enemy->HasScript(SpaceInvaders::Invader::ScriptName)
+                    ? &enemy->GetScript<SpaceInvaders::Invader>()
+                    : nullptr;
+                if (invader != nullptr)
                     points = invader->points;
 
                 if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
                 {
-                    if (GameController* controller = CANIS_GET_SCRIPT(controllerEntity, SpaceInvaders::GameController))
+                    GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
+                        ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
+                        : nullptr;
+                    if (controller != nullptr)
                         controller->AddScore(points);
                 }
 
@@ -123,10 +132,13 @@ namespace SpaceInvaders
             {
                 if (playerEntity->active)
                 {
-                    RectTransform* playerTransform = CANIS_GET_COMPONENT(playerEntity, RectTransform);
+                    RectTransform* playerTransform = playerEntity->HasComponent<RectTransform>() ? &playerEntity->GetComponent<RectTransform>() : nullptr;
                     if (playerTransform != nullptr && OverlapsAABB(*m_transform, *playerTransform))
                     {
-                        if (PlayerShip* playerShip = CANIS_GET_SCRIPT(playerEntity, SpaceInvaders::PlayerShip))
+                        PlayerShip* playerShip = playerEntity->HasScript(SpaceInvaders::PlayerShip::ScriptName)
+                            ? &playerEntity->GetScript<SpaceInvaders::PlayerShip>()
+                            : nullptr;
+                        if (playerShip != nullptr)
                             playerShip->OnHit();
 
                         entity.Destroy();

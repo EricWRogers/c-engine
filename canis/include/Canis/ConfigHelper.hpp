@@ -16,7 +16,7 @@ using namespace Canis;
     name = type::ScriptName \
 
 #define DEFAULT_ADD(type) \
-    Add = [](Entity &_entity) -> void { (void)CANIS_ADD_SCRIPT(_entity, type); } \
+    Add = [](Entity &_entity) -> void { (void)_entity.AddScript<type>(); } \
 
 #define DEFAULT_CONSTRUCT(type) \
     Construct = [](Entity &_entity, bool _callCreate) -> ScriptableEntity* { return _entity.AttachScript(type::ScriptName, new type(_entity), _callCreate); } \
@@ -31,17 +31,17 @@ inline void AddRequiredScripts(Entity& _entity)
     Add = [](Entity &_entity)   -> void                                   \
     {                                                                     \
         AddRequiredScripts<__VA_ARGS__>(_entity);                         \
-        (void)CANIS_ADD_SCRIPT(_entity, type);                            \
+        (void)_entity.AddScript<type>();                                  \
     }                                                                     \
 
 #define DEFAULT_HAS(type) \
-    Has = [](Entity &_entity) -> bool { return CANIS_HAS_SCRIPT(_entity, type); } \
+    Has = [](Entity &_entity) -> bool { return _entity.HasScript(type::ScriptName); } \
 
 #define DEFAULT_REMOVE(type) \
-    Remove = [](Entity &_entity) -> void { CANIS_REMOVE_SCRIPT(_entity, type); } \
+    Remove = [](Entity &_entity) -> void { _entity.RemoveScript(type::ScriptName); } \
 
 #define DEFAULT_GET(type) \
-    Get = [](Entity& _entity) -> void* { return (void*)CANIS_GET_SCRIPT(_entity, type); } \
+    Get = [](Entity& _entity) -> void* { return _entity.HasScript(type::ScriptName) ? (void*)&_entity.GetScript<type>() : nullptr; } \
 
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \
@@ -141,7 +141,7 @@ inline void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Cani
     config.Add = [](Entity &_entity) -> void            \
     {                                                   \
         AddRequiredScripts<__VA_ARGS__>(_entity);       \
-        (void)CANIS_ADD_SCRIPT(_entity, type);          \
+        (void)_entity.AddScript<type>();                \
     };                                                  \
     config.DEFAULT_HAS(type);                           \
     config.DEFAULT_REMOVE(type);                        \

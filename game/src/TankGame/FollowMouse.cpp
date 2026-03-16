@@ -22,7 +22,10 @@ namespace TankGame
 
         followMouseConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (TankGame::FollowMouse *followMouse = CANIS_GET_SCRIPT(_entity, TankGame::FollowMouse))
+            TankGame::FollowMouse* followMouse = _entity.HasScript(TankGame::FollowMouse::ScriptName)
+                ? &_entity.GetScript<TankGame::FollowMouse>()
+                : nullptr;
+            if (followMouse != nullptr)
             {
                 ImGui::InputFloat2(("offset##" + _conf.name).c_str(), &followMouse->offset.x, "%.3f");
             }
@@ -37,7 +40,7 @@ namespace TankGame
 
     void FollowMouse::Ready()
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
     }
 
     void FollowMouse::Destroy() {}
@@ -62,7 +65,8 @@ namespace TankGame
             if (e == nullptr || !e->active)
                 continue;
 
-            if (Camera2D* camera = CANIS_GET_COMPONENT(e, Camera2D))
+            Camera2D* camera = e->HasComponent<Camera2D>() ? &e->GetComponent<Camera2D>() : nullptr;
+            if (camera != nullptr)
             {
                 camera2D = camera;
                 break;

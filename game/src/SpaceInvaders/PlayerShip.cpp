@@ -33,7 +33,10 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (PlayerShip *ship = CANIS_GET_SCRIPT(_entity, SpaceInvaders::PlayerShip))
+            PlayerShip* ship = _entity.HasScript(SpaceInvaders::PlayerShip::ScriptName)
+                ? &_entity.GetScript<SpaceInvaders::PlayerShip>()
+                : nullptr;
+            if (ship != nullptr)
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ship->speed);
                 ImGui::InputFloat(("fireCooldown##" + _conf.name).c_str(), &ship->fireCooldown);
@@ -51,7 +54,7 @@ namespace SpaceInvaders
 
     void PlayerShip::Ready()
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         m_fireTimer = 0.0f;
     }
 
@@ -59,13 +62,16 @@ namespace SpaceInvaders
 
     void PlayerShip::Update(float _dt)
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 
         if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
         {
-            if (GameController* controller = CANIS_GET_SCRIPT(controllerEntity, SpaceInvaders::GameController))
+            GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
+                ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
+                : nullptr;
+            if (controller != nullptr)
             {
                 if (controller->gameOver || controller->levelCleared)
                     return;
@@ -92,15 +98,15 @@ namespace SpaceInvaders
             m_fireTimer = fireCooldown;
 
             Entity* bulletEntity = entity.scene->CreateEntity("PlayerBullet", "PlayerBullet");
-            RectTransform* bulletTransform = CANIS_ADD_COMPONENT(bulletEntity, RectTransform);
-            Sprite2D* bulletSprite = CANIS_ADD_COMPONENT(bulletEntity, Sprite2D);
-            Projectile* bullet = CANIS_ADD_SCRIPT(bulletEntity, SpaceInvaders::Projectile);
+            RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
+            Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
+            Projectile* bullet = &bulletEntity->AddScript<SpaceInvaders::Projectile>();
 
-            bulletTransform->size = Vector2(14.0f, 24.0f);
-            bulletTransform->position = m_transform->GetPosition() + Vector2(0.0f, m_transform->size.y * 0.55f);
+            bulletTransform.size = Vector2(14.0f, 24.0f);
+            bulletTransform.position = m_transform->GetPosition() + Vector2(0.0f, m_transform->size.y * 0.55f);
 
-            bulletSprite->textureHandle = AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
-            bulletSprite->color = Color(0.55f, 1.0f, 1.0f, 1.0f);
+            bulletSprite.textureHandle = AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
+            bulletSprite.color = Color(0.55f, 1.0f, 1.0f, 1.0f);
 
             bullet->fromPlayer = true;
             bullet->velocity = Vector2(0.0f, bulletSpeed);
@@ -114,7 +120,10 @@ namespace SpaceInvaders
     {
         if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
         {
-            if (GameController* controller = CANIS_GET_SCRIPT(controllerEntity, SpaceInvaders::GameController))
+            GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
+                ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
+                : nullptr;
+            if (controller != nullptr)
             {
                 controller->OnPlayerHit();
                 if (controller->gameOver)
@@ -122,7 +131,7 @@ namespace SpaceInvaders
             }
         }
 
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
 
         if (m_transform != nullptr)
             m_transform->position.x = 0.0f;

@@ -24,7 +24,10 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            if (Invader *invader = CANIS_GET_SCRIPT(_entity, SpaceInvaders::Invader))
+            Invader* invader = _entity.HasScript(SpaceInvaders::Invader::ScriptName)
+                ? &_entity.GetScript<SpaceInvaders::Invader>()
+                : nullptr;
+            if (invader != nullptr)
             {
                 ImGui::InputInt(("points##" + _conf.name).c_str(), &invader->points);
                 ImGui::InputFloat(("wobbleAmplitude##" + _conf.name).c_str(), &invader->wobbleAmplitude);
@@ -41,14 +44,14 @@ namespace SpaceInvaders
 
     void Invader::Ready()
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
     }
 
     void Invader::Destroy() {}
 
     void Invader::Update(float _dt)
     {
-        m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 

@@ -18,14 +18,14 @@ namespace Pong
 void Paddle::Create() {}
 void Paddle::Ready()
 {
-    m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
-    m_sprite = CANIS_GET_COMPONENT(entity, Sprite2D);
+    m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+    m_sprite = entity.HasComponent<Sprite2D>() ? &entity.GetComponent<Sprite2D>() : nullptr;
 }
 void Paddle::Destroy() {}
 
 void Paddle::Update(float _dt)
 {
-    m_transform = CANIS_GET_COMPONENT(entity, RectTransform);
+    m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
     if (m_transform == nullptr)
         return;
 
@@ -48,13 +48,19 @@ void Paddle::Update(float _dt)
 
     if (Entity* e = entity.scene->FindEntityWithName("Ball"))
     {
-        RectTransform& ballTransform = *CANIS_GET_COMPONENT(e, RectTransform);
+        if (!e->HasComponent<RectTransform>())
+            return;
+
+        RectTransform& ballTransform = e->GetComponent<RectTransform>();
 
         float distance = glm::distance(m_transform->GetPosition(), ballTransform.GetPosition());
 
         if (distance < (ballTransform.size.x * ballTransform.scale.x * 0.5f) + (m_transform->size.x * m_transform->scale.x * 0.5f))
         {
-            Ball& ball = *CANIS_GET_SCRIPT(e, Ball);
+            if (!e->HasScript(Ball::ScriptName))
+                return;
+
+            Ball& ball = e->GetScript<Ball>();
 
             ball.direction = glm::normalize(ballTransform.GetPosition() - m_transform->GetPosition());
 

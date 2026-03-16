@@ -51,13 +51,14 @@ ScriptConf paddleConf = {
     .Has = [](Entity &_entity) -> bool
     { return _entity.HasScript(Paddle::ScriptName); },
     .Remove = [](Entity &_entity) -> void
-    { _entity.RemoveScript(Paddle::ScriptName); },
-    .Get = [](Entity& _entity) -> void* { return _entity.HasScript(Paddle::ScriptName) ? (void*)&_entity.GetScript<Paddle>() : nullptr; },
+    { _entity.RemoveScript<Paddle>(); },
+    .Get = [](Entity& _entity) -> void* { return _entity.HasScript<Paddle>() ? (void*)&_entity.GetScript<Paddle>() : nullptr; },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        if (_entity.HasScript(Paddle::ScriptName))
+        Paddle* paddlePtr = _entity.HasScript<Paddle>() ? &_entity.GetScript<Paddle>() : nullptr;
+        if (paddlePtr != nullptr)
         {
-            Paddle &paddle = _entity.GetScript<Paddle>();
+            Paddle &paddle = *paddlePtr;
 
             YAML::Node comp;
 
@@ -84,8 +85,7 @@ ScriptConf paddleConf = {
     },
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
-        Paddle *paddle = nullptr;
-        paddle = _entity.HasScript(Paddle::ScriptName) ? &_entity.GetScript<Paddle>() : nullptr;
+        Paddle *paddle = _entity.HasScript<Paddle>() ? &_entity.GetScript<Paddle>() : nullptr;
         if (paddle != nullptr)
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");

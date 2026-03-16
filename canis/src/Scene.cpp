@@ -77,7 +77,7 @@ namespace Canis
             auto& scripts = e->m_scriptComponents;
             for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
-                ScriptableEntity* se = scripts[j].script;
+                ScriptableEntity* se = scripts[j];
                 if (!se || se->m_onReadyCalled)
                     continue;
 
@@ -96,7 +96,7 @@ namespace Canis
             auto& scripts = e->m_scriptComponents;
             for (size_t j = 0; j < scripts.size() && e->active; ++j)
             {
-                ScriptableEntity* se = scripts[j].script;
+                ScriptableEntity* se = scripts[j];
                 if (se && se->m_onReadyCalled)
                     se->Update(_deltaTime);
             }
@@ -314,9 +314,8 @@ namespace Canis
 
             for (auto e : newEntitys)
             {
-                for (ScriptComponentEntry& entry : e->m_scriptComponents)
+                for (ScriptableEntity* se : e->m_scriptComponents)
                 {
-                    ScriptableEntity* se = entry.script;
                     if (se)
                     {
                         se->Create();

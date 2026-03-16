@@ -20,20 +20,13 @@ namespace Canis
     class ScriptableEntity;
     struct ScriptConf;
 
-    struct ScriptComponentEntry
-    {
-        std::string name = "";
-        ScriptableEntity* script = nullptr;
-    };
-
-    
     class Entity
     {
     friend Scene;
     friend Editor;
     friend App;
     private:
-        std::vector<ScriptComponentEntry> m_scriptComponents = {};
+        std::vector<ScriptableEntity*> m_scriptComponents = {};
         entt::entity m_entityHandle = entt::null;
 
         ScriptableEntity* AddScriptDirect(const ScriptConf& _conf, ScriptableEntity* _scriptableEntity, bool _callCreate = true);
@@ -120,18 +113,14 @@ namespace Canis
         template <typename T>
         T& AddScript(bool _callCreate = true)
         {
-            for (ScriptComponentEntry& entry : m_scriptComponents)
+            for (ScriptableEntity* script : m_scriptComponents)
             {
-                if (T* scriptableEntity = dynamic_cast<T*>(entry.script))
+                if (T* scriptableEntity = dynamic_cast<T*>(script))
                     return *scriptableEntity;
             }
 
             T* scriptableEntity = new T(*this);
-
-            m_scriptComponents.push_back(ScriptComponentEntry{
-                .name = "",
-                .script = scriptableEntity
-            });
+            m_scriptComponents.push_back(scriptableEntity);
 
             if (_callCreate)
                 scriptableEntity->Create();
@@ -142,9 +131,9 @@ namespace Canis
         template <typename T>
         T& GetScript()
         {
-            for (ScriptComponentEntry& entry : m_scriptComponents)
+            for (ScriptableEntity* script : m_scriptComponents)
             {
-                if (T* scriptableEntity = dynamic_cast<T*>(entry.script))
+                if (T* scriptableEntity = dynamic_cast<T*>(script))
                     return *scriptableEntity;
             }
 
@@ -154,9 +143,9 @@ namespace Canis
         template <typename T>
         const T& GetScript() const
         {
-            for (const ScriptComponentEntry& entry : m_scriptComponents)
+            for (const ScriptableEntity* script : m_scriptComponents)
             {
-                if (const T* scriptableEntity = dynamic_cast<const T*>(entry.script))
+                if (const T* scriptableEntity = dynamic_cast<const T*>(script))
                     return *scriptableEntity;
             }
 
@@ -164,11 +153,23 @@ namespace Canis
         }
 
         template <typename T>
+        bool HasScript() const
+        {
+            for (const ScriptableEntity* script : m_scriptComponents)
+            {
+                if (const T* scriptableEntity = dynamic_cast<const T*>(script))
+                    return true;
+            }
+
+            return false;
+        }
+
+        template <typename T>
         void RemoveScript()
         {
             for (size_t i = 0; i < m_scriptComponents.size(); ++i)
             {
-                if (T* scriptableEntity = dynamic_cast<T*>(m_scriptComponents[i].script))
+                if (T* scriptableEntity = dynamic_cast<T*>(m_scriptComponents[i]))
                 {
                     scriptableEntity->Destroy();
                     delete scriptableEntity;

@@ -41,7 +41,7 @@ inline void AddRequiredScripts(Entity& _entity)
     Remove = [](Entity &_entity) -> void { _entity.RemoveScript(type::ScriptName); } \
 
 #define DEFAULT_GET(type) \
-    Get = [](Entity& _entity) -> void* { return _entity.HasScript(type::ScriptName) ? (void*)&_entity.GetScript<type>() : nullptr; } \
+    Get = [](Entity& _entity) -> void* { return _entity.HasScript<type>() ? (void*)&_entity.GetScript<type>() : nullptr; } \
 
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \

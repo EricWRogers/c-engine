@@ -18,14 +18,14 @@ namespace Pong
 void Paddle::Create() {}
 void Paddle::Ready()
 {
-    m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
-    m_sprite = entity.HasComponent<Sprite2D>() ? &entity.GetComponent<Sprite2D>() : nullptr;
+    m_transform = entity.GetComponent<RectTransform>();
+    m_sprite = entity.GetComponent<Sprite2D>();
 }
 void Paddle::Destroy() {}
 
 void Paddle::Update(float _dt)
 {
-    m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+    m_transform = entity.GetComponent<RectTransform>();
     if (m_transform == nullptr)
         return;
 
@@ -51,7 +51,7 @@ void Paddle::Update(float _dt)
         if (!e->HasComponent<RectTransform>())
             return;
 
-        RectTransform& ballTransform = e->GetComponent<RectTransform>();
+        RectTransform& ballTransform = *e->GetComponent<RectTransform>();
 
         float distance = glm::distance(m_transform->GetPosition(), ballTransform.GetPosition());
 
@@ -60,7 +60,7 @@ void Paddle::Update(float _dt)
             if (!e->HasScript<Ball>())
                 return;
 
-            Ball& ball = e->GetScript<Ball>();
+            Ball& ball = *e->GetScript<Ball>();
 
             ball.direction = glm::normalize(ballTransform.GetPosition() - m_transform->GetPosition());
 

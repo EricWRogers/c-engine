@@ -35,7 +35,7 @@ namespace SpaceInvaders
         {
             if (_entity.HasScript<SpaceInvaders::SwarmController>())
             {
-                SwarmController& swarm = _entity.GetScript<SwarmController>();
+                SwarmController& swarm = *_entity.GetScript<SwarmController>();
                 ImGui::InputFloat(("horizontalSpeed##" + _conf.name).c_str(), &swarm.horizontalSpeed);
                 ImGui::InputFloat(("stepDown##" + _conf.name).c_str(), &swarm.stepDown);
                 ImGui::InputFloat(("fireInterval##" + _conf.name).c_str(), &swarm.fireInterval);
@@ -73,7 +73,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
+            RectTransform* transform = enemy->GetComponent<RectTransform>();
             if (transform == nullptr)
                 continue;
 
@@ -91,7 +91,7 @@ namespace SpaceInvaders
             if (enemy == nullptr || !enemy->active)
                 continue;
 
-            RectTransform* transform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
+            RectTransform* transform = enemy->GetComponent<RectTransform>();
             if (transform == nullptr)
                 continue;
 
@@ -106,7 +106,7 @@ namespace SpaceInvaders
                 {
                     if (controllerEntity->HasScript<SpaceInvaders::GameController>())
                     {
-                        GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                        GameController& controller = *controllerEntity->GetScript<SpaceInvaders::GameController>();
                         controller.SetGameOver("invaders reached player line");
                     }
                 }
@@ -133,14 +133,14 @@ namespace SpaceInvaders
 
         std::uniform_int_distribution<size_t> dist(0u, shooters.size() - 1u);
         Entity* shooter = shooters[dist(g_rng)];
-        RectTransform* shooterTransform = shooter->HasComponent<RectTransform>() ? &shooter->GetComponent<RectTransform>() : nullptr;
+        RectTransform* shooterTransform = shooter->GetComponent<RectTransform>();
         if (shooterTransform == nullptr)
             return;
 
         Entity* bulletEntity = entity.scene->CreateEntity("EnemyBullet", "EnemyBullet");
-        RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
-        Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
-        Projectile* bullet = &bulletEntity->AddScript<SpaceInvaders::Projectile>();
+        RectTransform& bulletTransform = *bulletEntity->AddComponent<RectTransform>();
+        Sprite2D& bulletSprite = *bulletEntity->AddComponent<Sprite2D>();
+        Projectile* bullet = bulletEntity->AddScript<SpaceInvaders::Projectile>();
 
         bulletTransform.size = Vector2(16.0f, 24.0f);
         bulletTransform.position = shooterTransform->GetPosition() + Vector2(0.0f, -24.0f);

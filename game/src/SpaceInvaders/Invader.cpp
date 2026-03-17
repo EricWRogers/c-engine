@@ -24,9 +24,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            Invader* invader = _entity.HasScript<SpaceInvaders::Invader>()
-                ? &_entity.GetScript<SpaceInvaders::Invader>()
-                : nullptr;
+            Invader* invader = _entity.GetScript<SpaceInvaders::Invader>();
             if (invader != nullptr)
             {
                 ImGui::InputInt(("points##" + _conf.name).c_str(), &invader->points);
@@ -44,14 +42,14 @@ namespace SpaceInvaders
 
     void Invader::Ready()
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
     }
 
     void Invader::Destroy() {}
 
     void Invader::Update(float _dt)
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         if (m_transform == nullptr)
             return;
 

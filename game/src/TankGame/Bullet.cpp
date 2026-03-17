@@ -26,9 +26,7 @@ namespace TankGame
 
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Bullet* bullet = _entity.HasScript<TankGame::Bullet>()
-                ? &_entity.GetScript<TankGame::Bullet>()
-                : nullptr;
+            TankGame::Bullet* bullet = _entity.GetScript<TankGame::Bullet>();
             if (bullet != nullptr)
             {
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &bullet->speed);
@@ -48,7 +46,7 @@ namespace TankGame
     void Bullet::Destroy() {}
 
     void Bullet::Update(float _dt) {
-        RectTransform& transform = entity.GetComponent<RectTransform>();
+        RectTransform& transform = *entity.GetComponent<RectTransform>();
 
         transform.Move(transform.GetUp() * speed * _dt);
 

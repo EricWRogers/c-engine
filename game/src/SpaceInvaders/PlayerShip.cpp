@@ -35,7 +35,7 @@ namespace SpaceInvaders
         {
             if (_entity.HasScript<SpaceInvaders::PlayerShip>())
             {
-                PlayerShip& ship = _entity.GetScript<SpaceInvaders::PlayerShip>();
+                PlayerShip& ship = *_entity.GetScript<SpaceInvaders::PlayerShip>();
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ship.speed);
                 ImGui::InputFloat(("fireCooldown##" + _conf.name).c_str(), &ship.fireCooldown);
                 ImGui::InputFloat(("bulletSpeed##" + _conf.name).c_str(), &ship.bulletSpeed);
@@ -52,7 +52,7 @@ namespace SpaceInvaders
 
     void PlayerShip::Ready()
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         m_fireTimer = 0.0f;
     }
 
@@ -60,7 +60,7 @@ namespace SpaceInvaders
 
     void PlayerShip::Update(float _dt)
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         if (m_transform == nullptr)
             return;
 
@@ -68,7 +68,7 @@ namespace SpaceInvaders
         {
             if (controllerEntity->HasScript<SpaceInvaders::GameController>())
             {
-                GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                GameController& controller = *controllerEntity->GetScript<SpaceInvaders::GameController>();
                 if (controller.gameOver || controller.levelCleared)
                     return;
             }
@@ -94,9 +94,9 @@ namespace SpaceInvaders
             m_fireTimer = fireCooldown;
 
             Entity* bulletEntity = entity.scene->CreateEntity("PlayerBullet", "PlayerBullet");
-            RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
-            Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
-            Projectile* bullet = &bulletEntity->AddScript<SpaceInvaders::Projectile>();
+            RectTransform& bulletTransform = *bulletEntity->AddComponent<RectTransform>();
+            Sprite2D& bulletSprite = *bulletEntity->AddComponent<Sprite2D>();
+            Projectile* bullet = bulletEntity->AddScript<SpaceInvaders::Projectile>();
 
             bulletTransform.size = Vector2(14.0f, 24.0f);
             bulletTransform.position = m_transform->GetPosition() + Vector2(0.0f, m_transform->size.y * 0.55f);
@@ -118,14 +118,14 @@ namespace SpaceInvaders
         {
             if (controllerEntity->HasScript<SpaceInvaders::GameController>())
             {
-                GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                GameController& controller = *controllerEntity->GetScript<SpaceInvaders::GameController>();
                 controller.OnPlayerHit();
                 if (controller.gameOver)
                     return;
             }
         }
 
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
 
         if (m_transform != nullptr)
             m_transform->position.x = 0.0f;

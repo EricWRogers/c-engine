@@ -23,9 +23,7 @@ namespace TankGame
 
         bounceConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Bounce* bounce = _entity.HasScript<TankGame::Bounce>()
-                ? &_entity.GetScript<TankGame::Bounce>()
-                : nullptr;
+            TankGame::Bounce* bounce = _entity.GetScript<TankGame::Bounce>();
             if (bounce != nullptr)
             {
                 ImGui::InputFloat(("scaleMultiplier##" + _conf.name).c_str(), &bounce->scaleMultiplier);
@@ -42,7 +40,7 @@ namespace TankGame
 
     void Bounce::Ready()
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         if (m_transform != nullptr)
             m_restScale = m_transform->scale;
     }

@@ -29,9 +29,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            GameController* controller = _entity.HasScript<SpaceInvaders::GameController>()
-                ? &_entity.GetScript<SpaceInvaders::GameController>()
-                : nullptr;
+            GameController* controller = _entity.GetScript<SpaceInvaders::GameController>();
             if (controller != nullptr)
             {
                 ImGui::InputInt(("score##" + _conf.name).c_str(), &controller->score);
@@ -67,9 +65,7 @@ namespace SpaceInvaders
             if (!enemy->HasScript<SpaceInvaders::Invader>())
                 (void)enemy->AddScript<SpaceInvaders::Invader>();
 
-            Invader* invader = enemy->HasScript<SpaceInvaders::Invader>()
-                ? &enemy->GetScript<SpaceInvaders::Invader>()
-                : nullptr;
+            Invader* invader = enemy->GetScript<SpaceInvaders::Invader>();
             if (invader != nullptr)
                 invader->points = (enemy->name == "UFO") ? 50 : 10;
         }

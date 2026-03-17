@@ -22,7 +22,7 @@ namespace Pong
         {
             if (_entity.HasScript<Ball>())
             {
-                Ball& ball = _entity.GetScript<Ball>();
+                Ball& ball = *_entity.GetScript<Ball>();
                 ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball.direction.x, "%.3f");
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball.speed);
                 ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball.randomRotation);
@@ -49,10 +49,10 @@ ScriptConf paddleConf = {
     { return _entity.HasScript<Paddle>(); },
     .Remove = [](Entity &_entity) -> void
     { _entity.RemoveScript<Paddle>(); },
-    .Get = [](Entity& _entity) -> void* { return _entity.HasScript<Paddle>() ? (void*)&_entity.GetScript<Paddle>() : nullptr; },
+    .Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<Paddle>(); },
     .Encode = [](YAML::Node &_node, Entity &_entity) -> void
     {
-        Paddle* paddlePtr = _entity.HasScript<Paddle>() ? &_entity.GetScript<Paddle>() : nullptr;
+        Paddle* paddlePtr = _entity.GetScript<Paddle>();
         if (paddlePtr != nullptr)
         {
             Paddle &paddle = *paddlePtr;
@@ -71,7 +71,7 @@ ScriptConf paddleConf = {
     {
         if (auto paddleComponent = _node[paddleConf.name])
         {
-            auto &paddle = _entity.AddScript<Paddle>(false);
+            auto &paddle = *_entity.AddScript<Paddle>(false);
             paddle.direction = paddleComponent["direction"].as<Vector2>(paddle.direction);
             paddle.speed = paddleComponent["speed"].as<float>(paddle.speed);
             paddle.playerNum = paddleComponent["playerNum"].as<int>(paddle.playerNum);
@@ -82,7 +82,7 @@ ScriptConf paddleConf = {
     },
     .DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
     {
-        Paddle *paddle = _entity.HasScript<Paddle>() ? &_entity.GetScript<Paddle>() : nullptr;
+        Paddle *paddle = _entity.GetScript<Paddle>();
         if (paddle != nullptr)
         {
             ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &paddle->direction.x, "%.3f");

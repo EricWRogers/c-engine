@@ -41,9 +41,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            Projectile* projectile = _entity.HasScript<SpaceInvaders::Projectile>()
-                ? &_entity.GetScript<SpaceInvaders::Projectile>()
-                : nullptr;
+            Projectile* projectile = _entity.GetScript<SpaceInvaders::Projectile>();
             if (projectile != nullptr)
             {
                 ImGui::InputFloat2(("velocity##" + _conf.name).c_str(), &projectile->velocity.x);
@@ -61,14 +59,14 @@ namespace SpaceInvaders
 
     void Projectile::Ready()
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
     }
 
     void Projectile::Destroy() {}
 
     void Projectile::Update(float _dt)
     {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         if (m_transform == nullptr)
             return;
 
@@ -98,7 +96,7 @@ namespace SpaceInvaders
                 if (enemy == nullptr || !enemy->active)
                     continue;
 
-                RectTransform* enemyTransform = enemy->HasComponent<RectTransform>() ? &enemy->GetComponent<RectTransform>() : nullptr;
+                RectTransform* enemyTransform = enemy->GetComponent<RectTransform>();
                 if (enemyTransform == nullptr)
                     continue;
 
@@ -106,17 +104,13 @@ namespace SpaceInvaders
                     continue;
 
                 int points = 10;
-                Invader* invader = enemy->HasScript<SpaceInvaders::Invader>()
-                    ? &enemy->GetScript<SpaceInvaders::Invader>()
-                    : nullptr;
+                Invader* invader = enemy->GetScript<SpaceInvaders::Invader>();
                 if (invader != nullptr)
                     points = invader->points;
 
                 if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
                 {
-                    GameController* controller = controllerEntity->HasScript<SpaceInvaders::GameController>()
-                        ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
-                        : nullptr;
+                    GameController* controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
                     if (controller != nullptr)
                         controller->AddScore(points);
                 }
@@ -132,12 +126,10 @@ namespace SpaceInvaders
             {
                 if (playerEntity->active)
                 {
-                    RectTransform* playerTransform = playerEntity->HasComponent<RectTransform>() ? &playerEntity->GetComponent<RectTransform>() : nullptr;
+                    RectTransform* playerTransform = playerEntity->GetComponent<RectTransform>();
                     if (playerTransform != nullptr && OverlapsAABB(*m_transform, *playerTransform))
                     {
-                        PlayerShip* playerShip = playerEntity->HasScript<SpaceInvaders::PlayerShip>()
-                            ? &playerEntity->GetScript<SpaceInvaders::PlayerShip>()
-                            : nullptr;
+                        PlayerShip* playerShip = playerEntity->GetScript<SpaceInvaders::PlayerShip>();
                         if (playerShip != nullptr)
                             playerShip->OnHit();
 

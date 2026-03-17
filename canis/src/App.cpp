@@ -187,13 +187,13 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void {
                 _entity.AddComponent<RectTransform>();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<RectTransform>() ? &_entity.GetComponent<RectTransform>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<RectTransform>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<RectTransform>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<RectTransform>() ? &_entity.GetComponent<RectTransform>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<RectTransform>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<RectTransform>() ? &_entity.GetComponent<RectTransform>() : nullptr))
+                if ((_entity.GetComponent<RectTransform>()))
                 {
-                    RectTransform& transform = *(_entity.HasComponent<RectTransform>() ? &_entity.GetComponent<RectTransform>() : nullptr);
+                    RectTransform& transform = *(_entity.GetComponent<RectTransform>());
 
                     YAML::Node comp;
                     comp["active"] = transform.active;
@@ -220,7 +220,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto rectTransform = _node["Canis::RectTransform"])
                 {
-                    auto &rt = _entity.AddComponent<RectTransform>();
+                    auto &rt = *_entity.AddComponent<RectTransform>();
                     rt.active = rectTransform["active"].as<bool>();
                     //rt.anchor = (Canis::RectAnchor)rectTransform["anchor"].as<int>();
                     rt.position = rectTransform["position"].as<Vector2>();
@@ -254,7 +254,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 RectTransform* transform = nullptr;
-                if ((transform = (_entity.HasComponent<RectTransform>() ? &_entity.GetComponent<RectTransform>() : nullptr)) != nullptr)
+                if ((transform = (_entity.GetComponent<RectTransform>())) != nullptr)
                 {
                     ImGui::InputFloat2("position", &transform->position.x, "%.3f");
                     ImGui::InputFloat2("size", &transform->size.x, "%.3f");
@@ -276,18 +276,18 @@ namespace Canis
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
                 // TODO: require a RectTransform component
-                Sprite2D& sprite = _entity.AddComponent<Sprite2D>();
+                Sprite2D& sprite = *_entity.AddComponent<Sprite2D>();
                 sprite.textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 //sprite->size.x = sprite->textureHandle.texture.width;
                 //sprite->size.y = sprite->textureHandle.texture.height;
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Sprite2D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Sprite2D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Sprite2D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr))
+                if ((_entity.GetComponent<Sprite2D>()))
                 {
-                    Sprite2D& sprite = *(_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr);
+                    Sprite2D& sprite = *(_entity.GetComponent<Sprite2D>());
 
                     YAML::Node comp;
                     comp["color"] = sprite.color;
@@ -305,7 +305,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Sprite2D"])
                 {
-                    auto &sprite = _entity.AddComponent<Sprite2D>();
+                    auto &sprite = *_entity.AddComponent<Sprite2D>();
                     sprite.color = comp["color"].as<Vector4>();
                     sprite.uv = comp["uv"].as<Vector4>();
                     sprite.flipX = comp["flipX"].as<bool>(false);
@@ -323,7 +323,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Sprite2D* sprite = nullptr;
-                if ((sprite = (_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr)) != nullptr)
+                if ((sprite = (_entity.GetComponent<Sprite2D>())) != nullptr)
                 {
                     // textureHandle
                     ImGui::ColorEdit4("color", &sprite->color.r);
@@ -338,7 +338,7 @@ namespace Canis
                     
                     if (updateUV)
                     {
-                        if (SpriteAnimation* animation = (_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr))
+                        if (SpriteAnimation* animation = (_entity.GetComponent<SpriteAnimation>()))
                         {
                             if (SpriteAnimationAsset* animationAsset = AssetManager::Get<SpriteAnimationAsset>(animation->id))
                             {
@@ -391,16 +391,16 @@ namespace Canis
 
                 _entity.AddComponent<RectTransform>();
 
-                Text& text = _entity.AddComponent<Text>();
+                Text& text = *_entity.AddComponent<Text>();
                 text.assetId = AssetManager::LoadText("assets/fonts/Antonio-Bold.ttf", 32);
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Text>() ? &_entity.GetComponent<Text>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Text>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Text>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Text>() ? &_entity.GetComponent<Text>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Text>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Text>() ? &_entity.GetComponent<Text>() : nullptr))
+                if ((_entity.GetComponent<Text>()))
                 {
-                    Text& text = *(_entity.HasComponent<Text>() ? &_entity.GetComponent<Text>() : nullptr);
+                    Text& text = *(_entity.GetComponent<Text>());
                     YAML::Node comp;
                     comp["text"] = text.text;
                     comp["color"] = text.color;
@@ -427,7 +427,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Text"])
                 {
-                    Text& text = _entity.AddComponent<Text>();
+                    Text& text = *_entity.AddComponent<Text>();
                     text.text = comp["text"].as<std::string>("");
                     text.color = comp["color"].as<Vector4>(Color(1.0f));
                     text.alignment = comp["alignment"].as<unsigned int>(Canis::TextAlignment::LEFT);
@@ -448,7 +448,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Text* text = nullptr;
-                if ((text = (_entity.HasComponent<Text>() ? &_entity.GetComponent<Text>() : nullptr)) != nullptr)
+                if ((text = (_entity.GetComponent<Text>())) != nullptr)
                 {
                     static const char *alignmentLabels[] = {"Left", "Right", "Center"};
                     static const char *horizontalBoundaryLabels[] = {"Overflow", "Wrap"};
@@ -515,16 +515,16 @@ namespace Canis
             .name = "Canis::Camera2D",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                Camera2D& camera = _entity.AddComponent<Camera2D>();
+                Camera2D& camera = *_entity.AddComponent<Camera2D>();
                 camera.Create();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Camera2D>() ? &_entity.GetComponent<Camera2D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Camera2D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Camera2D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Camera2D>() ? &_entity.GetComponent<Camera2D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Camera2D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Camera2D>() ? &_entity.GetComponent<Camera2D>() : nullptr))
+                if ((_entity.GetComponent<Camera2D>()))
                 {
-                    Camera2D& camera = *(_entity.HasComponent<Camera2D>() ? &_entity.GetComponent<Camera2D>() : nullptr);
+                    Camera2D& camera = *(_entity.GetComponent<Camera2D>());
 
                     YAML::Node comp;
                     comp["position"] = camera.GetPosition();
@@ -536,7 +536,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto camera2DComponent = _node["Canis::Camera2D"])
                 {
-                    Camera2D& camera = _entity.AddComponent<Camera2D>();
+                    Camera2D& camera = *_entity.AddComponent<Camera2D>();
                     camera.SetPosition(camera2DComponent["position"].as<Vector2>(camera.GetPosition()));
                     camera.SetScale(camera2DComponent["scale"].as<float>(camera.GetScale()));
                     if (_callCreate)
@@ -545,7 +545,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera2D* camera = nullptr;
-                if ((camera = (_entity.HasComponent<Camera2D>() ? &_entity.GetComponent<Camera2D>() : nullptr)) != nullptr)
+                if ((camera = (_entity.GetComponent<Camera2D>())) != nullptr)
                 {
                     Vector2 lastPosition = camera->GetPosition();
                     float lastScale = camera->GetScale();
@@ -568,13 +568,13 @@ namespace Canis
             .name = "Canis::Transform3D",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void { _entity.AddComponent<Transform3D>(); },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Transform3D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Transform3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Transform3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr))
+                if ((_entity.GetComponent<Transform3D>()))
                 {
-                    Transform3D& transform = *(_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr);
+                    Transform3D& transform = *(_entity.GetComponent<Transform3D>());
                     YAML::Node comp;
                     comp["active"] = transform.active;
                     comp["position"] = transform.position;
@@ -595,7 +595,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Transform3D"])
                 {
-                    auto &transform = _entity.AddComponent<Transform3D>();
+                    auto &transform = *_entity.AddComponent<Transform3D>();
                     transform.active = comp["active"].as<bool>(true);
                     transform.position = comp["position"].as<Vector3>(Vector3(0.0f));
                     transform.rotation = comp["rotation"].as<Vector3>(Vector3(0.0f));
@@ -624,7 +624,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Transform3D* transform = nullptr;
-                if ((transform = (_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr)) != nullptr)
+                if ((transform = (_entity.GetComponent<Transform3D>())) != nullptr)
                 {
                     ImGui::InputFloat3("position", &transform->position.x, "%.3f");
 
@@ -658,20 +658,20 @@ namespace Canis
             .Add = [this](Entity &_entity) -> void {
                 _entity.AddComponent<Transform3D>();
 
-                if ((_entity.HasComponent<BoxCollider3D>() ? &_entity.GetComponent<BoxCollider3D>() : nullptr) == nullptr
-                    && (_entity.HasComponent<SphereCollider3D>() ? &_entity.GetComponent<SphereCollider3D>() : nullptr) == nullptr
-                    && (_entity.HasComponent<CapsuleCollider3D>() ? &_entity.GetComponent<CapsuleCollider3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<BoxCollider3D>()) == nullptr
+                    && (_entity.GetComponent<SphereCollider3D>()) == nullptr
+                    && (_entity.GetComponent<CapsuleCollider3D>()) == nullptr)
                 {
                     _entity.AddComponent<BoxCollider3D>();
                 }
 
                 _entity.AddComponent<Rigidbody3D>();
             },
-            .Has = [this](Entity &_entity) -> bool { return ((_entity.HasComponent<Rigidbody3D>() ? &_entity.GetComponent<Rigidbody3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity &_entity) -> bool { return ((_entity.GetComponent<Rigidbody3D>()) != nullptr); },
             .Remove = [this](Entity &_entity) -> void { _entity.RemoveComponent<Rigidbody3D>(); },
-            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.HasComponent<Rigidbody3D>() ? &_entity.GetComponent<Rigidbody3D>() : nullptr); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.GetComponent<Rigidbody3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (Rigidbody3D *rigidbody = (_entity.HasComponent<Rigidbody3D>() ? &_entity.GetComponent<Rigidbody3D>() : nullptr))
+                if (Rigidbody3D *rigidbody = (_entity.GetComponent<Rigidbody3D>()))
                 {
                     YAML::Node comp;
                     comp["active"] = rigidbody->active;
@@ -695,7 +695,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Rigidbody3D"])
                 {
-                    auto &rigidbody = _entity.AddComponent<Rigidbody3D>();
+                    auto &rigidbody = *_entity.AddComponent<Rigidbody3D>();
                     rigidbody.active = comp["active"].as<bool>(true);
                     rigidbody.motionType = comp["motionType"].as<int>(Rigidbody3DMotionType::DYNAMIC);
                     rigidbody.mass = comp["mass"].as<float>(1.0f);
@@ -717,7 +717,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
                 (void)_editor;
-                Rigidbody3D *rigidbody = (_entity.HasComponent<Rigidbody3D>() ? &_entity.GetComponent<Rigidbody3D>() : nullptr);
+                Rigidbody3D *rigidbody = (_entity.GetComponent<Rigidbody3D>());
                 if (rigidbody == nullptr)
                     return;
 
@@ -758,11 +758,11 @@ namespace Canis
                 _entity.RemoveComponent<CapsuleCollider3D>();
                 _entity.AddComponent<BoxCollider3D>();
             },
-            .Has = [this](Entity &_entity) -> bool { return ((_entity.HasComponent<BoxCollider3D>() ? &_entity.GetComponent<BoxCollider3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity &_entity) -> bool { return ((_entity.GetComponent<BoxCollider3D>()) != nullptr); },
             .Remove = [this](Entity &_entity) -> void { _entity.RemoveComponent<BoxCollider3D>(); },
-            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.HasComponent<BoxCollider3D>() ? &_entity.GetComponent<BoxCollider3D>() : nullptr); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.GetComponent<BoxCollider3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (BoxCollider3D *boxCollider = (_entity.HasComponent<BoxCollider3D>() ? &_entity.GetComponent<BoxCollider3D>() : nullptr))
+                if (BoxCollider3D *boxCollider = (_entity.GetComponent<BoxCollider3D>()))
                 {
                     YAML::Node comp;
                     comp["active"] = boxCollider->active;
@@ -773,7 +773,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::BoxCollider3D"])
                 {
-                    auto &boxCollider = _entity.AddComponent<BoxCollider3D>();
+                    auto &boxCollider = *_entity.AddComponent<BoxCollider3D>();
                     boxCollider.active = comp["active"].as<bool>(true);
                     boxCollider.size = comp["size"].as<Vector3>(Vector3(1.0f));
                     if (_callCreate)
@@ -782,7 +782,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
                 (void)_editor;
-                BoxCollider3D *boxCollider = (_entity.HasComponent<BoxCollider3D>() ? &_entity.GetComponent<BoxCollider3D>() : nullptr);
+                BoxCollider3D *boxCollider = (_entity.GetComponent<BoxCollider3D>());
                 if (boxCollider == nullptr)
                     return;
 
@@ -797,18 +797,18 @@ namespace Canis
             .name = "Canis::SphereCollider3D",
             .Construct = nullptr,
             .Add = [this](Entity &_entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Transform3D>()) == nullptr)
                     _entity.AddComponent<Transform3D>();
 
                 _entity.RemoveComponent<BoxCollider3D>();
                 _entity.RemoveComponent<CapsuleCollider3D>();
                 _entity.AddComponent<SphereCollider3D>();
             },
-            .Has = [this](Entity &_entity) -> bool { return ((_entity.HasComponent<SphereCollider3D>() ? &_entity.GetComponent<SphereCollider3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity &_entity) -> bool { return ((_entity.GetComponent<SphereCollider3D>()) != nullptr); },
             .Remove = [this](Entity &_entity) -> void { _entity.RemoveComponent<SphereCollider3D>(); },
-            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.HasComponent<SphereCollider3D>() ? &_entity.GetComponent<SphereCollider3D>() : nullptr); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.GetComponent<SphereCollider3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (SphereCollider3D *sphereCollider = (_entity.HasComponent<SphereCollider3D>() ? &_entity.GetComponent<SphereCollider3D>() : nullptr))
+                if (SphereCollider3D *sphereCollider = (_entity.GetComponent<SphereCollider3D>()))
                 {
                     YAML::Node comp;
                     comp["active"] = sphereCollider->active;
@@ -819,7 +819,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::SphereCollider3D"])
                 {
-                    auto &sphereCollider = _entity.AddComponent<SphereCollider3D>();
+                    auto &sphereCollider = *_entity.AddComponent<SphereCollider3D>();
                     sphereCollider.active = comp["active"].as<bool>(true);
                     sphereCollider.radius = comp["radius"].as<float>(0.5f);
                     if (_callCreate)
@@ -828,7 +828,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
                 (void)_editor;
-                SphereCollider3D *sphereCollider = (_entity.HasComponent<SphereCollider3D>() ? &_entity.GetComponent<SphereCollider3D>() : nullptr);
+                SphereCollider3D *sphereCollider = (_entity.GetComponent<SphereCollider3D>());
                 if (sphereCollider == nullptr)
                     return;
 
@@ -843,18 +843,18 @@ namespace Canis
             .name = "Canis::CapsuleCollider3D",
             .Construct = nullptr,
             .Add = [this](Entity &_entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Transform3D>()) == nullptr)
                     _entity.AddComponent<Transform3D>();
 
                 _entity.RemoveComponent<BoxCollider3D>();
                 _entity.RemoveComponent<SphereCollider3D>();
                 _entity.AddComponent<CapsuleCollider3D>();
             },
-            .Has = [this](Entity &_entity) -> bool { return ((_entity.HasComponent<CapsuleCollider3D>() ? &_entity.GetComponent<CapsuleCollider3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity &_entity) -> bool { return ((_entity.GetComponent<CapsuleCollider3D>()) != nullptr); },
             .Remove = [this](Entity &_entity) -> void { _entity.RemoveComponent<CapsuleCollider3D>(); },
-            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.HasComponent<CapsuleCollider3D>() ? &_entity.GetComponent<CapsuleCollider3D>() : nullptr); },
+            .Get = [this](Entity &_entity) -> void* { return (void*)(_entity.GetComponent<CapsuleCollider3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if (CapsuleCollider3D *capsuleCollider = (_entity.HasComponent<CapsuleCollider3D>() ? &_entity.GetComponent<CapsuleCollider3D>() : nullptr))
+                if (CapsuleCollider3D *capsuleCollider = (_entity.GetComponent<CapsuleCollider3D>()))
                 {
                     YAML::Node comp;
                     comp["active"] = capsuleCollider->active;
@@ -866,7 +866,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::CapsuleCollider3D"])
                 {
-                    auto &capsuleCollider = _entity.AddComponent<CapsuleCollider3D>();
+                    auto &capsuleCollider = *_entity.AddComponent<CapsuleCollider3D>();
                     capsuleCollider.active = comp["active"].as<bool>(true);
                     capsuleCollider.halfHeight = comp["halfHeight"].as<float>(0.5f);
                     capsuleCollider.radius = comp["radius"].as<float>(0.25f);
@@ -876,7 +876,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void {
                 (void)_editor;
-                CapsuleCollider3D *capsuleCollider = (_entity.HasComponent<CapsuleCollider3D>() ? &_entity.GetComponent<CapsuleCollider3D>() : nullptr);
+                CapsuleCollider3D *capsuleCollider = (_entity.GetComponent<CapsuleCollider3D>());
                 if (capsuleCollider == nullptr)
                     return;
 
@@ -892,18 +892,18 @@ namespace Canis
             .name = "Canis::Camera3D",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Transform3D>()) == nullptr)
                     _entity.AddComponent<Transform3D>();
 
                 _entity.AddComponent<Camera3D>();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Camera3D>() ? &_entity.GetComponent<Camera3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Camera3D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Camera3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Camera3D>() ? &_entity.GetComponent<Camera3D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Camera3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Camera3D>() ? &_entity.GetComponent<Camera3D>() : nullptr))
+                if ((_entity.GetComponent<Camera3D>()))
                 {
-                    Camera3D& camera = *(_entity.HasComponent<Camera3D>() ? &_entity.GetComponent<Camera3D>() : nullptr);
+                    Camera3D& camera = *(_entity.GetComponent<Camera3D>());
                     YAML::Node comp;
                     comp["primary"] = camera.primary;
                     comp["fovDegrees"] = camera.fovDegrees;
@@ -915,7 +915,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Camera3D"])
                 {
-                    auto &camera = _entity.AddComponent<Camera3D>();
+                    auto &camera = *_entity.AddComponent<Camera3D>();
                     camera.primary = comp["primary"].as<bool>(true);
                     camera.fovDegrees = comp["fovDegrees"].as<float>(60.0f);
                     camera.nearClip = comp["nearClip"].as<float>(0.1f);
@@ -926,7 +926,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Camera3D* camera = nullptr;
-                if ((camera = (_entity.HasComponent<Camera3D>() ? &_entity.GetComponent<Camera3D>() : nullptr)) != nullptr)
+                if ((camera = (_entity.GetComponent<Camera3D>())) != nullptr)
                 {
                     ImGui::Checkbox("primary", &camera->primary);
                     ImGui::InputFloat("fovDegrees", &camera->fovDegrees);
@@ -944,13 +944,13 @@ namespace Canis
             .Add = [this](Entity& _entity) -> void {
                 _entity.AddComponent<DirectionalLight>();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<DirectionalLight>() ? &_entity.GetComponent<DirectionalLight>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<DirectionalLight>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<DirectionalLight>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<DirectionalLight>() ? &_entity.GetComponent<DirectionalLight>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<DirectionalLight>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<DirectionalLight>() ? &_entity.GetComponent<DirectionalLight>() : nullptr))
+                if ((_entity.GetComponent<DirectionalLight>()))
                 {
-                    DirectionalLight& light = *(_entity.HasComponent<DirectionalLight>() ? &_entity.GetComponent<DirectionalLight>() : nullptr);
+                    DirectionalLight& light = *(_entity.GetComponent<DirectionalLight>());
                     YAML::Node comp;
                     comp["enabled"] = light.enabled;
                     comp["color"] = light.color;
@@ -962,7 +962,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::DirectionalLight"])
                 {
-                    auto &light = _entity.AddComponent<DirectionalLight>();
+                    auto &light = *_entity.AddComponent<DirectionalLight>();
                     light.enabled = comp["enabled"].as<bool>(true);
                     light.color = comp["color"].as<Vector4>(Color(1.0f));
                     light.intensity = comp["intensity"].as<float>(1.0f);
@@ -973,7 +973,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 DirectionalLight* light = nullptr;
-                if ((light = (_entity.HasComponent<DirectionalLight>() ? &_entity.GetComponent<DirectionalLight>() : nullptr)) != nullptr)
+                if ((light = (_entity.GetComponent<DirectionalLight>())) != nullptr)
                 {
                     ImGui::Checkbox("enabled", &light->enabled);
                     ImGui::ColorEdit3("color", &light->color.r);
@@ -989,18 +989,18 @@ namespace Canis
             .name = "Canis::PointLight",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Transform3D>()) == nullptr)
                     _entity.AddComponent<Transform3D>();
 
                 _entity.AddComponent<PointLight>();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<PointLight>() ? &_entity.GetComponent<PointLight>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<PointLight>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<PointLight>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<PointLight>() ? &_entity.GetComponent<PointLight>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<PointLight>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<PointLight>() ? &_entity.GetComponent<PointLight>() : nullptr))
+                if ((_entity.GetComponent<PointLight>()))
                 {
-                    PointLight& light = *(_entity.HasComponent<PointLight>() ? &_entity.GetComponent<PointLight>() : nullptr);
+                    PointLight& light = *(_entity.GetComponent<PointLight>());
                     YAML::Node comp;
                     comp["enabled"] = light.enabled;
                     comp["color"] = light.color;
@@ -1012,7 +1012,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::PointLight"])
                 {
-                    auto &light = _entity.AddComponent<PointLight>();
+                    auto &light = *_entity.AddComponent<PointLight>();
                     light.enabled = comp["enabled"].as<bool>(true);
                     light.color = comp["color"].as<Vector4>(Color(1.0f));
                     light.intensity = comp["intensity"].as<float>(1.2f);
@@ -1023,7 +1023,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 PointLight* light = nullptr;
-                if ((light = (_entity.HasComponent<PointLight>() ? &_entity.GetComponent<PointLight>() : nullptr)) != nullptr)
+                if ((light = (_entity.GetComponent<PointLight>())) != nullptr)
                 {
                     ImGui::Checkbox("enabled", &light->enabled);
                     ImGui::ColorEdit3("color", &light->color.r);
@@ -1039,25 +1039,25 @@ namespace Canis
             .name = "Canis::Material",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Model3D>()) == nullptr)
                 {
-                    if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                    if ((_entity.GetComponent<Transform3D>()) == nullptr)
                         _entity.AddComponent<Transform3D>();
 
-                    Model3D* model = &_entity.AddComponent<Model3D>();
+                    Model3D* model = _entity.AddComponent<Model3D>();
                     model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
                 }
 
-                Material* material = &_entity.AddComponent<Material>();
+                Material* material = _entity.AddComponent<Material>();
                 material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Material>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Material>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Material>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr))
+                if ((_entity.GetComponent<Material>()))
                 {
-                    Material& material = *(_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr);
+                    Material& material = *(_entity.GetComponent<Material>());
                     YAML::Node comp;
                     comp["color"] = material.color;
 
@@ -1108,7 +1108,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Material"])
                 {
-                    auto &material = _entity.AddComponent<Material>();
+                    auto &material = *_entity.AddComponent<Material>();
                     material.color = comp["color"].as<Vector4>(Color(1.0f));
 
                     std::string path = "";
@@ -1162,7 +1162,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Material* material = nullptr;
-                if ((material = (_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr)) != nullptr)
+                if ((material = (_entity.GetComponent<Material>())) != nullptr)
                 {
                     auto getMaterialLabel = [](i32 _materialId) -> std::string
                     {
@@ -1209,7 +1209,7 @@ namespace Canis
                     ImGui::Button(materialLabel.c_str(), ImVec2(150, 0));
                     handleMaterialDrop(material->materialId);
 
-                    Model3D* model3D = (_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr);
+                    Model3D* model3D = (_entity.GetComponent<Model3D>());
                     ModelAsset* modelAsset = nullptr;
                     if (model3D != nullptr && model3D->modelId >= 0)
                         modelAsset = AssetManager::GetModel(model3D->modelId);
@@ -1245,28 +1245,28 @@ namespace Canis
             .name = "Canis::Model3D",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Transform3D>()) == nullptr)
                     _entity.AddComponent<Transform3D>();
 
-                Model3D* model = &_entity.AddComponent<Model3D>();
+                Model3D* model = _entity.AddComponent<Model3D>();
                 model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
 
-                if ((_entity.HasComponent<Material>() ? &_entity.GetComponent<Material>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Material>()) == nullptr)
                 {
-                    Material* material = &_entity.AddComponent<Material>();
+                    Material* material = _entity.AddComponent<Material>();
                     material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
                 }
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Model3D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void {
                 _entity.RemoveComponent<ModelAnimation3D>();
                 _entity.RemoveComponent<Model3D>();
             },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<Model3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr))
+                if ((_entity.GetComponent<Model3D>()))
                 {
-                    Model3D& model = *(_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr);
+                    Model3D& model = *(_entity.GetComponent<Model3D>());
                     YAML::Node comp;
                     comp["color"] = model.color;
 
@@ -1290,7 +1290,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::Model3D"])
                 {
-                    auto &model = _entity.AddComponent<Model3D>();
+                    auto &model = *_entity.AddComponent<Model3D>();
                     model.color = comp["color"].as<Vector4>(Color(1.0f));
 
                     std::string path = "";
@@ -1321,9 +1321,9 @@ namespace Canis
                     //        comp["animationTime"].IsDefined() ||
                     //        comp["animationIndex"].IsDefined();
 //
-                    //    if (hasLegacyAnimation && (_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr) == nullptr)
+                    //    if (hasLegacyAnimation && (_entity.GetComponent<ModelAnimation3D>()) == nullptr)
                     //    {
-                    //        auto &animation = _entity.AddComponent<ModelAnimation3D>();
+                    //        auto &animation = *_entity.AddComponent<ModelAnimation3D>();
                     //        animation.playAnimation = comp["playAnimation"].as<bool>(true);
                     //        animation.loop = comp["loop"].as<bool>(true);
                     //        animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
@@ -1341,7 +1341,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 Model3D* model = nullptr;
-                if ((model = (_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr)) != nullptr)
+                if ((model = (_entity.GetComponent<Model3D>())) != nullptr)
                 {
                     ImGui::ColorEdit4("color", &model->color.r);
 
@@ -1374,7 +1374,7 @@ namespace Canis
                             if (extension == "gltf" || extension == "glb")
                             {
                                 model->modelId = AssetManager::LoadModel(path);
-                                if (ModelAnimation3D* animation = (_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr))
+                                if (ModelAnimation3D* animation = (_entity.GetComponent<ModelAnimation3D>()))
                                 {
                                     animation->animationTime = 0.0f;
                                     animation->animationIndex = 0;
@@ -1395,26 +1395,26 @@ namespace Canis
             .name = "Canis::ModelAnimation3D",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Model3D>()) == nullptr)
                 {
-                    if ((_entity.HasComponent<Transform3D>() ? &_entity.GetComponent<Transform3D>() : nullptr) == nullptr)
+                    if ((_entity.GetComponent<Transform3D>()) == nullptr)
                         _entity.AddComponent<Transform3D>();
 
-                    Model3D* model = &_entity.AddComponent<Model3D>();
+                    Model3D* model = _entity.AddComponent<Model3D>();
                     model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
                 }
 
-                ModelAnimation3D* animation = &_entity.AddComponent<ModelAnimation3D>();
+                ModelAnimation3D* animation = _entity.AddComponent<ModelAnimation3D>();
                 animation->animationIndex = 0;
                 animation->animationTime = 0.0f;
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<ModelAnimation3D>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<ModelAnimation3D>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<ModelAnimation3D>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr))
+                if ((_entity.GetComponent<ModelAnimation3D>()))
                 {
-                    ModelAnimation3D& animation = *(_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr);
+                    ModelAnimation3D& animation = *(_entity.GetComponent<ModelAnimation3D>());
                     YAML::Node comp;
                     comp["playAnimation"] = animation.playAnimation;
                     comp["loop"] = animation.loop;
@@ -1427,7 +1427,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::ModelAnimation3D"])
                 {
-                    auto &animation = _entity.AddComponent<ModelAnimation3D>();
+                    auto &animation = *_entity.AddComponent<ModelAnimation3D>();
                     animation.playAnimation = comp["playAnimation"].as<bool>(true);
                     animation.loop = comp["loop"].as<bool>(true);
                     animation.animationSpeed = comp["animationSpeed"].as<float>(1.0f);
@@ -1440,7 +1440,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 ModelAnimation3D* animation = nullptr;
-                if ((animation = (_entity.HasComponent<ModelAnimation3D>() ? &_entity.GetComponent<ModelAnimation3D>() : nullptr)) != nullptr)
+                if ((animation = (_entity.GetComponent<ModelAnimation3D>())) != nullptr)
                 {
                     ImGui::Checkbox("playAnimation", &animation->playAnimation);
                     ImGui::Checkbox("loop", &animation->loop);
@@ -1448,7 +1448,7 @@ namespace Canis
                     ImGui::InputFloat("animationTime", &animation->animationTime);
 
                     ModelAsset* modelAsset = nullptr;
-                    if (Model3D* model = (_entity.HasComponent<Model3D>() ? &_entity.GetComponent<Model3D>() : nullptr))
+                    if (Model3D* model = (_entity.GetComponent<Model3D>()))
                     {
                         if (model->modelId > -1)
                             modelAsset = AssetManager::GetModel(model->modelId);
@@ -1482,21 +1482,21 @@ namespace Canis
             .name = "Canis::SpriteAnimation",
             .Construct = nullptr,
             .Add = [this](Entity& _entity) -> void {
-                if ((_entity.HasComponent<Sprite2D>() ? &_entity.GetComponent<Sprite2D>() : nullptr) == nullptr)
+                if ((_entity.GetComponent<Sprite2D>()) == nullptr)
                 {
-                    Sprite2D* sprite = &_entity.AddComponent<Sprite2D>();
+                    Sprite2D* sprite = _entity.AddComponent<Sprite2D>();
                     sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 }
                 
-                SpriteAnimation* anim = &_entity.AddComponent<SpriteAnimation>();
+                SpriteAnimation* anim = _entity.AddComponent<SpriteAnimation>();
             },
-            .Has = [this](Entity& _entity) -> bool { return ((_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr) != nullptr); },
+            .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<SpriteAnimation>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<SpriteAnimation>(); },
-            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr); },
+            .Get = [this](Entity& _entity) -> void* { return (void*)(_entity.GetComponent<SpriteAnimation>()); },
             .Encode = [](YAML::Node &_node, Entity &_entity) -> void {
-                if ((_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr))
+                if ((_entity.GetComponent<SpriteAnimation>()))
                 {
-                    SpriteAnimation& animation = *(_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr);
+                    SpriteAnimation& animation = *(_entity.GetComponent<SpriteAnimation>());
 
                     YAML::Node comp;
                     comp["id"] = (uint64_t)AssetManager::GetMetaFile(AssetManager::GetPath(animation.id))->uuid;
@@ -1508,7 +1508,7 @@ namespace Canis
             .Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void {
                 if (auto comp = _node["Canis::SpriteAnimation"])
                 {
-                    auto &animation = _entity.AddComponent<SpriteAnimation>();
+                    auto &animation = *_entity.AddComponent<SpriteAnimation>();
                     
                     Canis::UUID uuid = comp["id"].as<u64>();
                     AssetManager::GetSpriteAnimation(AssetManager::GetPath(uuid));
@@ -1521,7 +1521,7 @@ namespace Canis
             },
             .DrawInspector = [this](Editor& _editor, Entity& _entity, const ScriptConf& _conf) -> void {
                 SpriteAnimation* animation = nullptr;
-                if ((animation = (_entity.HasComponent<SpriteAnimation>() ? &_entity.GetComponent<SpriteAnimation>() : nullptr)) != nullptr)
+                if ((animation = (_entity.GetComponent<SpriteAnimation>())) != nullptr)
                 {
                     
                     _editor.InputAnimationClip("animation", animation->id);
@@ -1537,8 +1537,8 @@ namespace Canis
             .name = "Create Square",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Square");
-                RectTransform * transform = &entityOne->AddComponent<RectTransform>();
-                Canis::Sprite2D *sprite = &entityOne->AddComponent<Sprite2D>();
+                RectTransform * transform = entityOne->AddComponent<RectTransform>();
+                Canis::Sprite2D *sprite = entityOne->AddComponent<Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/square.png");
                 transform->size = Vector2(64.0f);
@@ -1551,8 +1551,8 @@ namespace Canis
             .name = "Create Circle",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *entityOne = _app.scene.CreateEntity("Circle");
-                RectTransform * transform = &entityOne->AddComponent<RectTransform>();
-                Canis::Sprite2D *sprite = &entityOne->AddComponent<Sprite2D>();
+                RectTransform * transform = entityOne->AddComponent<RectTransform>();
+                Canis::Sprite2D *sprite = entityOne->AddComponent<Sprite2D>();
 
                 sprite->textureHandle = Canis::AssetManager::GetTextureHandle("assets/defaults/textures/circle.png");
                 transform->size = Vector2(64.0f);
@@ -1575,7 +1575,7 @@ namespace Canis
             .name = "Create Point Light",
             .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
                 Canis::Entity *lightEntity = _app.scene.CreateEntity("Point Light");
-                Transform3D *transform = &lightEntity->AddComponent<Transform3D>();
+                Transform3D *transform = lightEntity->AddComponent<Transform3D>();
                 transform->position = Vector3(2.0f, 2.5f, 2.0f);
                 lightEntity->AddComponent<PointLight>();
             }

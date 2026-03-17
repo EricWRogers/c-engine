@@ -97,8 +97,8 @@ extern "C"
     void SpawnAwesome(Canis::App &_app)
     {
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
-        RectTransform& transform = entityOne->AddComponent<RectTransform>();
-        Sprite2D& sprite = entityOne->AddComponent<Sprite2D>();
+        RectTransform& transform = *entityOne->AddComponent<RectTransform>();
+        Sprite2D& sprite = *entityOne->AddComponent<Sprite2D>();
         (void)entityOne->AddScript<Pong::Ball>();
 
         sprite.textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");

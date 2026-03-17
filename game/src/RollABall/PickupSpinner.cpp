@@ -27,14 +27,14 @@ namespace RollABall
 
     void PickupSpinner::Ready()
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        m_transform = entity.GetComponent<Canis::Transform3D>();
     }
 
     void PickupSpinner::Destroy() {}
 
     void PickupSpinner::Update(float _dt)
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        m_transform = entity.GetComponent<Canis::Transform3D>();
         if (m_transform == nullptr)
             return;
 

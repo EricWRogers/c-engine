@@ -232,7 +232,7 @@ namespace Canis
         {
             if (_transform.parent != nullptr)
             {
-                if (Transform3D *parentTransform = ((_transform.parent) != nullptr && (_transform.parent)->HasComponent<Transform3D>() ? &(_transform.parent)->GetComponent<Transform3D>() : nullptr))
+                if (Transform3D *parentTransform = ((_transform.parent) != nullptr ? (_transform.parent)->GetComponent<Transform3D>() : nullptr))
                 {
                     const Matrix4 inverseParent = glm::inverse(parentTransform->GetModelMatrix());
                     const Vector4 localPosition4 = inverseParent * Vector4(_worldPosition, 1.0f);

@@ -49,7 +49,7 @@ namespace Canis
         }
 
         template <typename T, typename... Args>
-        T& AddComponent(Args&&... _args)
+        T* AddComponent(Args&&... _args)
         {
             if (!scene || m_entityHandle == entt::null)
                 throw std::runtime_error("Entity::AddComponent called on invalid entity.");
@@ -59,7 +59,7 @@ namespace Canis
 
             T& component = scene->GetRegistry().emplace<T>(m_entityHandle, std::forward<Args>(_args)...);
             component.entity = this;
-            return component;
+            return &component;
         }
 
         template <typename T, typename... Args>
@@ -83,21 +83,27 @@ namespace Canis
         }
 
         template <typename T>
-        T& GetComponent()
+        T* GetComponent()
         {
             if (!scene || m_entityHandle == entt::null)
-                throw std::runtime_error("Entity::GetComponent called on invalid entity.");
+                return nullptr;
 
-            return scene->GetRegistry().get<T>(m_entityHandle);
+            if (!HasComponent<T>())
+                return nullptr;
+
+            return &scene->GetRegistry().get<T>(m_entityHandle);
         }
 
         template <typename T>
-        const T& GetComponent() const
+        const T* GetComponent() const
         {
             if (!scene || m_entityHandle == entt::null)
-                throw std::runtime_error("Entity::GetComponent called on invalid entity.");
+                return nullptr;
 
-            return scene->GetRegistry().get<T>(m_entityHandle);
+            if (!HasComponent<T>())
+                return nullptr;
+
+            return &scene->GetRegistry().get<T>(m_entityHandle);
         }
 
         template <typename T>
@@ -111,12 +117,12 @@ namespace Canis
         }
 
         template <typename T>
-        T& AddScript(bool _callCreate = true)
+        T* AddScript(bool _callCreate = true)
         {
             for (ScriptableEntity* script : m_scriptComponents)
             {
                 if (T* scriptableEntity = dynamic_cast<T*>(script))
-                    return *scriptableEntity;
+                    return scriptableEntity;
             }
 
             T* scriptableEntity = new T(*this);
@@ -125,31 +131,31 @@ namespace Canis
             if (_callCreate)
                 scriptableEntity->Create();
 
-            return *scriptableEntity;
+            return scriptableEntity;
         }
 
         template <typename T>
-        T& GetScript()
+        T* GetScript()
         {
             for (ScriptableEntity* script : m_scriptComponents)
             {
                 if (T* scriptableEntity = dynamic_cast<T*>(script))
-                    return *scriptableEntity;
+                    return scriptableEntity;
             }
 
-            throw std::runtime_error("Entity::GetScript could not find requested script type.");
+            return nullptr;
         }
 
         template <typename T>
-        const T& GetScript() const
+        const T* GetScript() const
         {
             for (const ScriptableEntity* script : m_scriptComponents)
             {
                 if (const T* scriptableEntity = dynamic_cast<const T*>(script))
-                    return *scriptableEntity;
+                    return scriptableEntity;
             }
 
-            throw std::runtime_error("Entity::GetScript could not find requested script type.");
+            return nullptr;
         }
 
         template <typename T>
@@ -252,7 +258,7 @@ namespace Canis
             if (!parent)
                 return localPos;
 
-            if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+            if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
             {
                 Vector2 parentPos = parentRT->GetPosition();
                 float parentRot   = parentRT->GetRotation();
@@ -274,7 +280,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     Vector2 parentPos = parentRT->GetPosition();
                     float parentRot   = parentRT->GetRotation();
@@ -299,7 +305,7 @@ namespace Canis
 		{
             if (parent)
 			{
-                if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     return rotation + parentRT->GetRotation();
                 }
@@ -312,7 +318,7 @@ namespace Canis
 		{
             if (parent)
 			{
-                if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     return depth + parentRT->GetDepth();
                 }
@@ -325,7 +331,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     Vector2 parentDepth = parentRT->GetPosition();
                     
@@ -342,7 +348,7 @@ namespace Canis
             if (!parent)
                 return scale;
 
-            if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+            if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
             {
                 Vector2 p = parentRT->GetScale();
                 return Vector2(p.x * scale.x, p.y * scale.y);
@@ -355,7 +361,7 @@ namespace Canis
         {
             if (parent)
             {
-                if (auto* parentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* parentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     Vector2 parentScale = parentRT->GetScale();
 
@@ -403,7 +409,7 @@ namespace Canis
                 if (!parent)
                     return;
 
-                if (auto* prt = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* prt = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     auto& list = prt->children;
                     auto it = std::find(list.begin(), list.end(), self);
@@ -428,7 +434,7 @@ namespace Canis
             // different parent: remove from old parent
             if (parent)
             {
-                if (auto* oldParentRT = ((parent) != nullptr && (parent)->HasComponent<RectTransform>() ? &(parent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* oldParentRT = ((parent) != nullptr ? (parent)->GetComponent<RectTransform>() : nullptr))
                 {
                     auto& list = oldParentRT->children;
                     list.erase(std::remove(list.begin(), list.end(), self), list.end());
@@ -441,7 +447,7 @@ namespace Canis
             // insert into new parent's children list at index
             if (newParent)
             {
-                if (auto* newParentRT = ((newParent) != nullptr && (newParent)->HasComponent<RectTransform>() ? &(newParent)->GetComponent<RectTransform>() : nullptr))
+                if (auto* newParentRT = ((newParent) != nullptr ? (newParent)->GetComponent<RectTransform>() : nullptr))
                 {
                     auto& list = newParentRT->children;
                     index = std::clamp(index, static_cast<size_t>(0), list.size());
@@ -455,7 +461,7 @@ namespace Canis
 
         void SetParent(Entity* newParent)
         {
-            if (auto* rt = newParent ? ((newParent) != nullptr && (newParent)->HasComponent<RectTransform>() ? &(newParent)->GetComponent<RectTransform>() : nullptr) : nullptr)
+            if (auto* rt = newParent ? ((newParent) != nullptr ? (newParent)->GetComponent<RectTransform>() : nullptr) : nullptr)
             {
                 SetParentAtIndex(newParent, rt->children.size());
             }
@@ -484,7 +490,7 @@ namespace Canis
         {
             if (!child) return;
 
-            auto* rt = ((child) != nullptr && (child)->HasComponent<RectTransform>() ? &(child)->GetComponent<RectTransform>() : nullptr);
+            auto* rt = ((child) != nullptr ? (child)->GetComponent<RectTransform>() : nullptr);
             if (!rt) return;
 
             if (entity != nullptr)
@@ -499,14 +505,14 @@ namespace Canis
             children.erase(std::remove(children.begin(), children.end(), child), children.end());
 
             // clear child's parent
-            if (auto* rt = ((child) != nullptr && (child)->HasComponent<RectTransform>() ? &(child)->GetComponent<RectTransform>() : nullptr))
+            if (auto* rt = ((child) != nullptr ? (child)->GetComponent<RectTransform>() : nullptr))
                 rt->parent = nullptr;
         }
 
         void RemoveAllChildren()
         {
             for (auto* child : children)
-                if (auto* rt = ((child) != nullptr && (child)->HasComponent<RectTransform>() ? &(child)->GetComponent<RectTransform>() : nullptr))
+                if (auto* rt = ((child) != nullptr ? (child)->GetComponent<RectTransform>() : nullptr))
                     rt->parent = nullptr;
             
             children.clear();
@@ -640,7 +646,7 @@ namespace Canis
 
             if (parent != nullptr)
             {
-                if (auto* parentTransform = ((parent) != nullptr && (parent)->HasComponent<Transform3D>() ? &(parent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* parentTransform = ((parent) != nullptr ? (parent)->GetComponent<Transform3D>() : nullptr))
                     return parentTransform->GetModelMatrix() * local;
             }
 
@@ -658,7 +664,7 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (auto* parentTransform = ((parent) != nullptr && (parent)->HasComponent<Transform3D>() ? &(parent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* parentTransform = ((parent) != nullptr ? (parent)->GetComponent<Transform3D>() : nullptr))
                     return rotation + parentTransform->GetGlobalRotation();
             }
 
@@ -669,7 +675,7 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (auto* parentTransform = ((parent) != nullptr && (parent)->HasComponent<Transform3D>() ? &(parent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* parentTransform = ((parent) != nullptr ? (parent)->GetComponent<Transform3D>() : nullptr))
                 {
                     const Vector3 parentScale = parentTransform->GetGlobalScale();
                     return Vector3(
@@ -712,7 +718,7 @@ namespace Canis
                 if (!parent)
                     return;
 
-                if (auto* parentTransform = ((parent) != nullptr && (parent)->HasComponent<Transform3D>() ? &(parent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* parentTransform = ((parent) != nullptr ? (parent)->GetComponent<Transform3D>() : nullptr))
                 {
                     auto& list = parentTransform->children;
                     auto it = std::find(list.begin(), list.end(), self);
@@ -736,7 +742,7 @@ namespace Canis
 
             if (parent)
             {
-                if (auto* oldParentTransform = ((parent) != nullptr && (parent)->HasComponent<Transform3D>() ? &(parent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* oldParentTransform = ((parent) != nullptr ? (parent)->GetComponent<Transform3D>() : nullptr))
                 {
                     auto& list = oldParentTransform->children;
                     list.erase(std::remove(list.begin(), list.end(), self), list.end());
@@ -747,7 +753,7 @@ namespace Canis
 
             if (newParent)
             {
-                if (auto* newParentTransform = ((newParent) != nullptr && (newParent)->HasComponent<Transform3D>() ? &(newParent)->GetComponent<Transform3D>() : nullptr))
+                if (auto* newParentTransform = ((newParent) != nullptr ? (newParent)->GetComponent<Transform3D>() : nullptr))
                 {
                     auto& list = newParentTransform->children;
                     index = std::clamp(index, static_cast<size_t>(0), list.size());
@@ -786,7 +792,7 @@ namespace Canis
 
         void SetParent(Entity* newParent)
         {
-            if (auto* transform = newParent ? ((newParent) != nullptr && (newParent)->HasComponent<Transform3D>() ? &(newParent)->GetComponent<Transform3D>() : nullptr) : nullptr)
+            if (auto* transform = newParent ? ((newParent) != nullptr ? (newParent)->GetComponent<Transform3D>() : nullptr) : nullptr)
             {
                 SetParentAtIndex(newParent, transform->children.size());
             }
@@ -816,7 +822,7 @@ namespace Canis
             if (!child)
                 return;
 
-            auto* transform = ((child) != nullptr && (child)->HasComponent<Transform3D>() ? &(child)->GetComponent<Transform3D>() : nullptr);
+            auto* transform = ((child) != nullptr ? (child)->GetComponent<Transform3D>() : nullptr);
             if (!transform)
                 return;
 
@@ -831,7 +837,7 @@ namespace Canis
 
             children.erase(std::remove(children.begin(), children.end(), child), children.end());
 
-            if (auto* transform = ((child) != nullptr && (child)->HasComponent<Transform3D>() ? &(child)->GetComponent<Transform3D>() : nullptr))
+            if (auto* transform = ((child) != nullptr ? (child)->GetComponent<Transform3D>() : nullptr))
                 transform->parent = nullptr;
         }
 
@@ -839,7 +845,7 @@ namespace Canis
         {
             for (auto* child : children)
             {
-                if (auto* transform = child ? ((child) != nullptr && (child)->HasComponent<Transform3D>() ? &(child)->GetComponent<Transform3D>() : nullptr) : nullptr)
+                if (auto* transform = child ? ((child) != nullptr ? (child)->GetComponent<Transform3D>() : nullptr) : nullptr)
                     transform->parent = nullptr;
             }
 

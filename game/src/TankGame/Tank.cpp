@@ -31,7 +31,7 @@ namespace TankGame
         {
             if (_entity.HasScript<TankGame::Tank>())
             {
-                TankGame::Tank& tank = _entity.GetScript<TankGame::Tank>();
+                TankGame::Tank& tank = *_entity.GetScript<TankGame::Tank>();
                 ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank.speed);
                 ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank.turnSpeed);
                 ImGui::InputInt(("count##" + _conf.name).c_str(), &tank.count);
@@ -46,7 +46,7 @@ namespace TankGame
     void Tank::Create() { }
 
     void Tank::Ready() {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         m_turret = nullptr;
         m_firePoint = nullptr;
 
@@ -54,13 +54,13 @@ namespace TankGame
         {
             Entity* turretEntity = m_transform->children[0];
             m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
-                ? &turretEntity->GetComponent<RectTransform>()
+                ? turretEntity->GetComponent<RectTransform>()
                 : nullptr;
             if (m_turret != nullptr && !m_turret->children.empty())
             {
                 Entity* firePointEntity = m_turret->children[0];
                 m_firePoint = (firePointEntity != nullptr && firePointEntity->HasComponent<RectTransform>())
-                    ? &firePointEntity->GetComponent<RectTransform>()
+                    ? firePointEntity->GetComponent<RectTransform>()
                     : nullptr;
             }
         }
@@ -69,7 +69,7 @@ namespace TankGame
     void Tank::Destroy() { }
 
     void Tank::Update(float _dt) {
-        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
+        m_transform = entity.GetComponent<RectTransform>();
         if (m_transform == nullptr)
             return;
 
@@ -80,11 +80,11 @@ namespace TankGame
         {
             Entity* turretEntity = m_transform->children[0];
             m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
-                ? &turretEntity->GetComponent<RectTransform>()
+                ? turretEntity->GetComponent<RectTransform>()
                 : nullptr;
 
             if (m_turret != nullptr && !m_turret->children.empty())
-                m_firePoint = &m_turret->children[0]->GetComponent<RectTransform>();
+                m_firePoint = m_turret->children[0]->GetComponent<RectTransform>();
         }
 
         Movement(_dt);
@@ -136,11 +136,11 @@ namespace TankGame
         if (entity.scene->GetInputManager().GetLeftClick())
         {
             Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
-            RectTransform& bulletTransform = bulletEntity->AddComponent<RectTransform>();
-            Sprite2D& bulletSprite = bulletEntity->AddComponent<Sprite2D>();
+            RectTransform& bulletTransform = *bulletEntity->AddComponent<RectTransform>();
+            Sprite2D& bulletSprite = *bulletEntity->AddComponent<Sprite2D>();
             bulletSprite.textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");
 
-            Bullet* bullet = &bulletEntity->AddScript<Bullet>();
+            Bullet* bullet = bulletEntity->AddScript<Bullet>();
             bulletTransform.SetPosition(m_firePoint->GetPosition());
             bulletTransform.rotation = -(DEG2RAD*90.0f) + m_firePoint->GetRotation();
 

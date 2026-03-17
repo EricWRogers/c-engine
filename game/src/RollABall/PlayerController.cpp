@@ -22,8 +22,8 @@ namespace RollABall
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Canis::Transform3D, Canis::Rigidbody3D);
 
         conf.DEFAULT_DRAW_INSPECTOR(RollABall::PlayerController,
-            ImGui::Text("Collected: %d / %d", component.collectedPickups, component.totalPickups);
-            ImGui::Text("State: %s", component.hasWon ? "You Win" : "Collecting");
+            ImGui::Text("Collected: %d / %d", component->collectedPickups, component->totalPickups);
+            ImGui::Text("State: %s", component->hasWon ? "You Win" : "Collecting");
         );
 
         _app.RegisterScript(conf);
@@ -35,8 +35,8 @@ namespace RollABall
 
     void PlayerController::Ready()
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
-        m_rigidbody = entity.HasComponent<Canis::Rigidbody3D>() ? &entity.GetComponent<Canis::Rigidbody3D>() : nullptr;
+        m_transform = entity.GetComponent<Canis::Transform3D>();
+        m_rigidbody = entity.GetComponent<Canis::Rigidbody3D>();
 
         totalPickups = CountActivePickups();
         collectedPickups = 0;
@@ -55,8 +55,8 @@ namespace RollABall
 
     void PlayerController::Update(float _dt)
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
-        m_rigidbody = entity.HasComponent<Canis::Rigidbody3D>() ? &entity.GetComponent<Canis::Rigidbody3D>() : nullptr;
+        m_transform = entity.GetComponent<Canis::Transform3D>();
+        m_rigidbody = entity.GetComponent<Canis::Rigidbody3D>();
 
         if (m_transform == nullptr || m_rigidbody == nullptr || entity.scene == nullptr)
             return;
@@ -107,9 +107,7 @@ namespace RollABall
             if (pickup == nullptr || !pickup->active)
                 continue;
 
-            Canis::Transform3D* pickupTransform = pickup->HasComponent<Canis::Transform3D>()
-                ? &pickup->GetComponent<Canis::Transform3D>()
-                : nullptr;
+            Canis::Transform3D* pickupTransform = pickup->GetComponent<Canis::Transform3D>();
 
             if (pickupTransform == nullptr)
                 continue;

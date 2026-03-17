@@ -107,22 +107,21 @@ inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_c
     Remove = [](Entity &_entity) -> void { _entity.RemoveScript(type::ScriptName); } \
 
 #define DEFAULT_GET(type) \
-    Get = [](Entity& _entity) -> void* { return _entity.HasScript<type>() ? (void*)&_entity.GetScript<type>() : nullptr; } \
+    Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<type>(); } \
 
 #define DEFAULT_DRAW_INSPECTOR(type, ...)                                             \
     DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void \
     {                                                                                 \
         (void)_editor;                                                                \
-        if (_entity.HasScript<type>())                                                \
+        if (type *component = _entity.GetScript<type>())                              \
         {                                                                             \
-            type &component = _entity.GetScript<type>();                              \
-            DrawRegisteredProperties(_conf.registry, &component, _conf.name);         \
+            DrawRegisteredProperties(_conf.registry, component, _conf.name);          \
             __VA_ARGS__                                                               \
         }                                                                             \
     }                                                                                 \
 
 #define DECODE(node, component, property) \
-    component.property = node[#property].as<decltype(component.property)>(component.property); \
+    component->property = node[#property].as<decltype(component->property)>(component->property); \
 
 #define DEFAULT_REGISTER_SCRIPT(type)           \
 void Register##type##Script(Canis::App& _app)   \
@@ -168,9 +167,8 @@ void UnRegister##type##Script(Canis::App& _app)  \
 template <typename T>
 inline void EncodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Entity &_entity, const std::string& _scriptName)
 {
-    if (_entity.HasScript<T>())
+    if (ScriptableEntity* component = static_cast<ScriptableEntity*>(_entity.GetScript<T>()))
     {
-        ScriptableEntity* component = (ScriptableEntity*)&_entity.GetScript<T>();
         YAML::Node comp;
 
         for (const auto &propertyName : _registry.propertyOrder)
@@ -190,7 +188,7 @@ inline void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Cani
 {
     if (auto componentNode = _node[_scriptName])
     {
-        ScriptableEntity* script = (ScriptableEntity*)&_entity.AddScript<T>(false);
+        ScriptableEntity* script = static_cast<ScriptableEntity*>(_entity.AddScript<T>(false));
         if (script == nullptr)
             return;
 

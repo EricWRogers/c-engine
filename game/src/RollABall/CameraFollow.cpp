@@ -29,7 +29,7 @@ namespace RollABall
 
     void CameraFollow::Ready()
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        m_transform = entity.GetComponent<Canis::Transform3D>();
         TryFindPlayer();
     }
 
@@ -37,19 +37,9 @@ namespace RollABall
 
     void CameraFollow::Update(float _dt)
     {
-        if (m_transform == nullptr)
-            m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
-
-        if (m_transform == nullptr)
+        if (m_transform == nullptr || m_playerTransform == nullptr)
             return;
 
-        if (m_playerTransform == nullptr || m_playerTransform->entity == nullptr || !m_playerTransform->entity->active)
-            TryFindPlayer();
-
-        if (m_playerTransform == nullptr)
-            return;
-
-        // Keep a fixed camera offset from the player (classic Roll-a-Ball behavior).
         const Canis::Vector3 targetPosition = m_playerTransform->GetGlobalPosition() + offset;
         const float blend = glm::clamp(followSmoothing * _dt, 0.0f, 1.0f);
         m_transform->position = glm::mix(m_transform->position, targetPosition, blend);
@@ -59,15 +49,11 @@ namespace RollABall
 
     void CameraFollow::TryFindPlayer()
     {
-        m_playerTransform = nullptr;
-
-        if (entity.scene == nullptr)
-            return;
-
         Canis::Entity* playerEntity = entity.scene->GetEntityWithTag("Player");
-        if (playerEntity == nullptr || !playerEntity->HasComponent<Canis::Transform3D>())
+
+        if (playerEntity == nullptr)
             return;
 
-        m_playerTransform = &playerEntity->GetComponent<Canis::Transform3D>();
+        m_playerTransform = playerEntity->GetComponent<Canis::Transform3D>();
     }
 }

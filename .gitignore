@@ -1,6 +1,8 @@
 .cache
 build
-dist
+project/*
+!project/assets/
+!project/assets/**
 .vscode
 *.zip
 __cmake_systeminformation

@@ -86,7 +86,7 @@ namespace Canis
             Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
 #endif
 
-        scene.Init(this, &window, &inputManager, "assets/scenes/scene3d.scene");
+        scene.Init(this, &window, &inputManager, "assets/scenes/roll_a_ball.scene");
 
         GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
         GameCodeObjectInitFunction(&gameCodeObject, this);

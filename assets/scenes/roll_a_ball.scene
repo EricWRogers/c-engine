@@ -1,0 +1,458 @@
+Environment:
+  ClearColor: [0.09, 0.12, 0.17, 1]
+Entities:
+  - Entity: 910001
+    Name: Camera
+    Tag: MainCamera
+    Canis::Transform3D:
+      active: true
+      position: [0, 8, 10]
+      rotation: [-0.62, 0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        []
+    Canis::Camera3D:
+      primary: true
+      fovDegrees: 60
+      nearClip: 0.1
+      farClip: 300
+    RollABall::CameraFollow:
+      offset: [0, 8, 10]
+      followSmoothing: 8
+  - Entity: 910002
+    Name: Sun
+    Tag: ""
+    Canis::DirectionalLight:
+      enabled: true
+      color: [1, 0.97, 0.92, 1]
+      intensity: 5
+      direction: [-0.35, -1, -0.2]
+  - Entity: 910010
+    Name: Ground
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, -0.5, 0]
+      rotation: [0, 0, 0]
+      scale: [24, 1, 24]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 0
+      mass: 1
+      friction: 0.8
+      restitution: 0
+      linearDamping: 0.05
+      angularDamping: 0.05
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::BoxCollider3D:
+      active: true
+      size: [1, 1, 1]
+    Canis::Material:
+      color: [0.32, 0.38, 0.46, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.32, 0.38, 0.46, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+  - Entity: 910011
+    Name: Wall_North
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 1, -12]
+      rotation: [0, 0, 0]
+      scale: [24, 2, 1]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 0
+      mass: 1
+      friction: 0.7
+      restitution: 0
+      linearDamping: 0.05
+      angularDamping: 0.05
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::BoxCollider3D:
+      active: true
+      size: [1, 1, 1]
+    Canis::Material:
+      color: [0.2, 0.22, 0.28, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.2, 0.22, 0.28, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+  - Entity: 910012
+    Name: Wall_South
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [0, 1, 12]
+      rotation: [0, 0, 0]
+      scale: [24, 2, 1]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 0
+      mass: 1
+      friction: 0.7
+      restitution: 0
+      linearDamping: 0.05
+      angularDamping: 0.05
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::BoxCollider3D:
+      active: true
+      size: [1, 1, 1]
+    Canis::Material:
+      color: [0.2, 0.22, 0.28, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.2, 0.22, 0.28, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+  - Entity: 910013
+    Name: Wall_West
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [-12, 1, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 2, 24]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 0
+      mass: 1
+      friction: 0.7
+      restitution: 0
+      linearDamping: 0.05
+      angularDamping: 0.05
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::BoxCollider3D:
+      active: true
+      size: [1, 1, 1]
+    Canis::Material:
+      color: [0.2, 0.22, 0.28, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.2, 0.22, 0.28, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+  - Entity: 910014
+    Name: Wall_East
+    Tag: ""
+    Canis::Transform3D:
+      active: true
+      position: [12, 1, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 2, 24]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 0
+      mass: 1
+      friction: 0.7
+      restitution: 0
+      linearDamping: 0.05
+      angularDamping: 0.05
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::BoxCollider3D:
+      active: true
+      size: [1, 1, 1]
+    Canis::Material:
+      color: [0.2, 0.22, 0.28, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.2, 0.22, 0.28, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+  - Entity: 910020
+    Name: Player
+    Tag: Player
+    Canis::Transform3D:
+      active: true
+      position: [0, 1, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+      parent: 0
+      children:
+        []
+    Canis::Rigidbody3D:
+      active: true
+      motionType: 2
+      mass: 1
+      friction: 0.25
+      restitution: 0
+      linearDamping: 1.8
+      angularDamping: 0.9
+      useGravity: true
+      isSensor: false
+      allowSleeping: true
+      lockRotationX: false
+      lockRotationY: false
+      lockRotationZ: false
+      linearVelocity: [0, 0, 0]
+      angularVelocity: [0, 0, 0]
+    Canis::SphereCollider3D:
+      active: true
+      radius: 0.5
+    Canis::Material:
+      color: [0.2, 0.55, 1, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [0.2, 0.55, 1, 1]
+      ModelAsset:
+        path: assets/models/physics_sphere.glb
+        uuid: 17154083321347000102
+    RollABall::PlayerController:
+      moveForce: 3000
+      pickupRadius: 1.15
+      logProgress: true
+  - Entity: 910100
+    Name: Pickup_00
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [-6, 0.8, -6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910101
+    Name: Pickup_01
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [0, 0.8, -6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910102
+    Name: Pickup_02
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [6, 0.8, -6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910103
+    Name: Pickup_03
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [-6, 0.8, 0]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910104
+    Name: Pickup_04
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [6, 0.8, 0]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910105
+    Name: Pickup_05
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [-6, 0.8, 6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910106
+    Name: Pickup_06
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [0, 0.8, 6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120
+  - Entity: 910107
+    Name: Pickup_07
+    Tag: Pickup
+    Canis::Transform3D:
+      active: true
+      position: [6, 0.8, 6]
+      rotation: [0, 0, 0]
+      scale: [0.7, 0.7, 0.7]
+      parent: 0
+      children:
+        []
+    Canis::Material:
+      color: [1, 0.87, 0.22, 1]
+      MaterialAsset:
+        path: assets/defaults/materials/default.material
+        uuid: 17490362529814420531
+    Canis::Model3D:
+      color: [1, 0.87, 0.22, 1]
+      ModelAsset:
+        path: assets/models/physics_cube.glb
+        uuid: 17154083321347000101
+    RollABall::PickupSpinner:
+      spinSpeedDegrees: 120

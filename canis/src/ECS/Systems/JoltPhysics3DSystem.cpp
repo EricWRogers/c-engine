@@ -185,6 +185,11 @@ namespace Canis
             return glm::all(glm::lessThanEqual(glm::abs(_a - _b), Vector3(_epsilon)));
         }
 
+        bool NearlyZero(const Vector3 &_value, float _epsilon = 0.000001f)
+        {
+            return glm::all(glm::lessThanEqual(glm::abs(_value), Vector3(_epsilon)));
+        }
+
         JPH::EMotionType ToMotionType(int _motionType)
         {
             switch (_motionType)
@@ -433,6 +438,54 @@ namespace Canis
             bodies.erase(bodyIt);
         }
 
+        void ClearPendingForces(Rigidbody3D &_rigidbody)
+        {
+            _rigidbody.pendingForce = Vector3(0.0f);
+            _rigidbody.pendingAcceleration = Vector3(0.0f);
+            _rigidbody.pendingImpulse = Vector3(0.0f);
+            _rigidbody.pendingVelocityChange = Vector3(0.0f);
+        }
+
+        void ApplyPendingForces(const JPH::BodyID &_bodyID, Rigidbody3D &_rigidbody)
+        {
+            if (bodyInterface == nullptr || _bodyID.IsInvalid() || !bodyInterface->IsAdded(_bodyID))
+                return;
+
+            bool applied = false;
+            const float mass = glm::max(0.001f, _rigidbody.mass);
+
+            if (!NearlyZero(_rigidbody.pendingForce))
+            {
+                bodyInterface->AddForce(_bodyID, ToJoltVec3(_rigidbody.pendingForce));
+                _rigidbody.pendingForce = Vector3(0.0f);
+                applied = true;
+            }
+
+            if (!NearlyZero(_rigidbody.pendingAcceleration))
+            {
+                bodyInterface->AddForce(_bodyID, ToJoltVec3(_rigidbody.pendingAcceleration * mass));
+                _rigidbody.pendingAcceleration = Vector3(0.0f);
+                applied = true;
+            }
+
+            if (!NearlyZero(_rigidbody.pendingImpulse))
+            {
+                bodyInterface->AddImpulse(_bodyID, ToJoltVec3(_rigidbody.pendingImpulse));
+                _rigidbody.pendingImpulse = Vector3(0.0f);
+                applied = true;
+            }
+
+            if (!NearlyZero(_rigidbody.pendingVelocityChange))
+            {
+                bodyInterface->AddImpulse(_bodyID, ToJoltVec3(_rigidbody.pendingVelocityChange * mass));
+                _rigidbody.pendingVelocityChange = Vector3(0.0f);
+                applied = true;
+            }
+
+            if (applied)
+                bodyInterface->ActivateBody(_bodyID);
+        }
+
         bool EnsureBodyForEntity(entt::registry &_registry, entt::entity _entityHandle)
         {
             Transform3D *transform = _registry.try_get<Transform3D>(_entityHandle);
@@ -588,6 +641,11 @@ namespace Canis
                     runtimeData.syncedLocalRotation = transform->rotation;
                     runtimeData.hasSyncedTransform = true;
                 }
+
+                if (motionType == JPH::EMotionType::Dynamic)
+                    ApplyPendingForces(runtimeData.bodyID, *rigidbody);
+                else
+                    ClearPendingForces(*rigidbody);
             }
 
             return activeBodies;

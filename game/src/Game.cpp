@@ -17,6 +17,9 @@
 #include <SpaceInvaders/SwarmController.hpp>
 #include <SpaceInvaders/Invader.hpp>
 #include <SpaceInvaders/Projectile.hpp>
+#include <RollABall/PlayerController.hpp>
+#include <RollABall/PickupSpinner.hpp>
+#include <RollABall/CameraFollow.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -49,6 +52,9 @@ extern "C"
         SpaceInvaders::RegisterSwarmControllerScript(app);
         SpaceInvaders::RegisterInvaderScript(app);
         SpaceInvaders::RegisterProjectileScript(app);
+        RollABall::RegisterPlayerControllerScript(app);
+        RollABall::RegisterPickupSpinnerScript(app);
+        RollABall::RegisterCameraFollowScript(app);
         
 
         Canis::Debug::Log("Game initialized!");
@@ -80,6 +86,9 @@ extern "C"
         SpaceInvaders::UnRegisterSwarmControllerScript(app);
         SpaceInvaders::UnRegisterPlayerShipScript(app);
         SpaceInvaders::UnRegisterGameControllerScript(app);
+        RollABall::UnRegisterCameraFollowScript(app);
+        RollABall::UnRegisterPickupSpinnerScript(app);
+        RollABall::UnRegisterPlayerControllerScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;

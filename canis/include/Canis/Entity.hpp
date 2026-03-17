@@ -854,6 +854,14 @@ namespace Canis
         constexpr int DYNAMIC = 2;
     }
 
+    namespace Rigidbody3DForceMode
+    {
+        constexpr int FORCE = 0;
+        constexpr int ACCELERATION = 1;
+        constexpr int IMPULSE = 2;
+        constexpr int VELOCITY_CHANGE = 3;
+    }
+
     struct Rigidbody3D
     {
     public:
@@ -865,6 +873,29 @@ namespace Canis
 
         void Create() {}
         void EditorInspectorDraw();
+
+        void AddForce(const Vector3& _force, int _forceMode = Rigidbody3DForceMode::FORCE)
+        {
+            if (!active || motionType != Rigidbody3DMotionType::DYNAMIC)
+                return;
+
+            switch (_forceMode)
+            {
+            case Rigidbody3DForceMode::ACCELERATION:
+                pendingAcceleration += _force;
+                break;
+            case Rigidbody3DForceMode::IMPULSE:
+                pendingImpulse += _force;
+                break;
+            case Rigidbody3DForceMode::VELOCITY_CHANGE:
+                pendingVelocityChange += _force;
+                break;
+            case Rigidbody3DForceMode::FORCE:
+            default:
+                pendingForce += _force;
+                break;
+            }
+        }
 
         bool active = true;
         int motionType = Rigidbody3DMotionType::DYNAMIC;
@@ -881,6 +912,10 @@ namespace Canis
         bool lockRotationZ = false;
         Vector3 linearVelocity = Vector3(0.0f);
         Vector3 angularVelocity = Vector3(0.0f);
+        Vector3 pendingForce = Vector3(0.0f);
+        Vector3 pendingAcceleration = Vector3(0.0f);
+        Vector3 pendingImpulse = Vector3(0.0f);
+        Vector3 pendingVelocityChange = Vector3(0.0f);
     };
 
     struct BoxCollider3D

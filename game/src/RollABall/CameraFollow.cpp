@@ -31,6 +31,11 @@ namespace RollABall
     {
         m_transform = entity.GetComponent<Canis::Transform3D>();
         TryFindPlayer();
+
+        if (m_transform == nullptr || m_playerTransform == nullptr)
+            return;
+        
+        offset = m_transform->position - m_playerTransform->GetGlobalPosition();
     }
 
     void CameraFollow::Destroy() {}

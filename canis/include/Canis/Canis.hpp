@@ -28,7 +28,7 @@ namespace Canis
         //bool mute = false;
         //bool log = true;
         //bool logToFile = false;
-        bool editor = false;
+        bool editor = true;
         int syncMode = PROJECT_SYNC_OFF;
         UUID iconUUID = UUID(0);
         int editorWindowWidth = 512;

@@ -1049,7 +1049,7 @@ namespace Canis
                 }
 
                 Material* material = _entity.AddComponent<Material>();
-                material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
+                material->materialId = AssetManager::LoadMaterial("assets/defaults/materials/default.material");
             },
             .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Material>()) != nullptr); },
             .Remove = [this](Entity& _entity) -> void { _entity.RemoveComponent<Material>(); },
@@ -1254,7 +1254,7 @@ namespace Canis
                 if ((_entity.GetComponent<Material>()) == nullptr)
                 {
                     Material* material = _entity.AddComponent<Material>();
-                    material->materialId = AssetManager::LoadMaterial("assets/materials/default.material");
+                    material->materialId = AssetManager::LoadMaterial("assets/defaults/materials/default.material");
                 }
             },
             .Has = [this](Entity& _entity) -> bool { return ((_entity.GetComponent<Model3D>()) != nullptr); },

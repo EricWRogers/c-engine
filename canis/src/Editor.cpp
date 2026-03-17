@@ -2260,7 +2260,7 @@ namespace Canis
                     if (ImGui::MenuItem("Create Material"))
                     {
                         const fs::path folderPath = entry.path();
-                        const fs::path templatePath = "assets/materials/default.material";
+                        const fs::path templatePath = "assets/defaults/materials/default.material";
 
                         fs::path targetPath = folderPath / "new_material.material";
                         int index = 1;

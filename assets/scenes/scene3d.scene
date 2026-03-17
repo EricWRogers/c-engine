@@ -31,7 +31,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -71,7 +71,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -98,7 +98,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -138,7 +138,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -165,7 +165,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -192,7 +192,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -232,7 +232,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -259,7 +259,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -286,7 +286,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -352,7 +352,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -379,7 +379,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -406,7 +406,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -446,7 +446,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -473,7 +473,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -500,7 +500,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -540,7 +540,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -567,7 +567,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -594,7 +594,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -647,7 +647,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -674,7 +674,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -701,7 +701,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -741,7 +741,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -768,7 +768,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -795,7 +795,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -835,7 +835,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -862,7 +862,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -889,7 +889,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -942,7 +942,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -969,7 +969,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -996,7 +996,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1036,7 +1036,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1063,7 +1063,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1090,7 +1090,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1130,7 +1130,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1157,7 +1157,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1184,7 +1184,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1237,7 +1237,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1264,7 +1264,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1291,7 +1291,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1331,7 +1331,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1358,7 +1358,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1385,7 +1385,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1425,7 +1425,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1452,7 +1452,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1479,7 +1479,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1532,7 +1532,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1559,7 +1559,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1586,7 +1586,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1626,7 +1626,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1653,7 +1653,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1680,7 +1680,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1720,7 +1720,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1747,7 +1747,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1774,7 +1774,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
     Canis::Model3D:
       color: [1, 1, 1, 1]
@@ -1839,7 +1839,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
       MaterialSlots:
         - path: assets/materials/pot_dirt.material
@@ -1867,7 +1867,7 @@ Entities:
     Canis::Material:
       color: [1, 1, 1, 1]
       MaterialAsset:
-        path: assets/materials/default.material
+        path: assets/defaults/materials/default.material
         uuid: 17490362529814420531
       MaterialSlots:
         - path: assets/materials/pot_dirt.material

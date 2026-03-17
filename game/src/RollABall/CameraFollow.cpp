@@ -18,15 +18,7 @@ namespace RollABall
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::CameraFollow, Canis::Transform3D);
 
-        conf.DrawInspector = [](Canis::Editor&, Canis::Entity& _entity, const ScriptConf& _conf) -> void
-        {
-            if (_entity.HasScript<RollABall::CameraFollow>())
-            {
-                RollABall::CameraFollow& follow = _entity.GetScript<RollABall::CameraFollow>();
-                ImGui::InputFloat3(("offset##" + _conf.name).c_str(), &follow.offset.x, "%.3f");
-                ImGui::InputFloat(("followSmoothing##" + _conf.name).c_str(), &follow.followSmoothing);
-            }
-        };
+        conf.DEFAULT_DRAW_INSPECTOR(RollABall::CameraFollow);
 
         _app.RegisterScript(conf);
     }

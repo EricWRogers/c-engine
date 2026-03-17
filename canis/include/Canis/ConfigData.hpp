@@ -14,10 +14,12 @@ class ScriptableEntity;
 
 using PropertySetter = std::function<void(YAML::Node&, void*)>;
 using PropertyGetter = std::function<YAML::Node(void*)>;
+using PropertyDrawer = std::function<void(const std::string&, void*, const std::string&)>;
 
 struct PropertyRegistry {
     std::map<std::string, PropertySetter> setters;
     std::map<std::string, PropertyGetter> getters;
+    std::map<std::string, PropertyDrawer> drawers;
     std::vector<std::string> propertyOrder;
 };
 

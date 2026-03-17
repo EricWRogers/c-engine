@@ -16,14 +16,7 @@ namespace RollABall
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PickupSpinner, Canis::Transform3D);
 
-        conf.DrawInspector = [](Canis::Editor&, Canis::Entity& _entity, const ScriptConf& _conf) -> void
-        {
-            if (_entity.HasScript<RollABall::PickupSpinner>())
-            {
-                RollABall::PickupSpinner& spinner = _entity.GetScript<RollABall::PickupSpinner>();
-                ImGui::InputFloat(("spinSpeedDegrees##" + _conf.name).c_str(), &spinner.spinSpeedDegrees);
-            }
-        };
+        conf.DEFAULT_DRAW_INSPECTOR(RollABall::PickupSpinner);
 
         _app.RegisterScript(conf);
     }

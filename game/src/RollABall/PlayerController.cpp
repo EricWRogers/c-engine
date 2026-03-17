@@ -21,18 +21,10 @@ namespace RollABall
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Canis::Transform3D, Canis::Rigidbody3D);
 
-        conf.DrawInspector = [](Canis::Editor&, Canis::Entity& _entity, const ScriptConf& _conf) -> void
-        {
-            if (_entity.HasScript<RollABall::PlayerController>())
-            {
-                RollABall::PlayerController& controller = _entity.GetScript<RollABall::PlayerController>();
-                ImGui::InputFloat(("moveForce##" + _conf.name).c_str(), &controller.moveForce);
-                ImGui::InputFloat(("pickupRadius##" + _conf.name).c_str(), &controller.pickupRadius);
-                ImGui::Checkbox(("logProgress##" + _conf.name).c_str(), &controller.logProgress);
-                ImGui::Text("Collected: %d / %d", controller.collectedPickups, controller.totalPickups);
-                ImGui::Text("State: %s", controller.hasWon ? "You Win" : "Collecting");
-            }
-        };
+        conf.DEFAULT_DRAW_INSPECTOR(RollABall::PlayerController,
+            ImGui::Text("Collected: %d / %d", component.collectedPickups, component.totalPickups);
+            ImGui::Text("State: %s", component.hasWon ? "You Win" : "Collecting");
+        );
 
         _app.RegisterScript(conf);
     }

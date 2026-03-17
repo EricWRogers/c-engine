@@ -6,6 +6,7 @@
 #include <Canis/Yaml.hpp>
 
 #include <algorithm>
+#include <type_traits>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -27,6 +28,71 @@ inline void AddRequiredScripts(Entity& _entity)
     (_entity.scene->app->AddRequiredScript(_entity, Ts::ScriptName), ...);
 }
 
+template <typename T>
+inline void DrawInspectorField(const char *_label, T &_value)
+{
+    if constexpr (std::is_same_v<T, bool>)
+    {
+        ImGui::Checkbox(_label, &_value);
+    }
+    else if constexpr (std::is_same_v<T, int>)
+    {
+        ImGui::InputInt(_label, &_value);
+    }
+    else if constexpr (std::is_same_v<T, float>)
+    {
+        ImGui::InputFloat(_label, &_value);
+    }
+    else if constexpr (std::is_same_v<T, double>)
+    {
+        ImGui::InputScalar(_label, ImGuiDataType_Double, &_value);
+    }
+    else if constexpr (std::is_same_v<T, Vector2>)
+    {
+        ImGui::InputFloat2(_label, &_value.x);
+    }
+    else if constexpr (std::is_same_v<T, Vector3>)
+    {
+        ImGui::InputFloat3(_label, &_value.x);
+    }
+    else if constexpr (std::is_same_v<T, Vector4>)
+    {
+        ImGui::InputFloat4(_label, &_value.x);
+    }
+    else if constexpr (std::is_same_v<T, std::string>)
+    {
+        ImGui::InputText(_label, &_value);
+    }
+    else if constexpr (std::is_integral_v<T>)
+    {
+        long long value = static_cast<long long>(_value);
+        if (ImGui::InputScalar(_label, ImGuiDataType_S64, &value))
+            _value = static_cast<T>(value);
+    }
+    else if constexpr (std::is_floating_point_v<T>)
+    {
+        double value = static_cast<double>(_value);
+        if (ImGui::InputScalar(_label, ImGuiDataType_Double, &value))
+            _value = static_cast<T>(value);
+    }
+    else
+    {
+        ImGui::TextDisabled("%s (unsupported type)", _label);
+    }
+}
+
+inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_component, const std::string &_idSuffix)
+{
+    for (const std::string &propertyName : _registry.propertyOrder)
+    {
+        auto drawerIt = _registry.drawers.find(propertyName);
+        if (drawerIt == _registry.drawers.end())
+            continue;
+
+        drawerIt->second(propertyName, _component, _idSuffix);
+    }
+}
+
 #define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \
     Add = [](Entity &_entity)   -> void                                   \
     {                                                                     \
@@ -42,6 +108,18 @@ inline void AddRequiredScripts(Entity& _entity)
 
 #define DEFAULT_GET(type) \
     Get = [](Entity& _entity) -> void* { return _entity.HasScript<type>() ? (void*)&_entity.GetScript<type>() : nullptr; } \
+
+#define DEFAULT_DRAW_INSPECTOR(type, ...)                                             \
+    DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void \
+    {                                                                                 \
+        (void)_editor;                                                                \
+        if (_entity.HasScript<type>())                                                \
+        {                                                                             \
+            type &component = _entity.GetScript<type>();                              \
+            DrawRegisteredProperties(_conf.registry, &component, _conf.name);         \
+            __VA_ARGS__                                                               \
+        }                                                                             \
+    }                                                                                 \
 
 #define DECODE(node, component, property) \
     component.property = node[#property].as<decltype(component.property)>(component.property); \
@@ -67,6 +145,11 @@ void UnRegister##type##Script(Canis::App& _app)  \
     config.registry.getters[#property] = [](void *componentPtr) -> YAML::Node {                     		\
         return YAML::Node(static_cast<component *>(componentPtr)->property);                        \
     };                                                                                         		\
+                                                                                                    \
+    config.registry.drawers[#property] = [](const std::string &propertyName, void *componentPtr, const std::string &idSuffix) { \
+        auto *typedComponent = static_cast<component *>(componentPtr);                              \
+        DrawInspectorField<type>((propertyName + "##" + idSuffix).c_str(), typedComponent->property); \
+    };                                                                                               \
                                                                                                		\
     config.registry.propertyOrder.push_back(#property);                                             		\
 }
@@ -75,6 +158,7 @@ void UnRegister##type##Script(Canis::App& _app)  \
 {                                                                                   \
     registry.setters.erase(#property);                                              \
     registry.getters.erase(#property);                                              \
+    registry.drawers.erase(#property);                                              \
                                                                                     \
     auto &order = registry.propertyOrder;                                           \
     order.erase(std::remove(order.begin(), order.end(), std::string(#property)),    \

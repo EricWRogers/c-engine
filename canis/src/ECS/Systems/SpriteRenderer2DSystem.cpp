@@ -542,7 +542,7 @@ namespace Canis
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthFunc(GL_ALWAYS);
+        glDepthFunc(GL_LESS);
 
         Begin(glyphSortType);
 
@@ -620,7 +620,7 @@ namespace Canis
                         Vector4(p.x, p.y, s.x, s.y),
                         sprite->uv,
                         sprite->textureHandle.texture,
-                        transform.depth,
+                        transform.GetDepth(),
                         sprite->color,
                         transform.GetRotation(),
                         transform.originOffset);

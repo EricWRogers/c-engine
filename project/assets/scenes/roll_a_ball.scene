@@ -249,7 +249,7 @@ Entities:
       angularDamping: 0.9
       useGravity: true
       isSensor: false
-      allowSleeping: true
+      allowSleeping: false
       lockRotationX: false
       lockRotationY: false
       lockRotationZ: false

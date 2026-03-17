@@ -5,10 +5,7 @@
 
 namespace RollABall
 {
-    namespace
-    {
-        ScriptConf conf = {};
-    }
+    ScriptConf conf = {};
 
     void RegisterPickupSpinnerScript(Canis::App& _app)
     {
@@ -34,10 +31,6 @@ namespace RollABall
 
     void PickupSpinner::Update(float _dt)
     {
-        m_transform = entity.GetComponent<Canis::Transform3D>();
-        if (m_transform == nullptr)
-            return;
-
         m_transform->rotation.y += spinSpeedDegrees * Canis::DEG2RAD * _dt;
     }
 

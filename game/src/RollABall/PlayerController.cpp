@@ -8,10 +8,7 @@
 
 namespace RollABall
 {
-    namespace
-    {
-        ScriptConf conf = {};
-    }
+    ScriptConf conf = {};
 
     void RegisterPlayerControllerScript(Canis::App& _app)
     {
@@ -58,7 +55,7 @@ namespace RollABall
         m_transform = entity.GetComponent<Canis::Transform3D>();
         m_rigidbody = entity.GetComponent<Canis::Rigidbody3D>();
 
-        if (m_transform == nullptr || m_rigidbody == nullptr || entity.scene == nullptr)
+        if (m_transform == nullptr || m_rigidbody == nullptr)
             return;
 
         Canis::InputManager& input = entity.scene->GetInputManager();
@@ -95,13 +92,11 @@ namespace RollABall
 
     void PlayerController::CollectNearbyPickups()
     {
-        if (entity.scene == nullptr || m_transform == nullptr || hasWon)
+        if (m_transform == nullptr || hasWon)
             return;
 
         const Canis::Vector3 playerPosition = m_transform->GetGlobalPosition();
-        const float radiusSq = pickupRadius * pickupRadius;
 
-        // Simple beginner-friendly pickup detection using a radius check.
         for (Canis::Entity* pickup : entity.scene->GetEntitiesWithTag("Pickup"))
         {
             if (pickup == nullptr || !pickup->active)
@@ -112,8 +107,8 @@ namespace RollABall
             if (pickupTransform == nullptr)
                 continue;
 
-            const Canis::Vector3 delta = pickupTransform->GetGlobalPosition() - playerPosition;
-            if (glm::dot(delta, delta) > radiusSq)
+            float distance = glm::distance(pickupTransform->GetGlobalPosition(), playerPosition);
+            if (distance > pickupRadius)
                 continue;
 
             pickup->Destroy();

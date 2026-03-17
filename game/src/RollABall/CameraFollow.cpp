@@ -6,10 +6,7 @@
 
 namespace RollABall
 {
-    namespace
-    {
-        ScriptConf conf = {};
-    }
+    ScriptConf conf = {};
 
     void RegisterCameraFollowScript(Canis::App& _app)
     {

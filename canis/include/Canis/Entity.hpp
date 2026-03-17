@@ -179,12 +179,8 @@ namespace Canis
             }
         }
 
-        ScriptableEntity* AddScript(const std::string& _scriptName, bool _callCreate = true);
         ScriptableEntity* AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate = true);
-        ScriptableEntity* GetScript(const std::string& _scriptName);
-        const ScriptableEntity* GetScript(const std::string& _scriptName) const;
         void RemoveScript(const std::string& _scriptName);
-        bool HasScript(const std::string& _scriptName) const;
         void RemoveAllScripts();
 
         void Destroy();

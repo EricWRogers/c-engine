@@ -29,7 +29,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            GameController* controller = _entity.HasScript(SpaceInvaders::GameController::ScriptName)
+            GameController* controller = _entity.HasScript<SpaceInvaders::GameController>()
                 ? &_entity.GetScript<SpaceInvaders::GameController>()
                 : nullptr;
             if (controller != nullptr)
@@ -49,12 +49,12 @@ namespace SpaceInvaders
     void GameController::Create() {}
     void GameController::Ready()
     {
-        if (!entity.HasScript(SpaceInvaders::SwarmController::ScriptName))
+        if (!entity.HasScript<SpaceInvaders::SwarmController>())
             (void)entity.AddScript<SpaceInvaders::SwarmController>();
 
         if (Entity* player = entity.scene->GetEntityWithTag("Player"))
         {
-            if (!player->HasScript(SpaceInvaders::PlayerShip::ScriptName))
+            if (!player->HasScript<SpaceInvaders::PlayerShip>())
                 (void)player->AddScript<SpaceInvaders::PlayerShip>();
         }
 
@@ -64,10 +64,10 @@ namespace SpaceInvaders
             if (enemy == nullptr)
                 continue;
 
-            if (!enemy->HasScript(SpaceInvaders::Invader::ScriptName))
+            if (!enemy->HasScript<SpaceInvaders::Invader>())
                 (void)enemy->AddScript<SpaceInvaders::Invader>();
 
-            Invader* invader = enemy->HasScript(SpaceInvaders::Invader::ScriptName)
+            Invader* invader = enemy->HasScript<SpaceInvaders::Invader>()
                 ? &enemy->GetScript<SpaceInvaders::Invader>()
                 : nullptr;
             if (invader != nullptr)

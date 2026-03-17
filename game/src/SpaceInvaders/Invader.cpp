@@ -24,7 +24,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            Invader* invader = _entity.HasScript(SpaceInvaders::Invader::ScriptName)
+            Invader* invader = _entity.HasScript<SpaceInvaders::Invader>()
                 ? &_entity.GetScript<SpaceInvaders::Invader>()
                 : nullptr;
             if (invader != nullptr)

@@ -1652,8 +1652,7 @@ namespace Canis
                     if (entity == nullptr)
                         continue;
 
-                    if (entity->HasScript(conf.name))
-                        entity->RemoveScript(conf.name);
+                    entity->RemoveScript(conf.name);
                 }
 
                 m_scriptRegistry.erase(m_scriptRegistry.begin() + i);

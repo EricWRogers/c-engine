@@ -57,7 +57,7 @@ void Paddle::Update(float _dt)
 
         if (distance < (ballTransform.size.x * ballTransform.scale.x * 0.5f) + (m_transform->size.x * m_transform->scale.x * 0.5f))
         {
-            if (!e->HasScript(Ball::ScriptName))
+            if (!e->HasScript<Ball>())
                 return;
 
             Ball& ball = e->GetScript<Ball>();

@@ -23,7 +23,7 @@ namespace TankGame
 
         bounceConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Bounce* bounce = _entity.HasScript(TankGame::Bounce::ScriptName)
+            TankGame::Bounce* bounce = _entity.HasScript<TankGame::Bounce>()
                 ? &_entity.GetScript<TankGame::Bounce>()
                 : nullptr;
             if (bounce != nullptr)

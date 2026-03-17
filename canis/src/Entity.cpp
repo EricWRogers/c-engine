@@ -65,45 +65,6 @@ void Entity::RemoveScriptDirect(const ScriptConf& _conf)
     }
 }
 
-ScriptableEntity* Entity::AddScript(const std::string& _scriptName, bool _callCreate)
-{
-    if (scene == nullptr || scene->app == nullptr)
-        return nullptr;
-
-    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
-    if (conf == nullptr)
-        return nullptr;
-
-    if (ScriptableEntity* existing = GetScriptDirect(*conf))
-        return existing;
-
-    if (!_callCreate && conf->Construct)
-        return conf->Construct(*this, false);
-
-    static thread_local std::vector<std::string> addStack = {};
-    if (std::find(addStack.begin(), addStack.end(), _scriptName) != addStack.end())
-    {
-        if (conf->Construct)
-            return conf->Construct(*this, _callCreate);
-
-        return nullptr;
-    }
-
-    addStack.push_back(_scriptName);
-    struct StackPopGuard
-    {
-        std::vector<std::string>& stack;
-        ~StackPopGuard() { stack.pop_back(); }
-    } guard{ addStack };
-
-    if (conf->Add)
-        conf->Add(*this);
-    else if (conf->Construct)
-        conf->Construct(*this, _callCreate);
-
-    return GetScriptDirect(*conf);
-}
-
 ScriptableEntity* Entity::AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate)
 {
     if (scene == nullptr || scene->app == nullptr)
@@ -122,30 +83,6 @@ ScriptableEntity* Entity::AttachScript(const std::string& _scriptName, Scriptabl
     return AddScriptDirect(*conf, _scriptableEntity, _callCreate);
 }
 
-ScriptableEntity* Entity::GetScript(const std::string& _scriptName)
-{
-    if (scene == nullptr || scene->app == nullptr)
-        return nullptr;
-
-    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
-    if (conf == nullptr)
-        return nullptr;
-
-    return GetScriptDirect(*conf);
-}
-
-const ScriptableEntity* Entity::GetScript(const std::string& _scriptName) const
-{
-    if (scene == nullptr || scene->app == nullptr)
-        return nullptr;
-
-    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
-    if (conf == nullptr)
-        return nullptr;
-
-    return GetScriptDirect(*conf);
-}
-
 void Entity::RemoveScript(const std::string& _scriptName)
 {
     if (scene == nullptr || scene->app == nullptr)
@@ -156,11 +93,6 @@ void Entity::RemoveScript(const std::string& _scriptName)
         return;
 
     RemoveScriptDirect(*conf);
-}
-
-bool Entity::HasScript(const std::string& _scriptName) const
-{
-    return GetScript(_scriptName) != nullptr;
 }
 
 void Entity::RemoveAllScripts()

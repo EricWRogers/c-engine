@@ -41,7 +41,7 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            Projectile* projectile = _entity.HasScript(SpaceInvaders::Projectile::ScriptName)
+            Projectile* projectile = _entity.HasScript<SpaceInvaders::Projectile>()
                 ? &_entity.GetScript<SpaceInvaders::Projectile>()
                 : nullptr;
             if (projectile != nullptr)
@@ -106,7 +106,7 @@ namespace SpaceInvaders
                     continue;
 
                 int points = 10;
-                Invader* invader = enemy->HasScript(SpaceInvaders::Invader::ScriptName)
+                Invader* invader = enemy->HasScript<SpaceInvaders::Invader>()
                     ? &enemy->GetScript<SpaceInvaders::Invader>()
                     : nullptr;
                 if (invader != nullptr)
@@ -114,7 +114,7 @@ namespace SpaceInvaders
 
                 if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
                 {
-                    GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
+                    GameController* controller = controllerEntity->HasScript<SpaceInvaders::GameController>()
                         ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
                         : nullptr;
                     if (controller != nullptr)
@@ -135,7 +135,7 @@ namespace SpaceInvaders
                     RectTransform* playerTransform = playerEntity->HasComponent<RectTransform>() ? &playerEntity->GetComponent<RectTransform>() : nullptr;
                     if (playerTransform != nullptr && OverlapsAABB(*m_transform, *playerTransform))
                     {
-                        PlayerShip* playerShip = playerEntity->HasScript(SpaceInvaders::PlayerShip::ScriptName)
+                        PlayerShip* playerShip = playerEntity->HasScript<SpaceInvaders::PlayerShip>()
                             ? &playerEntity->GetScript<SpaceInvaders::PlayerShip>()
                             : nullptr;
                         if (playerShip != nullptr)

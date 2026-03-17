@@ -26,7 +26,7 @@ namespace TankGame
 
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Bullet* bullet = _entity.HasScript(TankGame::Bullet::ScriptName)
+            TankGame::Bullet* bullet = _entity.HasScript<TankGame::Bullet>()
                 ? &_entity.GetScript<TankGame::Bullet>()
                 : nullptr;
             if (bullet != nullptr)

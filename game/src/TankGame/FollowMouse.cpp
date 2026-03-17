@@ -22,7 +22,7 @@ namespace TankGame
 
         followMouseConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::FollowMouse* followMouse = _entity.HasScript(TankGame::FollowMouse::ScriptName)
+            TankGame::FollowMouse* followMouse = _entity.HasScript<TankGame::FollowMouse>()
                 ? &_entity.GetScript<TankGame::FollowMouse>()
                 : nullptr;
             if (followMouse != nullptr)

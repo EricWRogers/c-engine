@@ -20,15 +20,12 @@ namespace Pong
 
         conf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            Pong::Ball *ball = nullptr;
-            ball = _entity.HasScript(Pong::Ball::ScriptName)
-                ? &_entity.GetScript<Pong::Ball>()
-                : nullptr;
-            if (ball != nullptr)
+            if (_entity.HasScript<Ball>())
             {
-                ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball->direction.x, "%.3f");
-                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball->speed);
-                ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball->randomRotation);
+                Ball& ball = _entity.GetScript<Ball>();
+                ImGui::InputFloat2(("direction##" + _conf.name).c_str(), &ball.direction.x, "%.3f");
+                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ball.speed);
+                ImGui::InputFloat(("randomRotation##" + _conf.name).c_str(), &ball.randomRotation);
             }
         };
 
@@ -49,7 +46,7 @@ ScriptConf paddleConf = {
         (void)_entity.AddScript<Paddle>();
     },
     .Has = [](Entity &_entity) -> bool
-    { return _entity.HasScript(Paddle::ScriptName); },
+    { return _entity.HasScript<Paddle>(); },
     .Remove = [](Entity &_entity) -> void
     { _entity.RemoveScript<Paddle>(); },
     .Get = [](Entity& _entity) -> void* { return _entity.HasScript<Paddle>() ? (void*)&_entity.GetScript<Paddle>() : nullptr; },

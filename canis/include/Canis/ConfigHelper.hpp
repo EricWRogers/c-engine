@@ -35,7 +35,7 @@ inline void AddRequiredScripts(Entity& _entity)
     }                                                                     \
 
 #define DEFAULT_HAS(type) \
-    Has = [](Entity &_entity) -> bool { return _entity.HasScript(type::ScriptName); } \
+    Has = [](Entity &_entity) -> bool { return _entity.HasScript<type>(); } \
 
 #define DEFAULT_REMOVE(type) \
     Remove = [](Entity &_entity) -> void { _entity.RemoveScript(type::ScriptName); } \
@@ -81,10 +81,12 @@ void UnRegister##type##Script(Canis::App& _app)  \
                 order.end());                                                       \
 }                                                                                   \
 
+template <typename T>
 inline void EncodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Entity &_entity, const std::string& _scriptName)
 {
-    if (ScriptableEntity* component = _entity.GetScript(_scriptName))
+    if (_entity.HasScript<T>())
     {
+        ScriptableEntity* component = (ScriptableEntity*)&_entity.GetScript<T>();
         YAML::Node comp;
 
         for (const auto &propertyName : _registry.propertyOrder)
@@ -97,13 +99,14 @@ inline void EncodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Enti
 }
 
 #define DEFAULT_ENCODE(config, type) \
-    Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent(config.registry, _node, _entity, type::ScriptName); } \
+    Encode = [](YAML::Node &_node, Entity &_entity) -> void { EncodeComponent<type>(config.registry, _node, _entity, type::ScriptName); } \
 
+template <typename T>    
 inline void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Canis::Entity &_entity, const std::string& _scriptName, bool _callCreate)
 {
     if (auto componentNode = _node[_scriptName])
     {
-        ScriptableEntity* script = _entity.AddScript(_scriptName, false);
+        ScriptableEntity* script = (ScriptableEntity*)&_entity.AddScript<T>(false);
         if (script == nullptr)
             return;
 
@@ -121,7 +124,7 @@ inline void DecodeComponent(PropertyRegistry& _registry, YAML::Node &_node, Cani
 }
 
 #define DEFAULT_DECODE(config, type) \
-    Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent(config.registry, _node, _entity, type::ScriptName, _callCreate); } \
+    Decode = [](YAML::Node &_node, Entity &_entity, bool _callCreate) -> void { DecodeComponent<type>(config.registry, _node, _entity, type::ScriptName, _callCreate); } \
 
 #define DEFAULT_CONFIG(config, type)                \
 {                                                   \

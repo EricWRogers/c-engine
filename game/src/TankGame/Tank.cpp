@@ -29,15 +29,12 @@ namespace TankGame
 
         tankConf.DrawInspector = [](Editor &_editor, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            TankGame::Tank *tank = nullptr;
-            tank = _entity.HasScript(TankGame::Tank::ScriptName)
-                ? &_entity.GetScript<TankGame::Tank>()
-                : nullptr;
-            if (tank != nullptr)
+            if (_entity.HasScript<TankGame::Tank>())
             {
-                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank->speed);
-                ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank->turnSpeed);
-                ImGui::InputInt(("count##" + _conf.name).c_str(), &tank->count);
+                TankGame::Tank& tank = _entity.GetScript<TankGame::Tank>();
+                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &tank.speed);
+                ImGui::InputFloat(("turnSpeed##" + _conf.name).c_str(), &tank.turnSpeed);
+                ImGui::InputInt(("count##" + _conf.name).c_str(), &tank.count);
             }
         };
 

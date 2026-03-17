@@ -33,15 +33,13 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            PlayerShip* ship = _entity.HasScript(SpaceInvaders::PlayerShip::ScriptName)
-                ? &_entity.GetScript<SpaceInvaders::PlayerShip>()
-                : nullptr;
-            if (ship != nullptr)
+            if (_entity.HasScript<SpaceInvaders::PlayerShip>())
             {
-                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ship->speed);
-                ImGui::InputFloat(("fireCooldown##" + _conf.name).c_str(), &ship->fireCooldown);
-                ImGui::InputFloat(("bulletSpeed##" + _conf.name).c_str(), &ship->bulletSpeed);
-                ImGui::InputFloat(("bulletLifetime##" + _conf.name).c_str(), &ship->bulletLifetime);
+                PlayerShip& ship = _entity.GetScript<SpaceInvaders::PlayerShip>();
+                ImGui::InputFloat(("speed##" + _conf.name).c_str(), &ship.speed);
+                ImGui::InputFloat(("fireCooldown##" + _conf.name).c_str(), &ship.fireCooldown);
+                ImGui::InputFloat(("bulletSpeed##" + _conf.name).c_str(), &ship.bulletSpeed);
+                ImGui::InputFloat(("bulletLifetime##" + _conf.name).c_str(), &ship.bulletLifetime);
             }
         };
 
@@ -68,12 +66,10 @@ namespace SpaceInvaders
 
         if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
         {
-            GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
-                ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
-                : nullptr;
-            if (controller != nullptr)
+            if (controllerEntity->HasScript<SpaceInvaders::GameController>())
             {
-                if (controller->gameOver || controller->levelCleared)
+                GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                if (controller.gameOver || controller.levelCleared)
                     return;
             }
         }
@@ -120,13 +116,11 @@ namespace SpaceInvaders
     {
         if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
         {
-            GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
-                ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
-                : nullptr;
-            if (controller != nullptr)
+            if (controllerEntity->HasScript<SpaceInvaders::GameController>())
             {
-                controller->OnPlayerHit();
-                if (controller->gameOver)
+                GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                controller.OnPlayerHit();
+                if (controller.gameOver)
                     return;
             }
         }

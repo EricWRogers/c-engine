@@ -33,16 +33,14 @@ namespace SpaceInvaders
 
         conf.DrawInspector = [](Editor &, Entity &_entity, const ScriptConf &_conf) -> void
         {
-            SwarmController* swarm = _entity.HasScript(SpaceInvaders::SwarmController::ScriptName)
-                ? &_entity.GetScript<SpaceInvaders::SwarmController>()
-                : nullptr;
-            if (swarm != nullptr)
+            if (_entity.HasScript<SpaceInvaders::SwarmController>())
             {
-                ImGui::InputFloat(("horizontalSpeed##" + _conf.name).c_str(), &swarm->horizontalSpeed);
-                ImGui::InputFloat(("stepDown##" + _conf.name).c_str(), &swarm->stepDown);
-                ImGui::InputFloat(("fireInterval##" + _conf.name).c_str(), &swarm->fireInterval);
-                ImGui::InputFloat(("enemyBulletSpeed##" + _conf.name).c_str(), &swarm->enemyBulletSpeed);
-                ImGui::InputFloat(("enemyBulletLifetime##" + _conf.name).c_str(), &swarm->enemyBulletLifetime);
+                SwarmController& swarm = _entity.GetScript<SwarmController>();
+                ImGui::InputFloat(("horizontalSpeed##" + _conf.name).c_str(), &swarm.horizontalSpeed);
+                ImGui::InputFloat(("stepDown##" + _conf.name).c_str(), &swarm.stepDown);
+                ImGui::InputFloat(("fireInterval##" + _conf.name).c_str(), &swarm.fireInterval);
+                ImGui::InputFloat(("enemyBulletSpeed##" + _conf.name).c_str(), &swarm.enemyBulletSpeed);
+                ImGui::InputFloat(("enemyBulletLifetime##" + _conf.name).c_str(), &swarm.enemyBulletLifetime);
             }
         };
 
@@ -106,11 +104,11 @@ namespace SpaceInvaders
             {
                 if (Entity* controllerEntity = entity.scene->FindEntityWithName("GameController"))
                 {
-                    GameController* controller = controllerEntity->HasScript(SpaceInvaders::GameController::ScriptName)
-                        ? &controllerEntity->GetScript<SpaceInvaders::GameController>()
-                        : nullptr;
-                    if (controller != nullptr)
-                        controller->SetGameOver("invaders reached player line");
+                    if (controllerEntity->HasScript<SpaceInvaders::GameController>())
+                    {
+                        GameController& controller = controllerEntity->GetScript<SpaceInvaders::GameController>();
+                        controller.SetGameOver("invaders reached player line");
+                    }
                 }
             }
         }

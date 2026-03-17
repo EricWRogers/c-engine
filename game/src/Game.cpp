@@ -6,17 +6,10 @@
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
-#include "../include/Pong/Ball.hpp"
-#include "../include/Pong/Paddle.hpp"
 #include <TankGame/Tank.hpp>
 #include <TankGame/Bullet.hpp>
 #include <TankGame/FollowMouse.hpp>
 #include <TankGame/Bounce.hpp>
-#include <SpaceInvaders/GameController.hpp>
-#include <SpaceInvaders/PlayerShip.hpp>
-#include <SpaceInvaders/SwarmController.hpp>
-#include <SpaceInvaders/Invader.hpp>
-#include <SpaceInvaders/Projectile.hpp>
 #include <RollABall/PlayerController.hpp>
 #include <RollABall/PickupSpinner.hpp>
 #include <RollABall/CameraFollow.hpp>
@@ -45,13 +38,6 @@ extern "C"
         TankGame::RegisterBulletScript(app);
         TankGame::RegisterFollowMouseScript(app);
         TankGame::RegisterBounceScript(app);
-        Pong::RegisterBallScript(app);
-        Pong::RegisterPaddleScript(app);
-        SpaceInvaders::RegisterGameControllerScript(app);
-        SpaceInvaders::RegisterPlayerShipScript(app);
-        SpaceInvaders::RegisterSwarmControllerScript(app);
-        SpaceInvaders::RegisterInvaderScript(app);
-        SpaceInvaders::RegisterProjectileScript(app);
         RollABall::RegisterPlayerControllerScript(app);
         RollABall::RegisterPickupSpinnerScript(app);
         RollABall::RegisterCameraFollowScript(app);
@@ -75,17 +61,10 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
 
         app.UnregisterInspectorItem(inspectorCreateBall);
-        Pong::UnRegisterBallScript(app);
-        Pong::UnRegisterPaddleScript(app);
         TankGame::UnRegisterTankScript(app);
         TankGame::UnRegisterBulletScript(app);
         TankGame::UnRegisterFollowMouseScript(app);
         TankGame::UnRegisterBounceScript(app);
-        SpaceInvaders::UnRegisterProjectileScript(app);
-        SpaceInvaders::UnRegisterInvaderScript(app);
-        SpaceInvaders::UnRegisterSwarmControllerScript(app);
-        SpaceInvaders::UnRegisterPlayerShipScript(app);
-        SpaceInvaders::UnRegisterGameControllerScript(app);
         RollABall::UnRegisterCameraFollowScript(app);
         RollABall::UnRegisterPickupSpinnerScript(app);
         RollABall::UnRegisterPlayerControllerScript(app);
@@ -99,7 +78,6 @@ extern "C"
         Canis::Entity *entityOne = _app.scene.CreateEntity("Ball");
         RectTransform& transform = *entityOne->AddComponent<RectTransform>();
         Sprite2D& sprite = *entityOne->AddComponent<Sprite2D>();
-        (void)entityOne->AddScript<Pong::Ball>();
 
         sprite.textureHandle = Canis::AssetManager::GetTextureHandle("assets/textures/awesome_face.png");
         transform.size = Vector2(32.0f);

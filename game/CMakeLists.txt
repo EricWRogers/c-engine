@@ -9,7 +9,6 @@ message(STATUS "GAME_INCLUDE_DIRS ${GAME_HEADERS}")
 add_library(GameCode SHARED
     ${GAME_HEADERS}
     ${GAME_SOURCES}
-    src/Pong/RegisterPong.cpp
 )
 
 # Include SDL3 headers if needed

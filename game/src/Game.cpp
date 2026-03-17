@@ -12,7 +12,6 @@
 #include <TankGame/Bounce.hpp>
 #include <RollABall/PlayerController.hpp>
 #include <RollABall/PickupSpinner.hpp>
-#include <RollABall/CameraFollow.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -40,7 +39,6 @@ extern "C"
         TankGame::RegisterBounceScript(app);
         RollABall::RegisterPlayerControllerScript(app);
         RollABall::RegisterPickupSpinnerScript(app);
-        RollABall::RegisterCameraFollowScript(app);
         
 
         Canis::Debug::Log("Game initialized!");
@@ -65,7 +63,6 @@ extern "C"
         TankGame::UnRegisterBulletScript(app);
         TankGame::UnRegisterFollowMouseScript(app);
         TankGame::UnRegisterBounceScript(app);
-        RollABall::UnRegisterCameraFollowScript(app);
         RollABall::UnRegisterPickupSpinnerScript(app);
         RollABall::UnRegisterPlayerControllerScript(app);
 

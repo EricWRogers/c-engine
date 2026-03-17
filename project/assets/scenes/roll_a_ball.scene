@@ -17,9 +17,6 @@ Entities:
       fovDegrees: 60
       nearClip: 0.1
       farClip: 300
-    RollABall::CameraFollow:
-      offset: [0, 8, 10]
-      followSmoothing: 8
   - Entity: 910002
     Name: Sun
     Tag: ""

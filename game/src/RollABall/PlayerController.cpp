@@ -79,8 +79,6 @@ namespace RollABall
             movement = glm::normalize(movement);
             m_rigidbody->AddForce(movement * moveForce * _dt, Canis::Rigidbody3DForceMode::FORCE);
         }
-
-        CollectNearbyPickups();
     }
 
     void PlayerController::EditorInspectorDraw() {}
@@ -88,41 +86,5 @@ namespace RollABall
     int PlayerController::CountActivePickups() const
     {
         return entity.scene->GetEntitiesWithTag("Pickup").size();
-    }
-
-    void PlayerController::CollectNearbyPickups()
-    {
-        if (m_transform == nullptr || hasWon)
-            return;
-
-        const Canis::Vector3 playerPosition = m_transform->GetGlobalPosition();
-
-        for (Canis::Entity* pickup : entity.scene->GetEntitiesWithTag("Pickup"))
-        {
-            if (pickup == nullptr || !pickup->active)
-                continue;
-
-            Canis::Transform3D* pickupTransform = pickup->GetComponent<Canis::Transform3D>();
-
-            if (pickupTransform == nullptr)
-                continue;
-
-            float distance = glm::distance(pickupTransform->GetGlobalPosition(), playerPosition);
-            if (distance > pickupRadius)
-                continue;
-
-            pickup->Destroy();
-            ++collectedPickups;
-
-            if (logProgress)
-                Canis::Debug::Log("Roll-a-Ball: Pickups %d / %d", collectedPickups, totalPickups);
-
-            if (collectedPickups >= totalPickups)
-            {
-                hasWon = true;
-                Canis::Debug::Log("Roll-a-Ball: You Win!");
-                break;
-            }
-        }
     }
 }

@@ -5,20 +5,20 @@
 
 namespace RollABall
 {
-    ScriptConf conf = {};
+    ScriptConf pickUpConf = {};
 
     void RegisterPickupSpinnerScript(Canis::App& _app)
     {
-        REGISTER_PROPERTY(conf, RollABall::PickupSpinner, spinSpeedDegrees);
+        REGISTER_PROPERTY(pickUpConf, RollABall::PickupSpinner, spinSpeedDegrees);
 
-        DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PickupSpinner, Canis::Transform3D);
+        DEFAULT_CONFIG_AND_REQUIRED(pickUpConf, RollABall::PickupSpinner, Canis::Transform3D);
 
-        conf.DEFAULT_DRAW_INSPECTOR(RollABall::PickupSpinner);
+        pickUpConf.DEFAULT_DRAW_INSPECTOR(RollABall::PickupSpinner);
 
-        _app.RegisterScript(conf);
+        _app.RegisterScript(pickUpConf);
     }
 
-    DEFAULT_UNREGISTER_SCRIPT(conf, PickupSpinner)
+    DEFAULT_UNREGISTER_SCRIPT(pickUpConf, PickupSpinner)
 
     void PickupSpinner::Create() {}
 
@@ -31,7 +31,7 @@ namespace RollABall
 
     void PickupSpinner::Update(float _dt)
     {
-        m_transform->rotation.y += spinSpeedDegrees * Canis::DEG2RAD * _dt;
+        
     }
 
     void PickupSpinner::EditorInspectorDraw() {}

@@ -11,7 +11,6 @@ namespace RollABall
         Canis::Rigidbody3D* m_rigidbody = nullptr;
 
         int CountActivePickups() const;
-        void CollectNearbyPickups();
     public:
         static constexpr const char* ScriptName = "RollABall::PlayerController";
 

@@ -22,7 +22,7 @@ namespace RollABall
 
     void PickupSpinner::Create() {}
 
-    void PickupSpinner::Ready()
+    void PickupSpinner::Ready() // before the first update
     {
         m_transform = entity.GetComponent<Canis::Transform3D>();
     }
@@ -31,7 +31,7 @@ namespace RollABall
 
     void PickupSpinner::Update(float _dt)
     {
-        
+        m_transform->rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
     }
 
     void PickupSpinner::EditorInspectorDraw() {}

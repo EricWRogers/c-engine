@@ -15,6 +15,7 @@ namespace RollABall
         REGISTER_PROPERTY(conf, RollABall::PlayerController, moveForce);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, pickupRadius);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, sprint);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Canis::Transform3D, Canis::Rigidbody3D);
 
@@ -71,13 +72,37 @@ namespace RollABall
             axisZ -= 1.0f;
         if (input.GetKey(Canis::Key::S) || input.GetKey(Canis::Key::DOWN))
             axisZ += 1.0f;
+        
+        sprint = input.GetKey(Key::LSHIFT);
 
         Canis::Vector3 movement = Canis::Vector3(axisX, 0.0f, axisZ);
+
+        if (input.JustPressedKey(Key::SPACE)) {
+            movement.y = 500.0f;
+        }
+
         if (glm::dot(movement, movement) > 0.0f)
         {
             // Unity-style movement: apply force from input every frame.
-            movement = glm::normalize(movement);
+            //movement = glm::normalize(movement);
+
             m_rigidbody->AddForce(movement * moveForce * _dt, Canis::Rigidbody3DForceMode::FORCE);
+        }
+
+        for (Entity* pickupEntity : entity.scene->GetEntitiesWithTag("Pickup"))
+        {
+            Transform3D* pickupTransform = pickupEntity->GetComponent<Transform3D>();
+
+            float distance = glm::distance(pickupTransform->position, m_transform->position);
+
+            if (distance < pickupRadius)
+            {
+                collectedPickups++;
+                pickupEntity->Destroy();
+
+                hasWon = (collectedPickups >= totalPickups);
+                break;
+            }
         }
     }
 

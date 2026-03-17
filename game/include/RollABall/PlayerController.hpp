@@ -21,6 +21,7 @@ namespace RollABall
         int totalPickups = 0;
         int collectedPickups = 0;
         bool hasWon = false;
+        bool sprint = false;
 
         explicit PlayerController(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 

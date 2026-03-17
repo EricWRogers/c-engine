@@ -23,11 +23,11 @@ namespace SpaceInvaders
 
     void RegisterSwarmControllerScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, horizontalSpeed, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, stepDown, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, fireInterval, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, enemyBulletSpeed, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, enemyBulletLifetime, float);
+        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, horizontalSpeed);
+        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, stepDown);
+        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, fireInterval);
+        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, enemyBulletSpeed);
+        REGISTER_PROPERTY(conf, SpaceInvaders::SwarmController, enemyBulletLifetime);
 
         DEFAULT_CONFIG(conf, SpaceInvaders::SwarmController);
 

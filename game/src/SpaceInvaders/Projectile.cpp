@@ -33,9 +33,9 @@ namespace SpaceInvaders
 
     void RegisterProjectileScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, velocity, Vector2);
-        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, lifeTime, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, fromPlayer, bool);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, velocity);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, lifeTime);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Projectile, fromPlayer);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, SpaceInvaders::Projectile, Canis::RectTransform, Canis::Sprite2D);
 

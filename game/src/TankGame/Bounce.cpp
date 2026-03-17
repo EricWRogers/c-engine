@@ -16,8 +16,8 @@ namespace TankGame
 
     void RegisterBounceScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(bounceConf, TankGame::Bounce, scaleMultiplier, float);
-        REGISTER_PROPERTY(bounceConf, TankGame::Bounce, duration, float);
+        REGISTER_PROPERTY(bounceConf, TankGame::Bounce, scaleMultiplier);
+        REGISTER_PROPERTY(bounceConf, TankGame::Bounce, duration);
 
         DEFAULT_CONFIG_AND_REQUIRED(bounceConf, TankGame::Bounce, Canis::RectTransform);
 

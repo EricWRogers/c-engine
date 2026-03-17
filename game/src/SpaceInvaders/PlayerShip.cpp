@@ -24,10 +24,10 @@ namespace SpaceInvaders
 
     void RegisterPlayerShipScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, speed, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, fireCooldown, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, bulletSpeed, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, bulletLifetime, float);
+        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, speed);
+        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, fireCooldown);
+        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, bulletSpeed);
+        REGISTER_PROPERTY(conf, SpaceInvaders::PlayerShip, bulletLifetime);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, SpaceInvaders::PlayerShip, Canis::RectTransform, Canis::Sprite2D);
 

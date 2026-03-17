@@ -21,9 +21,9 @@ namespace TankGame
 
     void RegisterTankScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(tankConf, TankGame::Tank, speed, float);
-        REGISTER_PROPERTY(tankConf, TankGame::Tank, turnSpeed, float);
-        REGISTER_PROPERTY(tankConf, TankGame::Tank, count, int);
+        REGISTER_PROPERTY(tankConf, TankGame::Tank, speed);
+        REGISTER_PROPERTY(tankConf, TankGame::Tank, turnSpeed);
+        REGISTER_PROPERTY(tankConf, TankGame::Tank, count);
 
         DEFAULT_CONFIG_AND_REQUIRED(tankConf, TankGame::Tank, Canis::RectTransform, Canis::Sprite2D);
 

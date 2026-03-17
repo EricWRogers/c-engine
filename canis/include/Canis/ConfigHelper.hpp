@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <type_traits>
+#include <utility>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -135,10 +136,11 @@ void UnRegister##type##Script(Canis::App& _app)  \
     _app.UnregisterScript(_conf);                \
 }
 
-#define REGISTER_PROPERTY(config, component, property, type)                                      \
+#define REGISTER_PROPERTY(config, component, property)                                            \
 {                                                                                                   \
+    using PropertyType = std::remove_cvref_t<decltype(std::declval<component>().property)>;       \
     config.registry.setters[#property] = [](YAML::Node &node, void *componentPtr) {             	        \
-        static_cast<component *>(componentPtr)->property = node.as<type>();                         \
+        static_cast<component *>(componentPtr)->property = node.as<PropertyType>();                 \
     };                                                                                              \
                                                                                                     \
     config.registry.getters[#property] = [](void *componentPtr) -> YAML::Node {                     		\
@@ -147,7 +149,7 @@ void UnRegister##type##Script(Canis::App& _app)  \
                                                                                                     \
     config.registry.drawers[#property] = [](const std::string &propertyName, void *componentPtr, const std::string &idSuffix) { \
         auto *typedComponent = static_cast<component *>(componentPtr);                              \
-        DrawInspectorField<type>((propertyName + "##" + idSuffix).c_str(), typedComponent->property); \
+        DrawInspectorField<PropertyType>((propertyName + "##" + idSuffix).c_str(), typedComponent->property); \
     };                                                                                               \
                                                                                                		\
     config.registry.propertyOrder.push_back(#property);                                             		\

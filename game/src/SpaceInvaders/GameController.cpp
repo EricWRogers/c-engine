@@ -20,10 +20,10 @@ namespace SpaceInvaders
 
     void RegisterGameControllerScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, score, int);
-        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, lives, int);
-        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, gameOver, bool);
-        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, levelCleared, bool);
+        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, score);
+        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, lives);
+        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, gameOver);
+        REGISTER_PROPERTY(conf, SpaceInvaders::GameController, levelCleared);
 
         DEFAULT_CONFIG(conf, SpaceInvaders::GameController);
 

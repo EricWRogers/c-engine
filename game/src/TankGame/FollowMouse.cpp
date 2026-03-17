@@ -16,7 +16,7 @@ namespace TankGame
 
     void RegisterFollowMouseScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(followMouseConf, TankGame::FollowMouse, offset, Vector2);
+        REGISTER_PROPERTY(followMouseConf, TankGame::FollowMouse, offset);
 
         DEFAULT_CONFIG_AND_REQUIRED(followMouseConf, TankGame::FollowMouse, Canis::RectTransform);
 

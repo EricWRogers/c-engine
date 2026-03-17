@@ -12,9 +12,9 @@ namespace Pong
 
     void RegisterBallScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, Pong::Ball, direction, Vector2);
-        REGISTER_PROPERTY(conf, Pong::Ball, speed, float);
-        REGISTER_PROPERTY(conf, Pong::Ball, randomRotation, float);
+        REGISTER_PROPERTY(conf, Pong::Ball, direction);
+        REGISTER_PROPERTY(conf, Pong::Ball, speed);
+        REGISTER_PROPERTY(conf, Pong::Ball, randomRotation);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, Pong::Ball, Canis::RectTransform, Canis::Sprite2D);
 

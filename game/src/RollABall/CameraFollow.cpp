@@ -13,8 +13,8 @@ namespace RollABall
 
     void RegisterCameraFollowScript(Canis::App& _app)
     {
-        REGISTER_PROPERTY(conf, RollABall::CameraFollow, offset, Canis::Vector3);
-        REGISTER_PROPERTY(conf, RollABall::CameraFollow, followSmoothing, float);
+        REGISTER_PROPERTY(conf, RollABall::CameraFollow, offset);
+        REGISTER_PROPERTY(conf, RollABall::CameraFollow, followSmoothing);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::CameraFollow, Canis::Transform3D);
 

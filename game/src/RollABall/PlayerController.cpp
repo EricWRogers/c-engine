@@ -15,9 +15,9 @@ namespace RollABall
 
     void RegisterPlayerControllerScript(Canis::App& _app)
     {
-        REGISTER_PROPERTY(conf, RollABall::PlayerController, moveForce, float);
-        REGISTER_PROPERTY(conf, RollABall::PlayerController, pickupRadius, float);
-        REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress, bool);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, moveForce);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, pickupRadius);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Canis::Transform3D, Canis::Rigidbody3D);
 

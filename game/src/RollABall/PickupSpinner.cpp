@@ -12,7 +12,7 @@ namespace RollABall
 
     void RegisterPickupSpinnerScript(Canis::App& _app)
     {
-        REGISTER_PROPERTY(conf, RollABall::PickupSpinner, spinSpeedDegrees, float);
+        REGISTER_PROPERTY(conf, RollABall::PickupSpinner, spinSpeedDegrees);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PickupSpinner, Canis::Transform3D);
 

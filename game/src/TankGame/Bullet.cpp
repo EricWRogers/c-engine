@@ -19,8 +19,8 @@ namespace TankGame
 
     void RegisterBulletScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, TankGame::Bullet, speed, float);
-        REGISTER_PROPERTY(conf, TankGame::Bullet, lifeTime, float);
+        REGISTER_PROPERTY(conf, TankGame::Bullet, speed);
+        REGISTER_PROPERTY(conf, TankGame::Bullet, lifeTime);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, TankGame::Bullet, Canis::RectTransform, Canis::Sprite2D);
 

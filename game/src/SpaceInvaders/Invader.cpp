@@ -16,9 +16,9 @@ namespace SpaceInvaders
 
     void RegisterInvaderScript(Canis::App &_app)
     {
-        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, points, int);
-        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, wobbleAmplitude, float);
-        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, wobbleSpeed, float);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, points);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, wobbleAmplitude);
+        REGISTER_PROPERTY(conf, SpaceInvaders::Invader, wobbleSpeed);
 
         DEFAULT_CONFIG_AND_REQUIRED(conf, SpaceInvaders::Invader, Canis::RectTransform, Canis::Sprite2D);
 

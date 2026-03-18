@@ -811,7 +811,7 @@ namespace Canis
         ImGuizmo::SetRect(m_gameViewportPosX, m_gameViewportPosY, rectW, rectH);
         ImGuizmo::Enable(true);
 
-        if (Transform3D *transform3D = (selected != nullptr && selected->HasComponent<Transform3D>() ? &selected->GetComponent<Transform3D>() : nullptr))
+        if (Transform *transform3D = (selected != nullptr && selected->HasComponent<Transform>() ? &selected->GetComponent<Transform>() : nullptr))
         {
             const bool useEditorSceneCamera =
                 m_mode != EditorMode::HIDDEN &&
@@ -856,9 +856,9 @@ namespace Canis
 
                 if (transform3D->parent != nullptr)
                 {
-                    if (transform3D->parent->HasComponent<Transform3D>())
+                    if (transform3D->parent->HasComponent<Transform>())
                     {
-                        Transform3D& parentTransform = transform3D->parent->GetComponent<Transform3D>();
+                        Transform& parentTransform = transform3D->parent->GetComponent<Transform>();
                         const Vector3 parentWorldPosition = parentTransform.GetGlobalPosition();
                         const Vector3 parentWorldRotation = parentTransform.GetGlobalRotation();
                         const Vector3 parentWorldScale = parentTransform.GetGlobalScale();
@@ -1198,7 +1198,7 @@ namespace Canis
         std::vector<Canis::Entity*>* children = nullptr;
         if (auto *parentRT = (_parent != nullptr && _parent->HasComponent<RectTransform>() ? &_parent->GetComponent<RectTransform>() : nullptr))
             children = &parentRT->children;
-        else if (auto *parentTransform = (_parent != nullptr && _parent->HasComponent<Transform3D>() ? &_parent->GetComponent<Transform3D>() : nullptr))
+        else if (auto *parentTransform = (_parent != nullptr && _parent->HasComponent<Transform>() ? &_parent->GetComponent<Transform>() : nullptr))
             children = &parentTransform->children;
 
         if (children == nullptr)
@@ -1225,7 +1225,7 @@ namespace Canis
         if (Canis::RectTransform* transform = (_entity != nullptr && _entity->HasComponent<RectTransform>() ? &_entity->GetComponent<RectTransform>() : nullptr))
             return &transform->children;
 
-        if (Canis::Transform3D* transform = (_entity != nullptr && _entity->HasComponent<Transform3D>() ? &_entity->GetComponent<Transform3D>() : nullptr))
+        if (Canis::Transform* transform = (_entity != nullptr && _entity->HasComponent<Transform>() ? &_entity->GetComponent<Transform>() : nullptr))
             return &transform->children;
 
         return nullptr;
@@ -1239,7 +1239,7 @@ namespace Canis
         if (Canis::RectTransform* transform = (_entity != nullptr && _entity->HasComponent<RectTransform>() ? &_entity->GetComponent<RectTransform>() : nullptr))
             return transform->parent;
 
-        if (Canis::Transform3D* transform = (_entity != nullptr && _entity->HasComponent<Transform3D>() ? &_entity->GetComponent<Transform3D>() : nullptr))
+        if (Canis::Transform* transform = (_entity != nullptr && _entity->HasComponent<Transform>() ? &_entity->GetComponent<Transform>() : nullptr))
             return transform->parent;
 
         return nullptr;
@@ -1259,9 +1259,9 @@ namespace Canis
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = (_child != nullptr && _child->HasComponent<Transform3D>() ? &_child->GetComponent<Transform3D>() : nullptr))
+        if (Canis::Transform* childTransform = (_child != nullptr && _child->HasComponent<Transform>() ? &_child->GetComponent<Transform>() : nullptr))
         {
-            if (_parent != nullptr && !_parent->HasComponent<Transform3D>())
+            if (_parent != nullptr && !_parent->HasComponent<Transform>())
                 return false;
 
             childTransform->SetParent(_parent);
@@ -1285,9 +1285,9 @@ namespace Canis
             return true;
         }
 
-        if (Canis::Transform3D* childTransform = (_child != nullptr && _child->HasComponent<Transform3D>() ? &_child->GetComponent<Transform3D>() : nullptr))
+        if (Canis::Transform* childTransform = (_child != nullptr && _child->HasComponent<Transform>() ? &_child->GetComponent<Transform>() : nullptr))
         {
-            if (_parent != nullptr && !_parent->HasComponent<Transform3D>())
+            if (_parent != nullptr && !_parent->HasComponent<Transform>())
                 return false;
 
             childTransform->SetParentAtIndex(_parent, _index);
@@ -1311,7 +1311,7 @@ namespace Canis
             return true;
         }
 
-        if (Canis::Transform3D* transform = (_entity != nullptr && _entity->HasComponent<Transform3D>() ? &_entity->GetComponent<Transform3D>() : nullptr))
+        if (Canis::Transform* transform = (_entity != nullptr && _entity->HasComponent<Transform>() ? &_entity->GetComponent<Transform>() : nullptr))
         {
             if (transform->parent == nullptr)
                 return false;

@@ -67,13 +67,13 @@ void Entity::RemoveScriptDirect(const ScriptConf& _conf)
 
 ScriptableEntity* Entity::AttachScript(const std::string& _scriptName, ScriptableEntity* _scriptableEntity, bool _callCreate)
 {
-    if (scene == nullptr || scene->app == nullptr)
+    if (scene.app == nullptr)
     {
         delete _scriptableEntity;
         return nullptr;
     }
 
-    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    ScriptConf* conf = scene.app->GetScriptConf(_scriptName);
     if (conf == nullptr)
     {
         delete _scriptableEntity;
@@ -85,10 +85,10 @@ ScriptableEntity* Entity::AttachScript(const std::string& _scriptName, Scriptabl
 
 void Entity::RemoveScript(const std::string& _scriptName)
 {
-    if (scene == nullptr || scene->app == nullptr)
+    if (scene.app == nullptr)
         return;
 
-    ScriptConf* conf = scene->app->GetScriptConf(_scriptName);
+    ScriptConf* conf = scene.app->GetScriptConf(_scriptName);
     if (conf == nullptr)
         return;
 
@@ -112,7 +112,7 @@ void Entity::RemoveAllScripts()
 }
 
 void Entity::Destroy() {
-    scene->Destroy(id);
+    scene.Destroy(id);
 }
 
 void RectTransform::EditorInspectorDraw()
@@ -146,9 +146,9 @@ void Text::EditorInspectorDraw()
     ImGui::InputInt("font asset id", &assetId);
 }
 
-void Transform3D::EditorInspectorDraw()
+void Transform::EditorInspectorDraw()
 {
-    std::string nameOfType = "Transform3D";
+    std::string nameOfType = "Transform";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::InputFloat3("position", &position.x, "%.3f");
 
@@ -159,14 +159,14 @@ void Transform3D::EditorInspectorDraw()
     ImGui::InputFloat3("scale", &scale.x, "%.3f");
 }
 
-void Rigidbody3D::EditorInspectorDraw()
+void Rigidbody::EditorInspectorDraw()
 {
-    std::string nameOfType = "Rigidbody3D";
+    std::string nameOfType = "Rigidbody";
     ImGui::Text("%s", nameOfType.c_str());
 
     const char *motionTypeLabels[] = {"Static", "Kinematic", "Dynamic"};
-    if (motionType < Rigidbody3DMotionType::STATIC || motionType > Rigidbody3DMotionType::DYNAMIC)
-        motionType = Rigidbody3DMotionType::DYNAMIC;
+    if (motionType < RigidbodyMotionType::STATIC || motionType > RigidbodyMotionType::DYNAMIC)
+        motionType = RigidbodyMotionType::DYNAMIC;
 
     ImGui::Checkbox("active", &active);
     ImGui::Combo("motionType", &motionType, motionTypeLabels, IM_ARRAYSIZE(motionTypeLabels));
@@ -185,34 +185,34 @@ void Rigidbody3D::EditorInspectorDraw()
     ImGui::InputFloat3("angularVelocity", &angularVelocity.x, "%.3f");
 }
 
-void BoxCollider3D::EditorInspectorDraw()
+void BoxCollider::EditorInspectorDraw()
 {
-    std::string nameOfType = "BoxCollider3D";
+    std::string nameOfType = "BoxCollider";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("active", &active);
     ImGui::InputFloat3("size", &size.x, "%.3f");
 }
 
-void SphereCollider3D::EditorInspectorDraw()
+void SphereCollider::EditorInspectorDraw()
 {
-    std::string nameOfType = "SphereCollider3D";
+    std::string nameOfType = "SphereCollider";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("active", &active);
     ImGui::InputFloat("radius", &radius);
 }
 
-void CapsuleCollider3D::EditorInspectorDraw()
+void CapsuleCollider::EditorInspectorDraw()
 {
-    std::string nameOfType = "CapsuleCollider3D";
+    std::string nameOfType = "CapsuleCollider";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("active", &active);
     ImGui::InputFloat("halfHeight", &halfHeight);
     ImGui::InputFloat("radius", &radius);
 }
 
-void Camera3D::EditorInspectorDraw()
+void Camera::EditorInspectorDraw()
 {
-    std::string nameOfType = "Camera3D";
+    std::string nameOfType = "Camera";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("primary", &primary);
     ImGui::InputFloat("fovDegrees", &fovDegrees);
@@ -240,9 +240,9 @@ void PointLight::EditorInspectorDraw()
     ImGui::InputFloat("range", &range);
 }
 
-void Model3D::EditorInspectorDraw()
+void Model::EditorInspectorDraw()
 {
-    std::string nameOfType = "Model3D";
+    std::string nameOfType = "Model";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::InputInt("modelId", &modelId);
     ImGui::ColorEdit4("color", &color.r);
@@ -256,9 +256,9 @@ void Material::EditorInspectorDraw()
     ImGui::ColorEdit4("color", &color.r);
 }
 
-void ModelAnimation3D::EditorInspectorDraw()
+void ModelAnimation::EditorInspectorDraw()
 {
-    std::string nameOfType = "ModelAnimation3D";
+    std::string nameOfType = "ModelAnimation";
     ImGui::Text("%s", nameOfType.c_str());
     ImGui::Checkbox("playAnimation", &playAnimation);
     ImGui::Checkbox("loop", &loop);
@@ -268,11 +268,11 @@ void ModelAnimation3D::EditorInspectorDraw()
 }
 
 void Camera2D::Create() {
-    if (entity == nullptr || entity->scene == nullptr)
+    if (entity == nullptr)
         return;
 
-    m_screenWidth = entity->scene->GetWindow().GetScreenWidth();
-    m_screenHeight = entity->scene->GetWindow().GetScreenHeight();
+    m_screenWidth = entity->scene.GetWindow().GetScreenWidth();
+    m_screenHeight = entity->scene.GetWindow().GetScreenHeight();
     m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
                                       (float)m_screenHeight, 0.0f, 100.0f);
     SetPosition(Vector2(0.0f)); // Vector2((float)m_screenWidth / 2,
@@ -306,11 +306,11 @@ void Camera2D::EditorInspectorDraw()
 
 void Camera2D::UpdateMatrix()
 {
-    if (entity == nullptr || entity->scene == nullptr)
+    if (entity == nullptr)
         return;
 
-    m_screenWidth = entity->scene->GetWindow().GetScreenWidth();
-    m_screenHeight = entity->scene->GetWindow().GetScreenHeight();
+    m_screenWidth = entity->scene.GetWindow().GetScreenWidth();
+    m_screenHeight = entity->scene.GetWindow().GetScreenHeight();
     m_projection = glm::ortho(0.0f, (float)m_screenWidth, 0.0f,
                                       (float)m_screenHeight, 0.0f, 100.0f);
                                       

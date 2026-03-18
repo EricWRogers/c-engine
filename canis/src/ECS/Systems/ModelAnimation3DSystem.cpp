@@ -19,11 +19,11 @@ namespace Canis
     {
         const float deltaTime = _deltaTime;
 
-        auto animationView = _registry.view<Model3D, ModelAnimation3D>();
+        auto animationView = _registry.view<Model, ModelAnimation>();
         for (const entt::entity entityHandle : animationView)
         {
-            Model3D &modelRenderer = animationView.get<Model3D>(entityHandle);
-            ModelAnimation3D &modelAnimation = animationView.get<ModelAnimation3D>(entityHandle);
+            Model &modelRenderer = animationView.get<Model>(entityHandle);
+            ModelAnimation &modelAnimation = animationView.get<ModelAnimation>(entityHandle);
 
             Entity *entity = modelRenderer.entity;
             if (entity == nullptr)

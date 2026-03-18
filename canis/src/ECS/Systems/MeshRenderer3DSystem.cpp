@@ -178,14 +178,14 @@ namespace Canis
         }
         else
         {
-            Camera3D *camera = nullptr;
-            Transform3D *cameraTransform = nullptr;
+            Camera *camera = nullptr;
+            Transform *cameraTransform = nullptr;
 
-            auto cameraView = _registry.view<Camera3D, Transform3D>();
+            auto cameraView = _registry.view<Camera, Transform>();
             for (const entt::entity entityHandle : cameraView)
             {
-                Camera3D &candidateCamera = cameraView.get<Camera3D>(entityHandle);
-                Transform3D &candidateTransform = cameraView.get<Transform3D>(entityHandle);
+                Camera &candidateCamera = cameraView.get<Camera>(entityHandle);
+                Transform &candidateTransform = cameraView.get<Transform>(entityHandle);
 
                 Entity *entity = candidateCamera.entity;
                 if (entity == nullptr)
@@ -262,11 +262,11 @@ namespace Canis
         float pointLightIntensity = 1.2f;
         float pointLightRange = 12.0f;
 
-        auto pointLightView = _registry.view<PointLight, Transform3D>();
+        auto pointLightView = _registry.view<PointLight, Transform>();
         for (const entt::entity entityHandle : pointLightView)
         {
             PointLight &light = pointLightView.get<PointLight>(entityHandle);
-            Transform3D &lightTransform = pointLightView.get<Transform3D>(entityHandle);
+            Transform &lightTransform = pointLightView.get<Transform>(entityHandle);
             Entity *entity = light.entity;
             if (entity == nullptr)
                 entity = lightTransform.entity;
@@ -284,11 +284,11 @@ namespace Canis
 
         Shader *currentShader = nullptr;
 
-        auto modelView = _registry.view<Transform3D, Model3D>();
+        auto modelView = _registry.view<Transform, Model>();
         for (const entt::entity entityHandle : modelView)
         {
-            Transform3D &transform = modelView.get<Transform3D>(entityHandle);
-            Model3D &modelRenderer = modelView.get<Model3D>(entityHandle);
+            Transform &transform = modelView.get<Transform>(entityHandle);
+            Model &modelRenderer = modelView.get<Model>(entityHandle);
             Entity *entity = modelRenderer.entity;
             if (entity == nullptr)
                 entity = transform.entity;
@@ -340,7 +340,7 @@ namespace Canis
             }
 
             const ModelAsset::Pose3D *pose = nullptr;
-            if (ModelAnimation3D *animation = _registry.try_get<ModelAnimation3D>(entityHandle))
+            if (ModelAnimation *animation = _registry.try_get<ModelAnimation>(entityHandle))
             {
                 if (animation->poseModelId == modelRenderer.modelId)
                     pose = &animation->pose;

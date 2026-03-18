@@ -34,14 +34,15 @@ namespace Canis
         const ScriptableEntity* GetScriptDirect(const ScriptConf& _conf) const;
         void RemoveScriptDirect(const ScriptConf& _conf);
     public:
-        int id;
-        Scene *scene;
+        int id = -1;
+        Scene& scene;
         bool active = true;
         std::string name = "";
         std::string tag = "";
         UUID uuid;
         
-        Entity() = default;
+        Entity() = delete;
+        explicit Entity(Scene& _scene) : scene(_scene) {}
 
         entt::entity GetHandle() const
         {
@@ -51,13 +52,13 @@ namespace Canis
         template <typename T, typename... Args>
         T* AddComponent(Args&&... _args)
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 throw std::runtime_error("Entity::AddComponent called on invalid entity.");
 
             if (HasComponent<T>())
                 return &GetComponent<T>();
 
-            T& component = scene->GetRegistry().emplace<T>(m_entityHandle, std::forward<Args>(_args)...);
+            T& component = scene.GetRegistry().emplace<T>(m_entityHandle, std::forward<Args>(_args)...);
             component.entity = this;
             return &component;
         }
@@ -65,10 +66,10 @@ namespace Canis
         template <typename T, typename... Args>
         T& AddOrReplaceComponent(Args&&... _args)
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 throw std::runtime_error("Entity::AddOrReplaceComponent called on invalid entity.");
 
-            T& component = scene->GetRegistry().emplace_or_replace<T>(m_entityHandle, std::forward<Args>(_args)...);
+            T& component = scene.GetRegistry().emplace_or_replace<T>(m_entityHandle, std::forward<Args>(_args)...);
             component.entity = this;
             return component;
         }
@@ -76,10 +77,10 @@ namespace Canis
         template <typename T>
         bool HasComponent() const
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 return false;
 
-            return scene->GetRegistry().all_of<T>(m_entityHandle);
+            return scene.GetRegistry().all_of<T>(m_entityHandle);
         }
 
         template <typename... T>
@@ -87,44 +88,44 @@ namespace Canis
         {
             static_assert(sizeof...(T) > 0, "Entity::HasComponents requires at least one component type.");
 
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 return false;
 
-            return scene->GetRegistry().all_of<T...>(m_entityHandle);
+            return scene.GetRegistry().all_of<T...>(m_entityHandle);
         }
 
         template <typename T>
         T& GetComponent()
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 throw std::runtime_error("Entity::GetComponent called on invalid entity.");
 
             if (!HasComponent<T>())
                 return *AddComponent<T>();
 
-            return scene->GetRegistry().get<T>(m_entityHandle);
+            return scene.GetRegistry().get<T>(m_entityHandle);
         }
 
         template <typename T>
         const T& GetComponent() const
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 throw std::runtime_error("Entity::GetComponent const called on invalid entity.");
 
             if (!HasComponent<T>())
                 throw std::runtime_error("Entity::GetComponent const called for missing component.");
 
-            return scene->GetRegistry().get<T>(m_entityHandle);
+            return scene.GetRegistry().get<T>(m_entityHandle);
         }
 
         template <typename T>
         void RemoveComponent()
         {
-            if (!scene || m_entityHandle == entt::null)
+            if (m_entityHandle == entt::null)
                 return;
 
             if (HasComponent<T>())
-                scene->GetRegistry().remove<T>(m_entityHandle);
+                scene.GetRegistry().remove<T>(m_entityHandle);
         }
 
         template <typename T>
@@ -603,43 +604,6 @@ namespace Canis
 
         explicit Transform(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
-        void Create() {}
-
-        void EditorInspectorDraw() {
-            /*std::string nameOfType = "Transform";
-            ImGui::Text("%s", nameOfType.c_str());
-            ImGui::InputFloat3("position", &position.x, "%.3f");
-            ImGui::InputFloat2("size", &size.x, "%.3f");
-            ImGui::InputFloat2("scale", &scale.x);
-            ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
-            ImGui::InputFloat("depth", &depth);
-            // let user work with degrees
-            float degrees = RAD2DEG * rotation;
-            ImGui::InputFloat("rotation", &degrees);
-            rotation = DEG2RAD * degrees;*/
-        }
-
-		bool active = true;
-		Vector3 position = Vector3(0.0f);
-		//glm::quat rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
-        Vector3 rotation = Vector3(0.0f);
-		Vector3 scale = Vector3(1.0f);
-		Matrix4 modelMatrix = Matrix4(1.0f);
-		bool isDirty = true;
-        Entity  parent;
-			std::vector<Entity> children;
-    };
-
-    struct Transform3D
-    {
-    public:
-        static constexpr const char* ScriptName = "Canis::Transform3D";
-
-        Transform3D() = default;
-
-
-        explicit Transform3D(Canis::Entity& _entity) : entity(&_entity) {}
-        Entity* entity = nullptr;
 
         void EditorInspectorDraw();
         void Create() {}
@@ -673,9 +637,9 @@ namespace Canis
 
             if (parent != nullptr)
             {
-                if (parent->HasComponent<Transform3D>())
+                if (parent->HasComponent<Transform>())
                 {
-                    const Transform3D& parentTransform = parent->GetComponent<Transform3D>();
+                    const Transform& parentTransform = parent->GetComponent<Transform>();
                     return parentTransform.GetModelMatrix() * local;
                 }
             }
@@ -694,9 +658,9 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (parent->HasComponent<Transform3D>())
+                if (parent->HasComponent<Transform>())
                 {
-                    const Transform3D& parentTransform = parent->GetComponent<Transform3D>();
+                    const Transform& parentTransform = parent->GetComponent<Transform>();
                     return rotation + parentTransform.GetGlobalRotation();
                 }
             }
@@ -708,9 +672,9 @@ namespace Canis
         {
             if (parent != nullptr)
             {
-                if (parent->HasComponent<Transform3D>())
+                if (parent->HasComponent<Transform>())
                 {
-                    const Transform3D& parentTransform = parent->GetComponent<Transform3D>();
+                    const Transform& parentTransform = parent->GetComponent<Transform>();
                     const Vector3 parentScale = parentTransform.GetGlobalScale();
                     return Vector3(
                         parentScale.x * scale.x,
@@ -752,9 +716,9 @@ namespace Canis
                 if (!parent)
                     return;
 
-                if (parent->HasComponent<Transform3D>())
+                if (parent->HasComponent<Transform>())
                 {
-                    Transform3D& parentTransform = parent->GetComponent<Transform3D>();
+                    Transform& parentTransform = parent->GetComponent<Transform>();
                     auto& list = parentTransform.children;
                     auto it = std::find(list.begin(), list.end(), self);
                     if (it == list.end())
@@ -777,9 +741,9 @@ namespace Canis
 
             if (parent)
             {
-                if (parent->HasComponent<Transform3D>())
+                if (parent->HasComponent<Transform>())
                 {
-                    Transform3D& oldParentTransform = parent->GetComponent<Transform3D>();
+                    Transform& oldParentTransform = parent->GetComponent<Transform>();
                     auto& list = oldParentTransform.children;
                     list.erase(std::remove(list.begin(), list.end(), self), list.end());
                 }
@@ -789,9 +753,9 @@ namespace Canis
 
             if (newParent)
             {
-                if (newParent->HasComponent<Transform3D>())
+                if (newParent->HasComponent<Transform>())
                 {
-                    Transform3D& newParentTransform = newParent->GetComponent<Transform3D>();
+                    Transform& newParentTransform = newParent->GetComponent<Transform>();
                     auto& list = newParentTransform.children;
                     index = std::clamp(index, static_cast<size_t>(0), list.size());
                     list.insert(list.begin() + index, self);
@@ -829,9 +793,9 @@ namespace Canis
 
         void SetParent(Entity* newParent)
         {
-            if (newParent && newParent->HasComponent<Transform3D>())
+            if (newParent && newParent->HasComponent<Transform>())
             {
-                Transform3D& parentTransform = newParent->GetComponent<Transform3D>();
+                Transform& parentTransform = newParent->GetComponent<Transform>();
                 SetParentAtIndex(newParent, parentTransform.children.size());
             }
             else
@@ -859,12 +823,12 @@ namespace Canis
         {
             if (!child)
                 return;
-            if (!child->HasComponent<Transform3D>())
+            if (!child->HasComponent<Transform>())
                 return;
 
             if (entity != nullptr)
             {
-                Transform3D& childTransform = child->GetComponent<Transform3D>();
+                Transform& childTransform = child->GetComponent<Transform>();
                 childTransform.SetParent(entity);
             }
         }
@@ -876,9 +840,9 @@ namespace Canis
 
             children.erase(std::remove(children.begin(), children.end(), child), children.end());
 
-            if (child->HasComponent<Transform3D>())
+            if (child->HasComponent<Transform>())
             {
-                Transform3D& childTransform = child->GetComponent<Transform3D>();
+                Transform& childTransform = child->GetComponent<Transform>();
                 childTransform.parent = nullptr;
             }
         }
@@ -887,9 +851,9 @@ namespace Canis
         {
             for (auto* child : children)
             {
-                if (child != nullptr && child->HasComponent<Transform3D>())
+                if (child != nullptr && child->HasComponent<Transform>())
                 {
-                    Transform3D& childTransform = child->GetComponent<Transform3D>();
+                    Transform& childTransform = child->GetComponent<Transform>();
                     childTransform.parent = nullptr;
                 }
             }
@@ -898,7 +862,7 @@ namespace Canis
         }
     };
 
-    namespace Rigidbody3DMotionType
+    namespace RigidbodyMotionType
     {
         constexpr int STATIC = 0;
         constexpr int KINEMATIC = 1;
@@ -913,13 +877,13 @@ namespace Canis
         constexpr int VELOCITY_CHANGE = 3;
     }
 
-    struct Rigidbody3D
+    struct Rigidbody
     {
     public:
-        static constexpr const char* ScriptName = "Canis::Rigidbody3D";
+        static constexpr const char* ScriptName = "Canis::Rigidbody";
 
-        Rigidbody3D() = default;
-        explicit Rigidbody3D(Canis::Entity& _entity) : entity(&_entity) {}
+        Rigidbody() = default;
+        explicit Rigidbody(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
 
         void Create() {}
@@ -927,7 +891,7 @@ namespace Canis
 
         void AddForce(const Vector3& _force, int _forceMode = Rigidbody3DForceMode::FORCE)
         {
-            if (!active || motionType != Rigidbody3DMotionType::DYNAMIC)
+            if (!active || motionType != RigidbodyMotionType::DYNAMIC)
                 return;
 
             switch (_forceMode)
@@ -949,7 +913,7 @@ namespace Canis
         }
 
         bool active = true;
-        int motionType = Rigidbody3DMotionType::DYNAMIC;
+        int motionType = RigidbodyMotionType::DYNAMIC;
         float mass = 1.0f;
         float friction = 0.2f;
         float restitution = 0.0f;
@@ -969,13 +933,13 @@ namespace Canis
         Vector3 pendingVelocityChange = Vector3(0.0f);
     };
 
-    struct BoxCollider3D
+    struct BoxCollider
     {
     public:
-        static constexpr const char* ScriptName = "Canis::BoxCollider3D";
+        static constexpr const char* ScriptName = "Canis::BoxCollider";
 
-        BoxCollider3D() = default;
-        explicit BoxCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        BoxCollider() = default;
+        explicit BoxCollider(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
 
         void Create() {}
@@ -985,13 +949,13 @@ namespace Canis
         Vector3 size = Vector3(1.0f);
     };
 
-    struct SphereCollider3D
+    struct SphereCollider
     {
     public:
-        static constexpr const char* ScriptName = "Canis::SphereCollider3D";
+        static constexpr const char* ScriptName = "Canis::SphereCollider";
 
-        SphereCollider3D() = default;
-        explicit SphereCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        SphereCollider() = default;
+        explicit SphereCollider(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
 
         void Create() {}
@@ -1001,13 +965,13 @@ namespace Canis
         float radius = 0.5f;
     };
 
-    struct CapsuleCollider3D
+    struct CapsuleCollider
     {
     public:
-        static constexpr const char* ScriptName = "Canis::CapsuleCollider3D";
+        static constexpr const char* ScriptName = "Canis::CapsuleCollider";
 
-        CapsuleCollider3D() = default;
-        explicit CapsuleCollider3D(Canis::Entity& _entity) : entity(&_entity) {}
+        CapsuleCollider() = default;
+        explicit CapsuleCollider(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
 
         void Create() {}
@@ -1018,15 +982,15 @@ namespace Canis
         float radius = 0.25f;
     };
 
-    struct Camera3D
+    struct Camera
     {
     public:
-        static constexpr const char* ScriptName = "Canis::Camera3D";
+        static constexpr const char* ScriptName = "Canis::Camera";
 
-        Camera3D() = default;
+        Camera() = default;
 
 
-        explicit Camera3D(Canis::Entity& _entity) : entity(&_entity) {}
+        explicit Camera(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
         void Create() {}
 
@@ -1078,15 +1042,15 @@ namespace Canis
         float range = 12.0f;
     };
 
-    struct Model3D
+    struct Model
     {
     public:
-        static constexpr const char* ScriptName = "Canis::Model3D";
+        static constexpr const char* ScriptName = "Canis::Model";
 
-        Model3D() = default;
+        Model() = default;
 
 
-        explicit Model3D(Canis::Entity& _entity) : entity(&_entity) {}
+        explicit Model(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
         void Create() {}
 
@@ -1115,15 +1079,15 @@ namespace Canis
         Color color = Color(1.0f);
     };
 
-    struct ModelAnimation3D
+    struct ModelAnimation
     {
     public:
-        static constexpr const char* ScriptName = "Canis::ModelAnimation3D";
+        static constexpr const char* ScriptName = "Canis::ModelAnimation";
 
-        ModelAnimation3D() = default;
+        ModelAnimation() = default;
 
 
-        explicit ModelAnimation3D(Canis::Entity& _entity) : entity(&_entity) {}
+        explicit ModelAnimation(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
         void Create() {}
 

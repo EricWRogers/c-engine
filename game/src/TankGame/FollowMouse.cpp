@@ -47,18 +47,18 @@ namespace TankGame
     {
         (void)_dt;
 
-        if (m_transform == nullptr || entity.scene == nullptr)
+        if (m_transform == nullptr)
             return;
 
-        Window& window = entity.scene->GetWindow();
-        InputManager& input = entity.scene->GetInputManager();
+        Window& window = entity.scene.GetWindow();
+        InputManager& input = entity.scene.GetInputManager();
 
         Vector2 target = input.mouse - Vector2(
             static_cast<float>(window.GetScreenWidth()),
             static_cast<float>(window.GetScreenHeight())) * 0.5f;
 
         Camera2D* camera2D = nullptr;
-        for (Entity* e : entity.scene->GetEntities())
+        for (Entity* e : entity.scene.GetEntities())
         {
             if (e == nullptr || !e->active)
                 continue;

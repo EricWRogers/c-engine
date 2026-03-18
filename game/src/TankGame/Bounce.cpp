@@ -49,10 +49,10 @@ namespace TankGame
 
     void Bounce::Update(float _dt)
     {
-        if (m_transform == nullptr || entity.scene == nullptr)
+        if (m_transform == nullptr)
             return;
 
-        InputManager& input = entity.scene->GetInputManager();
+        InputManager& input = entity.scene.GetInputManager();
 
         if (input.JustLeftClicked())
         {

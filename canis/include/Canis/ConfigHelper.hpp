@@ -26,7 +26,7 @@ using namespace Canis;
 template<typename... Ts>
 inline void AddRequiredScripts(Entity& _entity)
 {
-    (_entity.scene->app->AddRequiredScript(_entity, Ts::ScriptName), ...);
+    (_entity.scene.app->AddRequiredScript(_entity, Ts::ScriptName), ...);
 }
 
 template <typename T>

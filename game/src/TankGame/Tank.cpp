@@ -104,17 +104,17 @@ namespace TankGame
             return;
 
         // movement
-        if (entity.scene->GetInputManager().GetKey(Canis::Key::W))
+        if (entity.scene.GetInputManager().GetKey(Canis::Key::W))
             m_transform->Move(m_transform->GetRight() * speed * _dt);
         
-        if (entity.scene->GetInputManager().GetKey(Canis::Key::S))
+        if (entity.scene.GetInputManager().GetKey(Canis::Key::S))
             m_transform->Move(-m_transform->GetRight() * speed * _dt);
         
         // turn
-        if (entity.scene->GetInputManager().GetKey(Canis::Key::A))
+        if (entity.scene.GetInputManager().GetKey(Canis::Key::A))
             m_transform->rotation += turnSpeed * Canis::DEG2RAD * _dt;
         
-        if (entity.scene->GetInputManager().GetKey(Canis::Key::D))
+        if (entity.scene.GetInputManager().GetKey(Canis::Key::D))
             m_transform->rotation += -turnSpeed * Canis::DEG2RAD * _dt;
     }
 
@@ -123,9 +123,9 @@ namespace TankGame
             return;
 
         // turret
-        Vector2 screenSize = Vector2(entity.scene->GetWindow().GetScreenWidth(), entity.scene->GetWindow().GetScreenHeight());
+        Vector2 screenSize = Vector2(entity.scene.GetWindow().GetScreenWidth(), entity.scene.GetWindow().GetScreenHeight());
         // mouse screen space to world space
-        Vector2 target = entity.scene->GetInputManager().mouse - screenSize * 0.5f;
+        Vector2 target = entity.scene.GetInputManager().mouse - screenSize * 0.5f;
         
         Vector2 direction = target - m_turret->GetPosition();
         float angleRadians = atan2(direction.y, direction.x);
@@ -138,9 +138,9 @@ namespace TankGame
         if (m_firePoint == nullptr)
             return;
 
-        if (entity.scene->GetInputManager().GetLeftClick())
+        if (entity.scene.GetInputManager().GetLeftClick())
         {
-            Canis::Entity* bulletEntity = entity.scene->CreateEntity("Bullet");
+            Canis::Entity* bulletEntity = entity.scene.CreateEntity("Bullet");
             RectTransform& bulletTransform = *bulletEntity->AddComponent<RectTransform>();
             Sprite2D& bulletSprite = *bulletEntity->AddComponent<Sprite2D>();
             bulletSprite.textureHandle = AssetManager::GetTextureHandle("assets/textures/arrow_decorative_n.png");

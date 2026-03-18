@@ -194,11 +194,11 @@ namespace Canis
         {
             switch (_motionType)
             {
-            case Rigidbody3DMotionType::STATIC:
+            case RigidbodyMotionType::STATIC:
                 return JPH::EMotionType::Static;
-            case Rigidbody3DMotionType::KINEMATIC:
+            case RigidbodyMotionType::KINEMATIC:
                 return JPH::EMotionType::Kinematic;
-            case Rigidbody3DMotionType::DYNAMIC:
+            case RigidbodyMotionType::DYNAMIC:
             default:
                 return JPH::EMotionType::Dynamic;
             }
@@ -209,7 +209,7 @@ namespace Canis
             return (_motionType == JPH::EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
         }
 
-        JPH::EAllowedDOFs BuildAllowedDOFs(const Rigidbody3D &_rigidbody)
+        JPH::EAllowedDOFs BuildAllowedDOFs(const Rigidbody &_rigidbody)
         {
             JPH::EAllowedDOFs allowedDOFs =
                 JPH::EAllowedDOFs::TranslationX |
@@ -228,13 +228,13 @@ namespace Canis
             return allowedDOFs;
         }
 
-        void SetTransformFromWorldPose(Transform3D &_transform, const Vector3 &_worldPosition, const Vector3 &_worldRotation)
+        void SetTransformFromWorldPose(Transform &_transform, const Vector3 &_worldPosition, const Vector3 &_worldRotation)
         {
             if (_transform.parent != nullptr)
             {
-                if (_transform.parent->HasComponent<Transform3D>())
+                if (_transform.parent->HasComponent<Transform>())
                 {
-                    Transform3D& parentTransform = _transform.parent->GetComponent<Transform3D>();
+                    Transform& parentTransform = _transform.parent->GetComponent<Transform>();
                     const Matrix4 inverseParent = glm::inverse(parentTransform.GetModelMatrix());
                     const Vector4 localPosition4 = inverseParent * Vector4(_worldPosition, 1.0f);
                     _transform.position = Vector3(localPosition4.x, localPosition4.y, localPosition4.z);
@@ -247,7 +247,7 @@ namespace Canis
             _transform.rotation = _worldRotation;
         }
 
-        size_t BuildSettingsHash(const Transform3D &_transform, const Rigidbody3D &_rigidbody, const BoxCollider3D *_boxCollider, const SphereCollider3D *_sphereCollider, const CapsuleCollider3D *_capsuleCollider)
+        size_t BuildSettingsHash(const Transform &_transform, const Rigidbody &_rigidbody, const BoxCollider *_boxCollider, const SphereCollider *_sphereCollider, const CapsuleCollider *_capsuleCollider)
         {
             size_t hash = 0;
             hash = HashCombine(hash, std::hash<int>{}(_rigidbody.motionType));
@@ -293,7 +293,7 @@ namespace Canis
             return hash;
         }
 
-        JPH::RefConst<JPH::Shape> BuildShape(const Transform3D &_transform, const BoxCollider3D *_boxCollider, const SphereCollider3D *_sphereCollider, const CapsuleCollider3D *_capsuleCollider)
+        JPH::RefConst<JPH::Shape> BuildShape(const Transform &_transform, const BoxCollider *_boxCollider, const SphereCollider *_sphereCollider, const CapsuleCollider *_capsuleCollider)
         {
             const Vector3 globalScale = glm::abs(_transform.GetGlobalScale());
 
@@ -304,7 +304,7 @@ namespace Canis
                 JPH::Shape::ShapeResult shapeResult = shapeSettings.Create();
                 if (shapeResult.HasError())
                 {
-                    Debug::Log("Jolt BoxCollider3D shape error: %s", shapeResult.GetError().c_str());
+                    Debug::Log("Jolt BoxCollider shape error: %s", shapeResult.GetError().c_str());
                     return nullptr;
                 }
                 return shapeResult.Get();
@@ -318,7 +318,7 @@ namespace Canis
                 JPH::Shape::ShapeResult shapeResult = shapeSettings.Create();
                 if (shapeResult.HasError())
                 {
-                    Debug::Log("Jolt SphereCollider3D shape error: %s", shapeResult.GetError().c_str());
+                    Debug::Log("Jolt SphereCollider shape error: %s", shapeResult.GetError().c_str());
                     return nullptr;
                 }
                 return shapeResult.Get();
@@ -333,7 +333,7 @@ namespace Canis
                 JPH::Shape::ShapeResult shapeResult = shapeSettings.Create();
                 if (shapeResult.HasError())
                 {
-                    Debug::Log("Jolt CapsuleCollider3D shape error: %s", shapeResult.GetError().c_str());
+                    Debug::Log("Jolt CapsuleCollider shape error: %s", shapeResult.GetError().c_str());
                     return nullptr;
                 }
                 return shapeResult.Get();
@@ -439,7 +439,7 @@ namespace Canis
             bodies.erase(bodyIt);
         }
 
-        void ClearPendingForces(Rigidbody3D &_rigidbody)
+        void ClearPendingForces(Rigidbody &_rigidbody)
         {
             _rigidbody.pendingForce = Vector3(0.0f);
             _rigidbody.pendingAcceleration = Vector3(0.0f);
@@ -447,7 +447,7 @@ namespace Canis
             _rigidbody.pendingVelocityChange = Vector3(0.0f);
         }
 
-        void ApplyPendingForces(const JPH::BodyID &_bodyID, Rigidbody3D &_rigidbody)
+        void ApplyPendingForces(const JPH::BodyID &_bodyID, Rigidbody &_rigidbody)
         {
             if (bodyInterface == nullptr || _bodyID.IsInvalid() || !bodyInterface->IsAdded(_bodyID))
                 return;
@@ -489,8 +489,8 @@ namespace Canis
 
         bool EnsureBodyForEntity(entt::registry &_registry, entt::entity _entityHandle)
         {
-            Transform3D *transform = _registry.try_get<Transform3D>(_entityHandle);
-            Rigidbody3D *rigidbody = _registry.try_get<Rigidbody3D>(_entityHandle);
+            Transform *transform = _registry.try_get<Transform>(_entityHandle);
+            Rigidbody *rigidbody = _registry.try_get<Rigidbody>(_entityHandle);
             if (transform == nullptr || rigidbody == nullptr)
             {
                 RemoveBody(_entityHandle);
@@ -504,9 +504,9 @@ namespace Canis
                 return false;
             }
 
-            BoxCollider3D *boxCollider = _registry.try_get<BoxCollider3D>(_entityHandle);
-            SphereCollider3D *sphereCollider = _registry.try_get<SphereCollider3D>(_entityHandle);
-            CapsuleCollider3D *capsuleCollider = _registry.try_get<CapsuleCollider3D>(_entityHandle);
+            BoxCollider *boxCollider = _registry.try_get<BoxCollider>(_entityHandle);
+            SphereCollider *sphereCollider = _registry.try_get<SphereCollider>(_entityHandle);
+            CapsuleCollider *capsuleCollider = _registry.try_get<CapsuleCollider>(_entityHandle);
 
             if (boxCollider != nullptr && !boxCollider->active)
                 boxCollider = nullptr;
@@ -590,7 +590,7 @@ namespace Canis
             std::vector<entt::entity> activeBodies = {};
             std::unordered_set<entt::entity> expected = {};
 
-            auto rigidbodyView = _registry.view<Rigidbody3D, Transform3D>();
+            auto rigidbodyView = _registry.view<Rigidbody, Transform>();
             for (const entt::entity entityHandle : rigidbodyView)
             {
                 if (!EnsureBodyForEntity(_registry, entityHandle))
@@ -615,8 +615,8 @@ namespace Canis
             for (const entt::entity entityHandle : activeBodies)
             {
                 auto bodyIt = bodies.find(entityHandle);
-                Transform3D *transform = _registry.try_get<Transform3D>(entityHandle);
-                Rigidbody3D *rigidbody = _registry.try_get<Rigidbody3D>(entityHandle);
+                Transform *transform = _registry.try_get<Transform>(entityHandle);
+                Rigidbody *rigidbody = _registry.try_get<Rigidbody>(entityHandle);
                 if (bodyIt == bodies.end() || transform == nullptr || rigidbody == nullptr)
                     continue;
 
@@ -657,8 +657,8 @@ namespace Canis
             for (const entt::entity entityHandle : _activeBodies)
             {
                 auto bodyIt = bodies.find(entityHandle);
-                Transform3D *transform = _registry.try_get<Transform3D>(entityHandle);
-                Rigidbody3D *rigidbody = _registry.try_get<Rigidbody3D>(entityHandle);
+                Transform *transform = _registry.try_get<Transform>(entityHandle);
+                Rigidbody *rigidbody = _registry.try_get<Rigidbody>(entityHandle);
                 if (bodyIt == bodies.end() || transform == nullptr || rigidbody == nullptr)
                     continue;
 

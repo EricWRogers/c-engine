@@ -17,7 +17,7 @@ namespace RollABall
         REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, sprint);
 
-        DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Transform3D, Rigidbody3D);
+        DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Transform, Rigidbody);
 
         conf.DEFAULT_DRAW_INSPECTOR(RollABall::PlayerController,
             ImGui::Text("Collected: %d / %d", component->collectedPickups, component->totalPickups);
@@ -50,13 +50,13 @@ namespace RollABall
 
     void PlayerController::Update(float _dt)
     {
-        if (!entity.HasComponents<Transform3D, Rigidbody3D>())
+        if (!entity.HasComponents<Transform, Rigidbody>())
             return;
         
-        Transform3D& transform = entity.GetComponent<Transform3D>();
-        Rigidbody3D& rigidbody = entity.GetComponent<Rigidbody3D>();
+        Transform& transform = entity.GetComponent<Transform>();
+        Rigidbody& rigidbody = entity.GetComponent<Rigidbody>();
 
-        InputManager& input = entity.scene->GetInputManager();
+        InputManager& input = entity.scene.GetInputManager();
 
         Vector3 inputDirection = Vector3(0.0f);
 
@@ -87,12 +87,12 @@ namespace RollABall
         rigidbody.AddForce(movement * moveForce * _dt, Rigidbody3DForceMode::FORCE);
         
 
-        for (Entity* pickup : entity.scene->GetEntitiesWithTag("Pickup"))
+        for (Entity* pickup : entity.scene.GetEntitiesWithTag("Pickup"))
         {
-            if (!pickup->active || !pickup->HasComponent<Transform3D>())
+            if (!pickup->active || !pickup->HasComponent<Transform>())
                 continue;
             
-            Transform3D& pickupTransform = pickup->GetComponent<Transform3D>();
+            Transform& pickupTransform = pickup->GetComponent<Transform>();
 
             float distance = glm::distance(pickupTransform.position, transform.position);
 
@@ -111,6 +111,6 @@ namespace RollABall
 
     int PlayerController::CountActivePickups() const
     {
-        return entity.scene->GetEntitiesWithTag("Pickup").size();
+        return entity.scene.GetEntitiesWithTag("Pickup").size();
     }
 }

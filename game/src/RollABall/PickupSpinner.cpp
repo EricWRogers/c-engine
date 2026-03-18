@@ -11,7 +11,7 @@ namespace RollABall
     {
         REGISTER_PROPERTY(pickUpConf, RollABall::PickupSpinner, spinSpeedDegrees);
 
-        DEFAULT_CONFIG_AND_REQUIRED(pickUpConf, RollABall::PickupSpinner, Canis::Transform3D);
+        DEFAULT_CONFIG_AND_REQUIRED(pickUpConf, RollABall::PickupSpinner, Canis::Transform);
 
         pickUpConf.DEFAULT_DRAW_INSPECTOR(RollABall::PickupSpinner);
 
@@ -24,7 +24,7 @@ namespace RollABall
 
     void PickupSpinner::Ready() // before the first update
     {
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        m_transform = entity.HasComponent<Canis::Transform>() ? &entity.GetComponent<Canis::Transform>() : nullptr;
     }
 
     void PickupSpinner::Destroy() {}
@@ -32,7 +32,7 @@ namespace RollABall
     void PickupSpinner::Update(float _dt)
     {
         // Component storage can move when entities are destroyed, so reacquire each frame.
-        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        m_transform = entity.HasComponent<Canis::Transform>() ? &entity.GetComponent<Canis::Transform>() : nullptr;
         if (m_transform == nullptr)
             return;
 

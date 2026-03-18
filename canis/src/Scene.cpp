@@ -290,14 +290,14 @@ namespace Canis
                     }
                 }
 
-                if (entity->HasComponent<Transform3D>())
+                if (entity->HasComponent<Transform>())
                 {
-                    Transform3D& transform = entity->GetComponent<Transform3D>();
+                    Transform& transform = entity->GetComponent<Transform>();
                     if (transform.parent != nullptr)
                     {
-                        if (transform.parent->HasComponent<Transform3D>())
+                        if (transform.parent->HasComponent<Transform>())
                         {
-                            Transform3D& parentTransform = transform.parent->GetComponent<Transform3D>();
+                            Transform& parentTransform = transform.parent->GetComponent<Transform>();
                             auto& siblings = parentTransform.children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
                                 siblings.push_back(entity);
@@ -313,9 +313,9 @@ namespace Canis
                         if (child == nullptr)
                             continue;
 
-                        if (child->HasComponent<Transform3D>())
+                        if (child->HasComponent<Transform>())
                         {
-                            Transform3D& childTransform = child->GetComponent<Transform3D>();
+                            Transform& childTransform = child->GetComponent<Transform>();
                             childTransform.parent = entity;
                         }
                     }
@@ -446,9 +446,8 @@ namespace Canis
 
     Entity* Scene::CreateEntity(std::string _name, std::string _tag)
     {
-        Entity* entity = new Entity();
+        Entity* entity = new Entity(*this);
         entity->id = m_entities.size();
-        entity->scene = this;
         entity->name = _name;
         entity->tag = _tag;
         entity->m_entityHandle = m_registry.create();
@@ -609,14 +608,14 @@ namespace Canis
                 queueChildForDestroy(child);
         }
 
-        if (entity->HasComponent<Transform3D>())
+        if (entity->HasComponent<Transform>())
         {
-            Transform3D& transform3D = entity->GetComponent<Transform3D>();
+            Transform& transform3D = entity->GetComponent<Transform>();
             if (transform3D.parent != nullptr)
             {
-                if (transform3D.parent->HasComponent<Transform3D>())
+                if (transform3D.parent->HasComponent<Transform>())
                 {
-                    Transform3D& parentTransform = transform3D.parent->GetComponent<Transform3D>();
+                    Transform& parentTransform = transform3D.parent->GetComponent<Transform>();
                     auto& siblings = parentTransform.children;
                     siblings.erase(std::remove(siblings.begin(), siblings.end(), entity), siblings.end());
                 }

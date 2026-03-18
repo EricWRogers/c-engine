@@ -7,9 +7,6 @@ namespace RollABall
     class PlayerController : public Canis::ScriptableEntity
     {
     private:
-        Canis::Transform3D* m_transform = nullptr;
-        Canis::Rigidbody3D* m_rigidbody = nullptr;
-
         int CountActivePickups() const;
     public:
         static constexpr const char* ScriptName = "RollABall::PlayerController";

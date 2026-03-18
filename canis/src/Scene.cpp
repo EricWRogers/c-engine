@@ -259,55 +259,65 @@ namespace Canis
                 if (entity == nullptr)
                     continue;
 
-                if (RectTransform* transform = ((entity) != nullptr ? (entity)->GetComponent<RectTransform>() : nullptr))
+                if (entity->HasComponent<RectTransform>())
                 {
-                    if (transform->parent != nullptr)
+                    RectTransform& transform = entity->GetComponent<RectTransform>();
+                    if (transform.parent != nullptr)
                     {
-                        if (RectTransform* parentTransform = ((transform->parent) != nullptr ? (transform->parent)->GetComponent<RectTransform>() : nullptr))
+                        if (transform.parent->HasComponent<RectTransform>())
                         {
-                            auto& siblings = parentTransform->children;
+                            RectTransform& parentTransform = transform.parent->GetComponent<RectTransform>();
+                            auto& siblings = parentTransform.children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
                                 siblings.push_back(entity);
                         }
                         else
                         {
-                            transform->parent = nullptr;
+                            transform.parent = nullptr;
                         }
                     }
 
-                    for (Canis::Entity*& child : transform->children)
+                    for (Canis::Entity*& child : transform.children)
                     {
                         if (child == nullptr)
                             continue;
 
-                        if (RectTransform* childTransform = ((child) != nullptr ? (child)->GetComponent<RectTransform>() : nullptr))
-                            childTransform->parent = entity;
+                        if (child->HasComponent<RectTransform>())
+                        {
+                            RectTransform& childTransform = child->GetComponent<RectTransform>();
+                            childTransform.parent = entity;
+                        }
                     }
                 }
 
-                if (Transform3D* transform = ((entity) != nullptr ? (entity)->GetComponent<Transform3D>() : nullptr))
+                if (entity->HasComponent<Transform3D>())
                 {
-                    if (transform->parent != nullptr)
+                    Transform3D& transform = entity->GetComponent<Transform3D>();
+                    if (transform.parent != nullptr)
                     {
-                        if (Transform3D* parentTransform = ((transform->parent) != nullptr ? (transform->parent)->GetComponent<Transform3D>() : nullptr))
+                        if (transform.parent->HasComponent<Transform3D>())
                         {
-                            auto& siblings = parentTransform->children;
+                            Transform3D& parentTransform = transform.parent->GetComponent<Transform3D>();
+                            auto& siblings = parentTransform.children;
                             if (std::find(siblings.begin(), siblings.end(), entity) == siblings.end())
                                 siblings.push_back(entity);
                         }
                         else
                         {
-                            transform->parent = nullptr;
+                            transform.parent = nullptr;
                         }
                     }
 
-                    for (Canis::Entity*& child : transform->children)
+                    for (Canis::Entity*& child : transform.children)
                     {
                         if (child == nullptr)
                             continue;
 
-                        if (Transform3D* childTransform = ((child) != nullptr ? (child)->GetComponent<Transform3D>() : nullptr))
-                            childTransform->parent = entity;
+                        if (child->HasComponent<Transform3D>())
+                        {
+                            Transform3D& childTransform = child->GetComponent<Transform3D>();
+                            childTransform.parent = entity;
+                        }
                     }
                 }
             }
@@ -581,35 +591,39 @@ namespace Canis
                 childIdsToDestroy.push_back(childId);
         };
 
-        if (RectTransform* rectTransform = ((entity) != nullptr ? (entity)->GetComponent<RectTransform>() : nullptr))
+        if (entity->HasComponent<RectTransform>())
         {
-            if (rectTransform->parent != nullptr)
+            RectTransform& rectTransform = entity->GetComponent<RectTransform>();
+            if (rectTransform.parent != nullptr)
             {
-                if (RectTransform* parentTransform = ((rectTransform->parent) != nullptr ? (rectTransform->parent)->GetComponent<RectTransform>() : nullptr))
+                if (rectTransform.parent->HasComponent<RectTransform>())
                 {
-                    auto& siblings = parentTransform->children;
+                    RectTransform& parentTransform = rectTransform.parent->GetComponent<RectTransform>();
+                    auto& siblings = parentTransform.children;
                     siblings.erase(std::remove(siblings.begin(), siblings.end(), entity), siblings.end());
                 }
-                rectTransform->parent = nullptr;
+                rectTransform.parent = nullptr;
             }
 
-            for (Entity* child : rectTransform->children)
+            for (Entity* child : rectTransform.children)
                 queueChildForDestroy(child);
         }
 
-        if (Transform3D* transform3D = ((entity) != nullptr ? (entity)->GetComponent<Transform3D>() : nullptr))
+        if (entity->HasComponent<Transform3D>())
         {
-            if (transform3D->parent != nullptr)
+            Transform3D& transform3D = entity->GetComponent<Transform3D>();
+            if (transform3D.parent != nullptr)
             {
-                if (Transform3D* parentTransform = ((transform3D->parent) != nullptr ? (transform3D->parent)->GetComponent<Transform3D>() : nullptr))
+                if (transform3D.parent->HasComponent<Transform3D>())
                 {
-                    auto& siblings = parentTransform->children;
+                    Transform3D& parentTransform = transform3D.parent->GetComponent<Transform3D>();
+                    auto& siblings = parentTransform.children;
                     siblings.erase(std::remove(siblings.begin(), siblings.end(), entity), siblings.end());
                 }
-                transform3D->parent = nullptr;
+                transform3D.parent = nullptr;
             }
 
-            for (Entity* child : transform3D->children)
+            for (Entity* child : transform3D.children)
                 queueChildForDestroy(child);
         }
 

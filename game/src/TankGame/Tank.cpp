@@ -46,7 +46,7 @@ namespace TankGame
     void Tank::Create() { }
 
     void Tank::Ready() {
-        m_transform = entity.GetComponent<RectTransform>();
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         m_turret = nullptr;
         m_firePoint = nullptr;
 
@@ -54,13 +54,13 @@ namespace TankGame
         {
             Entity* turretEntity = m_transform->children[0];
             m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
-                ? turretEntity->GetComponent<RectTransform>()
+                ? &turretEntity->GetComponent<RectTransform>()
                 : nullptr;
             if (m_turret != nullptr && !m_turret->children.empty())
             {
                 Entity* firePointEntity = m_turret->children[0];
                 m_firePoint = (firePointEntity != nullptr && firePointEntity->HasComponent<RectTransform>())
-                    ? firePointEntity->GetComponent<RectTransform>()
+                    ? &firePointEntity->GetComponent<RectTransform>()
                     : nullptr;
             }
         }
@@ -69,7 +69,7 @@ namespace TankGame
     void Tank::Destroy() { }
 
     void Tank::Update(float _dt) {
-        m_transform = entity.GetComponent<RectTransform>();
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform == nullptr)
             return;
 
@@ -80,11 +80,16 @@ namespace TankGame
         {
             Entity* turretEntity = m_transform->children[0];
             m_turret = (turretEntity != nullptr && turretEntity->HasComponent<RectTransform>())
-                ? turretEntity->GetComponent<RectTransform>()
+                ? &turretEntity->GetComponent<RectTransform>()
                 : nullptr;
 
             if (m_turret != nullptr && !m_turret->children.empty())
-                m_firePoint = m_turret->children[0]->GetComponent<RectTransform>();
+            {
+                Entity* firePointEntity = m_turret->children[0];
+                m_firePoint = (firePointEntity != nullptr && firePointEntity->HasComponent<RectTransform>())
+                    ? &firePointEntity->GetComponent<RectTransform>()
+                    : nullptr;
+            }
         }
 
         Movement(_dt);

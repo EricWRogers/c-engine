@@ -24,13 +24,18 @@ namespace RollABall
 
     void PickupSpinner::Ready() // before the first update
     {
-        m_transform = entity.GetComponent<Canis::Transform3D>();
+        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
     }
 
     void PickupSpinner::Destroy() {}
 
     void PickupSpinner::Update(float _dt)
     {
+        // Component storage can move when entities are destroyed, so reacquire each frame.
+        m_transform = entity.HasComponent<Canis::Transform3D>() ? &entity.GetComponent<Canis::Transform3D>() : nullptr;
+        if (m_transform == nullptr)
+            return;
+
         m_transform->rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
     }
 

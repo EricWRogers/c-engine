@@ -38,7 +38,7 @@ namespace TankGame
 
     void FollowMouse::Ready()
     {
-        m_transform = entity.GetComponent<RectTransform>();
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
     }
 
     void FollowMouse::Destroy() {}
@@ -63,7 +63,7 @@ namespace TankGame
             if (e == nullptr || !e->active)
                 continue;
 
-            Camera2D* camera = e->GetComponent<Camera2D>();
+            Camera2D* camera = e->HasComponent<Camera2D>() ? &e->GetComponent<Camera2D>() : nullptr;
             if (camera != nullptr)
             {
                 camera2D = camera;

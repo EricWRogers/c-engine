@@ -40,7 +40,7 @@ namespace TankGame
 
     void Bounce::Ready()
     {
-        m_transform = entity.GetComponent<RectTransform>();
+        m_transform = entity.HasComponent<RectTransform>() ? &entity.GetComponent<RectTransform>() : nullptr;
         if (m_transform != nullptr)
             m_restScale = m_transform->scale;
     }

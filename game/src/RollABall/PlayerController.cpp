@@ -10,14 +10,14 @@ namespace RollABall
 {
     ScriptConf conf = {};
 
-    void RegisterPlayerControllerScript(Canis::App& _app)
+    void RegisterPlayerControllerScript(App& _app)
     {
         REGISTER_PROPERTY(conf, RollABall::PlayerController, moveForce);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, pickupRadius);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, sprint);
 
-        DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Canis::Transform3D, Canis::Rigidbody3D);
+        DEFAULT_CONFIG_AND_REQUIRED(conf, RollABall::PlayerController, Transform3D, Rigidbody3D);
 
         conf.DEFAULT_DRAW_INSPECTOR(RollABall::PlayerController,
             ImGui::Text("Collected: %d / %d", component->collectedPickups, component->totalPickups);
@@ -33,9 +33,6 @@ namespace RollABall
 
     void PlayerController::Ready()
     {
-        m_transform = entity.GetComponent<Canis::Transform3D>();
-        m_rigidbody = entity.GetComponent<Canis::Rigidbody3D>();
-
         totalPickups = CountActivePickups();
         collectedPickups = 0;
         hasWon = (totalPickups == 0);
@@ -43,9 +40,9 @@ namespace RollABall
         if (logProgress)
         {
             if (totalPickups > 0)
-                Canis::Debug::Log("Roll-a-Ball: Collect all %d pickups.", totalPickups);
+                Debug::Log("Roll-a-Ball: Collect all %d pickups.", totalPickups);
             else
-                Canis::Debug::Log("Roll-a-Ball: No pickups found in this scene.");
+                Debug::Log("Roll-a-Ball: No pickups found in this scene.");
         }
     }
 
@@ -53,52 +50,56 @@ namespace RollABall
 
     void PlayerController::Update(float _dt)
     {
-        m_transform = entity.GetComponent<Canis::Transform3D>();
-        m_rigidbody = entity.GetComponent<Canis::Rigidbody3D>();
-
-        if (m_transform == nullptr || m_rigidbody == nullptr)
+        if (!entity.HasComponents<Transform3D, Rigidbody3D>())
             return;
+        
+        Transform3D& transform = entity.GetComponent<Transform3D>();
+        Rigidbody3D& rigidbody = entity.GetComponent<Rigidbody3D>();
 
-        Canis::InputManager& input = entity.scene->GetInputManager();
+        InputManager& input = entity.scene->GetInputManager();
 
-        float axisX = 0.0f;
-        float axisZ = 0.0f;
+        Vector3 inputDirection = Vector3(0.0f);
 
-        if (input.GetKey(Canis::Key::A) || input.GetKey(Canis::Key::LEFT))
-            axisX -= 1.0f;
-        if (input.GetKey(Canis::Key::D) || input.GetKey(Canis::Key::RIGHT))
-            axisX += 1.0f;
-        if (input.GetKey(Canis::Key::W) || input.GetKey(Canis::Key::UP))
-            axisZ -= 1.0f;
-        if (input.GetKey(Canis::Key::S) || input.GetKey(Canis::Key::DOWN))
-            axisZ += 1.0f;
+        if (input.GetKey(Key::A) || input.GetKey(Key::LEFT))
+            inputDirection.x -= 1.0f;
+        if (input.GetKey(Key::D) || input.GetKey(Key::RIGHT))
+            inputDirection.x += 1.0f;
+        if (input.GetKey(Key::W) || input.GetKey(Key::UP))
+            inputDirection.z -= 1.0f;
+        if (input.GetKey(Key::S) || input.GetKey(Key::DOWN))
+            inputDirection.z += 1.0f;
         
         sprint = input.GetKey(Key::LSHIFT);
 
-        Canis::Vector3 movement = Canis::Vector3(axisX, 0.0f, axisZ);
+        Vector3 movement = inputDirection;
 
-        if (input.JustPressedKey(Key::SPACE)) {
-            movement.y = 500.0f;
-        }
+        if (input.JustPressedKey(Key::SPACE))
+            inputDirection.y = 500.0f;
 
-        if (glm::dot(movement, movement) > 0.0f)
+        if (movement != Vector3(0.0f))
+            movement = glm::normalize(movement);
+
+        if (sprint)
+            movement *= 2.0f;
+        
+        movement.y = inputDirection.y;
+
+        rigidbody.AddForce(movement * moveForce * _dt, Rigidbody3DForceMode::FORCE);
+        
+
+        for (Entity* pickup : entity.scene->GetEntitiesWithTag("Pickup"))
         {
-            // Unity-style movement: apply force from input every frame.
-            //movement = glm::normalize(movement);
+            if (!pickup->active || !pickup->HasComponent<Transform3D>())
+                continue;
+            
+            Transform3D& pickupTransform = pickup->GetComponent<Transform3D>();
 
-            m_rigidbody->AddForce(movement * moveForce * _dt, Canis::Rigidbody3DForceMode::FORCE);
-        }
-
-        for (Entity* pickupEntity : entity.scene->GetEntitiesWithTag("Pickup"))
-        {
-            Transform3D* pickupTransform = pickupEntity->GetComponent<Transform3D>();
-
-            float distance = glm::distance(pickupTransform->position, m_transform->position);
+            float distance = glm::distance(pickupTransform.position, transform.position);
 
             if (distance < pickupRadius)
             {
                 collectedPickups++;
-                pickupEntity->Destroy();
+                pickup->Destroy();
 
                 hasWon = (collectedPickups >= totalPickups);
                 break;

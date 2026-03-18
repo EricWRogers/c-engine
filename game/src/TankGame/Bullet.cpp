@@ -46,7 +46,7 @@ namespace TankGame
     void Bullet::Destroy() {}
 
     void Bullet::Update(float _dt) {
-        RectTransform& transform = *entity.GetComponent<RectTransform>();
+        RectTransform& transform = entity.GetComponent<RectTransform>();
 
         transform.Move(transform.GetUp() * speed * _dt);
 

@@ -232,12 +232,13 @@ namespace Canis
         {
             if (_transform.parent != nullptr)
             {
-                if (Transform3D *parentTransform = ((_transform.parent) != nullptr ? (_transform.parent)->GetComponent<Transform3D>() : nullptr))
+                if (_transform.parent->HasComponent<Transform3D>())
                 {
-                    const Matrix4 inverseParent = glm::inverse(parentTransform->GetModelMatrix());
+                    Transform3D& parentTransform = _transform.parent->GetComponent<Transform3D>();
+                    const Matrix4 inverseParent = glm::inverse(parentTransform.GetModelMatrix());
                     const Vector4 localPosition4 = inverseParent * Vector4(_worldPosition, 1.0f);
                     _transform.position = Vector3(localPosition4.x, localPosition4.y, localPosition4.z);
-                    _transform.rotation = _worldRotation - parentTransform->GetGlobalRotation();
+                    _transform.rotation = _worldRotation - parentTransform.GetGlobalRotation();
                     return;
                 }
             }

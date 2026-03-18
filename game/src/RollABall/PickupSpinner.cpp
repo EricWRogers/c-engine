@@ -2,9 +2,27 @@
 
 #include <Canis/App.hpp>
 #include <Canis/ConfigHelper.hpp>
+#include <RollABall/PlayerController.hpp>
 
 namespace RollABall
 {
+    namespace
+    {
+        Canis::Entity* FindEnteringPlayer(const std::vector<Canis::Entity*>& _entities)
+        {
+            for (Canis::Entity* other : _entities)
+            {
+                if (other == nullptr || !other->active)
+                    continue;
+
+                if (other->HasScript<RollABall::PlayerController>())
+                    return other;
+            }
+
+            return nullptr;
+        }
+    } // namespace
+
     ScriptConf pickUpConf = {};
 
     void RegisterPickupSpinnerScript(Canis::App& _app)
@@ -20,23 +38,50 @@ namespace RollABall
 
     DEFAULT_UNREGISTER_SCRIPT(pickUpConf, PickupSpinner)
 
-    void PickupSpinner::Create() {}
-
-    void PickupSpinner::Ready() // before the first update
+    void PickupSpinner::Create()
     {
-        m_transform = entity.HasComponent<Canis::Transform>() ? &entity.GetComponent<Canis::Transform>() : nullptr;
+        entity.GetComponent<Canis::Transform>();
+
+        Canis::Rigidbody& rigidbody = entity.GetComponent<Canis::Rigidbody>();
+        rigidbody.motionType = Canis::RigidbodyMotionType::STATIC;
+        rigidbody.useGravity = false;
+        rigidbody.isSensor = true;
+        rigidbody.allowSleeping = false;
+        rigidbody.linearVelocity = Vector3(0.0f);
+        rigidbody.angularVelocity = Vector3(0.0f);
+
+        if (!entity.HasComponent<Canis::BoxCollider>()
+            && !entity.HasComponent<Canis::SphereCollider>()
+            && !entity.HasComponent<Canis::CapsuleCollider>())
+        {
+            entity.GetComponent<Canis::BoxCollider>();
+        }
     }
+
+    void PickupSpinner::Ready() {}
 
     void PickupSpinner::Destroy() {}
 
     void PickupSpinner::Update(float _dt)
     {
-        // Component storage can move when entities are destroyed, so reacquire each frame.
-        m_transform = entity.HasComponent<Canis::Transform>() ? &entity.GetComponent<Canis::Transform>() : nullptr;
-        if (m_transform == nullptr)
+        if (!entity.HasComponent<Canis::Transform>())
             return;
 
-        m_transform->rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
+        Canis::Transform& transform = entity.GetComponent<Canis::Transform>();
+        transform.rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
+
+        Canis::Entity* collectingPlayer = nullptr;
+        if (entity.HasComponent<Canis::BoxCollider>())
+            collectingPlayer = FindEnteringPlayer(entity.GetComponent<Canis::BoxCollider>().entered);
+
+        if (collectingPlayer == nullptr)
+            return;
+
+        if (PlayerController* playerController = collectingPlayer->GetScript<PlayerController>())
+        {
+            playerController->CollectPickup();
+            entity.Destroy();
+        }
     }
 
     void PickupSpinner::EditorInspectorDraw() {}

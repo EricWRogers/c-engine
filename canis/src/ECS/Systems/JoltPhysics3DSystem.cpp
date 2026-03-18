@@ -12,6 +12,7 @@
 #include <Jolt/Physics/Body/AllowedDOFs.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
@@ -20,6 +21,8 @@
 
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
+#include <mutex>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <thread>
@@ -341,10 +344,253 @@ namespace Canis
 
             return nullptr;
         }
+
+        uint64_t ToBodyUserData(entt::entity _entityHandle)
+        {
+            return static_cast<uint64_t>(entt::to_integral(_entityHandle));
+        }
+
+        entt::entity ToEntityHandle(uint64_t _userData)
+        {
+            using EntityValue = std::underlying_type_t<entt::entity>;
+            return static_cast<entt::entity>(static_cast<EntityValue>(_userData));
+        }
+
+        Entity* ResolveEntity(entt::registry &_registry, entt::entity _entityHandle)
+        {
+            if (!_registry.valid(_entityHandle))
+                return nullptr;
+
+            if (Rigidbody *rigidbody = _registry.try_get<Rigidbody>(_entityHandle))
+                return rigidbody->entity;
+
+            if (Transform *transform = _registry.try_get<Transform>(_entityHandle))
+                return transform->entity;
+
+            if (BoxCollider *boxCollider = _registry.try_get<BoxCollider>(_entityHandle))
+                return boxCollider->entity;
+
+            if (SphereCollider *sphereCollider = _registry.try_get<SphereCollider>(_entityHandle))
+                return sphereCollider->entity;
+
+            if (CapsuleCollider *capsuleCollider = _registry.try_get<CapsuleCollider>(_entityHandle))
+                return capsuleCollider->entity;
+
+            return nullptr;
+        }
+
+        template <typename Collider>
+        void ClearColliderContactVectors(entt::registry &_registry)
+        {
+            auto colliderView = _registry.view<Collider>();
+            for (const entt::entity entityHandle : colliderView)
+            {
+                Collider &collider = colliderView.template get<Collider>(entityHandle);
+                collider.entered.clear();
+                collider.exited.clear();
+                collider.stayed.clear();
+            }
+        }
+
+        void ClearColliderContactVectors(entt::registry &_registry)
+        {
+            ClearColliderContactVectors<BoxCollider>(_registry);
+            ClearColliderContactVectors<SphereCollider>(_registry);
+            ClearColliderContactVectors<CapsuleCollider>(_registry);
+        }
+
+        template <typename Func>
+        void ForEachCollider(entt::registry &_registry, entt::entity _entityHandle, Func &&_func)
+        {
+            if (BoxCollider *boxCollider = _registry.try_get<BoxCollider>(_entityHandle))
+                _func(*boxCollider);
+
+            if (SphereCollider *sphereCollider = _registry.try_get<SphereCollider>(_entityHandle))
+                _func(*sphereCollider);
+
+            if (CapsuleCollider *capsuleCollider = _registry.try_get<CapsuleCollider>(_entityHandle))
+                _func(*capsuleCollider);
+        }
     } // namespace
 
     struct JoltPhysics3DSystem::Impl
     {
+        struct FrameContactEvent
+        {
+            entt::entity self = entt::null;
+            entt::entity other = entt::null;
+        };
+
+        struct DirectedBodyPairKey
+        {
+            JPH::BodyID selfBodyID = {};
+            JPH::BodyID otherBodyID = {};
+
+            bool operator==(const DirectedBodyPairKey &_other) const = default;
+        };
+
+        struct DirectedBodyPairKeyHash
+        {
+            size_t operator()(const DirectedBodyPairKey &_key) const
+            {
+                size_t hash = 0;
+                hash = HashCombine(hash, std::hash<JPH::BodyID>{}(_key.selfBodyID));
+                hash = HashCombine(hash, std::hash<JPH::BodyID>{}(_key.otherBodyID));
+                return hash;
+            }
+        };
+
+        struct ActiveDirectedPair
+        {
+            entt::entity self = entt::null;
+            entt::entity other = entt::null;
+            int subShapeCount = 0;
+        };
+
+        struct SubShapeContactData
+        {
+            entt::entity body1 = entt::null;
+            entt::entity body2 = entt::null;
+        };
+
+        struct ContactFrameData
+        {
+            std::vector<FrameContactEvent> entered = {};
+            std::vector<FrameContactEvent> exited = {};
+            std::vector<FrameContactEvent> stayed = {};
+        };
+
+        class ContactListenerImpl final : public JPH::ContactListener
+        {
+        public:
+            void OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
+            {
+                (void)ioSettings;
+                RegisterContact(JPH::SubShapeIDPair(inBody1.GetID(), inManifold.mSubShapeID1, inBody2.GetID(), inManifold.mSubShapeID2), inBody1, inBody2);
+            }
+
+            void OnContactPersisted(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
+            {
+                (void)ioSettings;
+                RegisterContact(JPH::SubShapeIDPair(inBody1.GetID(), inManifold.mSubShapeID1, inBody2.GetID(), inManifold.mSubShapeID2), inBody1, inBody2);
+            }
+
+            void OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair) override
+            {
+                std::scoped_lock lock(m_mutex);
+
+                auto contactIt = m_subShapeContacts.find(inSubShapePair);
+                if (contactIt == m_subShapeContacts.end())
+                    return;
+
+                const SubShapeContactData contact = contactIt->second;
+                m_subShapeContacts.erase(contactIt);
+
+                RemoveDirectedPair(inSubShapePair.GetBody1ID(), inSubShapePair.GetBody2ID(), contact.body1, contact.body2);
+                RemoveDirectedPair(inSubShapePair.GetBody2ID(), inSubShapePair.GetBody1ID(), contact.body2, contact.body1);
+            }
+
+            ContactFrameData ConsumeFrameData()
+            {
+                std::scoped_lock lock(m_mutex);
+
+                ContactFrameData frameData;
+                frameData.entered.swap(m_enteredThisFrame);
+                frameData.exited.swap(m_exitedThisFrame);
+                frameData.stayed.reserve(m_activeDirectedPairs.size());
+
+                for (const auto &entry : m_activeDirectedPairs)
+                {
+                    frameData.stayed.push_back(FrameContactEvent{
+                        .self = entry.second.self,
+                        .other = entry.second.other
+                    });
+                }
+
+                return frameData;
+            }
+
+            void Reset()
+            {
+                std::scoped_lock lock(m_mutex);
+                m_subShapeContacts.clear();
+                m_activeDirectedPairs.clear();
+                m_enteredThisFrame.clear();
+                m_exitedThisFrame.clear();
+            }
+
+        private:
+            void RegisterContact(const JPH::SubShapeIDPair &_pair, const JPH::Body &_body1, const JPH::Body &_body2)
+            {
+                std::scoped_lock lock(m_mutex);
+
+                auto [contactIt, inserted] = m_subShapeContacts.emplace(_pair, SubShapeContactData{
+                    .body1 = ToEntityHandle(_body1.GetUserData()),
+                    .body2 = ToEntityHandle(_body2.GetUserData())
+                });
+
+                if (!inserted)
+                    return;
+
+                AddDirectedPair(_body1.GetID(), _body2.GetID(), contactIt->second.body1, contactIt->second.body2);
+                AddDirectedPair(_body2.GetID(), _body1.GetID(), contactIt->second.body2, contactIt->second.body1);
+            }
+
+            void AddDirectedPair(const JPH::BodyID &_selfBodyID, const JPH::BodyID &_otherBodyID, entt::entity _selfEntity, entt::entity _otherEntity)
+            {
+                DirectedBodyPairKey key{
+                    .selfBodyID = _selfBodyID,
+                    .otherBodyID = _otherBodyID
+                };
+
+                auto pairIt = m_activeDirectedPairs.find(key);
+                if (pairIt == m_activeDirectedPairs.end())
+                {
+                    m_activeDirectedPairs.emplace(key, ActiveDirectedPair{
+                        .self = _selfEntity,
+                        .other = _otherEntity,
+                        .subShapeCount = 1
+                    });
+
+                    m_enteredThisFrame.push_back(FrameContactEvent{
+                        .self = _selfEntity,
+                        .other = _otherEntity
+                    });
+                    return;
+                }
+
+                pairIt->second.subShapeCount++;
+            }
+
+            void RemoveDirectedPair(const JPH::BodyID &_selfBodyID, const JPH::BodyID &_otherBodyID, entt::entity _selfEntity, entt::entity _otherEntity)
+            {
+                DirectedBodyPairKey key{
+                    .selfBodyID = _selfBodyID,
+                    .otherBodyID = _otherBodyID
+                };
+
+                auto pairIt = m_activeDirectedPairs.find(key);
+                if (pairIt == m_activeDirectedPairs.end())
+                    return;
+
+                pairIt->second.subShapeCount--;
+                if (pairIt->second.subShapeCount > 0)
+                    return;
+
+                m_exitedThisFrame.push_back(FrameContactEvent{
+                    .self = _selfEntity,
+                    .other = _otherEntity
+                });
+                m_activeDirectedPairs.erase(pairIt);
+            }
+
+            std::mutex m_mutex = {};
+            std::unordered_map<JPH::SubShapeIDPair, SubShapeContactData> m_subShapeContacts = {};
+            std::unordered_map<DirectedBodyPairKey, ActiveDirectedPair, DirectedBodyPairKeyHash> m_activeDirectedPairs = {};
+            std::vector<FrameContactEvent> m_enteredThisFrame = {};
+            std::vector<FrameContactEvent> m_exitedThisFrame = {};
+        };
+
         struct BodyRuntimeData
         {
             JPH::BodyID bodyID;
@@ -357,6 +603,7 @@ namespace Canis
         std::unique_ptr<BPLayerInterfaceImpl> broadPhaseLayerInterface = nullptr;
         std::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> objectVsBroadPhaseLayerFilter = nullptr;
         std::unique_ptr<ObjectLayerPairFilterImpl> objectLayerPairFilter = nullptr;
+        std::unique_ptr<ContactListenerImpl> contactListener = nullptr;
         std::unique_ptr<JPH::PhysicsSystem> physicsSystem = nullptr;
         std::unique_ptr<JPH::TempAllocatorImpl> tempAllocator = nullptr;
         std::unique_ptr<JPH::JobSystemThreadPool> jobSystem = nullptr;
@@ -386,6 +633,9 @@ namespace Canis
                 *objectVsBroadPhaseLayerFilter,
                 *objectLayerPairFilter);
 
+            contactListener = std::make_unique<ContactListenerImpl>();
+            physicsSystem->SetContactListener(contactListener.get());
+
             tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(10 * 1024 * 1024);
 
             const JPH::uint workerCount = (std::thread::hardware_concurrency() > 1)
@@ -407,6 +657,13 @@ namespace Canis
             bodies.clear();
 
             bodyInterface = nullptr;
+            if (contactListener != nullptr)
+            {
+                contactListener->Reset();
+                if (physicsSystem != nullptr)
+                    physicsSystem->SetContactListener(nullptr);
+            }
+            contactListener.reset();
             jobSystem.reset();
             tempAllocator.reset();
             physicsSystem.reset();
@@ -546,6 +803,7 @@ namespace Canis
                 motionType,
                 ToObjectLayer(motionType));
 
+            bodySettings.mUserData = ToBodyUserData(_entityHandle);
             bodySettings.mAllowSleeping = rigidbody->allowSleeping;
             bodySettings.mIsSensor = rigidbody->isSensor;
             bodySettings.mFriction = glm::max(0.0f, rigidbody->friction);
@@ -652,6 +910,48 @@ namespace Canis
             return activeBodies;
         }
 
+        void ApplyContactFrameData(entt::registry &_registry)
+        {
+            if (contactListener == nullptr)
+                return;
+
+            const ContactFrameData frameData = contactListener->ConsumeFrameData();
+
+            auto applyEvents = [&](const std::vector<FrameContactEvent> &_events, auto _apply)
+            {
+                for (const FrameContactEvent &event : _events)
+                {
+                    if (!_registry.valid(event.self))
+                        continue;
+
+                    Entity *selfEntity = ResolveEntity(_registry, event.self);
+                    Entity *otherEntity = ResolveEntity(_registry, event.other);
+                    if (selfEntity == nullptr || otherEntity == nullptr || !selfEntity->active || !otherEntity->active)
+                        continue;
+
+                    ForEachCollider(_registry, event.self, [&](auto &_collider)
+                    {
+                        _apply(_collider, otherEntity);
+                    });
+                }
+            };
+
+            applyEvents(frameData.entered, [](auto &_collider, Entity *_otherEntity)
+            {
+                _collider.entered.push_back(_otherEntity);
+            });
+
+            applyEvents(frameData.exited, [](auto &_collider, Entity *_otherEntity)
+            {
+                _collider.exited.push_back(_otherEntity);
+            });
+
+            applyEvents(frameData.stayed, [](auto &_collider, Entity *_otherEntity)
+            {
+                _collider.stayed.push_back(_otherEntity);
+            });
+        }
+
         void SyncBodiesAfterStep(entt::registry &_registry, const std::vector<entt::entity> &_activeBodies)
         {
             for (const entt::entity entityHandle : _activeBodies)
@@ -685,6 +985,7 @@ namespace Canis
             if (physicsSystem == nullptr || bodyInterface == nullptr)
                 return;
 
+            ClearColliderContactVectors(_registry);
             std::vector<entt::entity> activeBodies = SyncBodiesBeforeStep(_registry);
 
             accumulator += glm::max(0.0f, _deltaTime);
@@ -697,6 +998,7 @@ namespace Canis
             }
 
             SyncBodiesAfterStep(_registry, activeBodies);
+            ApplyContactFrameData(_registry);
         }
     };
 

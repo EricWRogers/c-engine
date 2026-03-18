@@ -6,8 +6,6 @@ namespace RollABall
 {
     class PickupSpinner : public Canis::ScriptableEntity
     {
-    private:
-        Canis::Transform* m_transform = nullptr;
     public:
         static constexpr const char* ScriptName = "RollABall::PickupSpinner";
 

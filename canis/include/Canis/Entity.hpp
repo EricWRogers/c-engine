@@ -947,6 +947,9 @@ namespace Canis
 
         bool active = true;
         Vector3 size = Vector3(1.0f);
+        std::vector<Entity*> entered = {};
+        std::vector<Entity*> exited = {};
+        std::vector<Entity*> stayed = {};
     };
 
     struct SphereCollider
@@ -963,6 +966,9 @@ namespace Canis
 
         bool active = true;
         float radius = 0.5f;
+        std::vector<Entity*> entered = {};
+        std::vector<Entity*> exited = {};
+        std::vector<Entity*> stayed = {};
     };
 
     struct CapsuleCollider
@@ -980,6 +986,9 @@ namespace Canis
         bool active = true;
         float halfHeight = 0.5f;
         float radius = 0.25f;
+        std::vector<Entity*> entered = {};
+        std::vector<Entity*> exited = {};
+        std::vector<Entity*> stayed = {};
     };
 
     struct Camera

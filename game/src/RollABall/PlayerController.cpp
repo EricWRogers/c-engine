@@ -31,6 +31,15 @@ namespace RollABall
 
     void PlayerController::Create() {}
 
+    void PlayerController::CollectPickup()
+    {
+        collectedPickups++;
+        hasWon = (collectedPickups >= totalPickups);
+
+        if (logProgress)
+            Debug::Log("Roll-a-Ball: Collected %d / %d pickups.", collectedPickups, totalPickups);
+    }
+
     void PlayerController::Ready()
     {
         totalPickups = CountActivePickups();
@@ -52,8 +61,7 @@ namespace RollABall
     {
         if (!entity.HasComponents<Transform, Rigidbody>())
             return;
-        
-        Transform& transform = entity.GetComponent<Transform>();
+
         Rigidbody& rigidbody = entity.GetComponent<Rigidbody>();
 
         InputManager& input = entity.scene.GetInputManager();
@@ -81,30 +89,10 @@ namespace RollABall
 
         if (sprint)
             movement *= 2.0f;
-        
+
         movement.y = inputDirection.y;
 
         rigidbody.AddForce(movement * moveForce * _dt, Rigidbody3DForceMode::FORCE);
-        
-
-        for (Entity* pickup : entity.scene.GetEntitiesWithTag("Pickup"))
-        {
-            if (!pickup->active || !pickup->HasComponent<Transform>())
-                continue;
-            
-            Transform& pickupTransform = pickup->GetComponent<Transform>();
-
-            float distance = glm::distance(pickupTransform.position, transform.position);
-
-            if (distance < pickupRadius)
-            {
-                collectedPickups++;
-                pickup->Destroy();
-
-                hasWon = (collectedPickups >= totalPickups);
-                break;
-            }
-        }
     }
 
     void PlayerController::EditorInspectorDraw() {}

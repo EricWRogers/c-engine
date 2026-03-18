@@ -22,6 +22,7 @@ namespace RollABall
 
         explicit PlayerController(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 
+        void CollectPickup();
         void Create() override;
         void Ready() override;
         void Destroy() override;

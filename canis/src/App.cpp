@@ -1090,13 +1090,12 @@ namespace Canis
                         const std::string materialPath = AssetManager::GetPath(material.materialId);
                         if (materialPath.rfind("Path was not found", 0) != 0)
                         {
-                            YAML::Node materialAssetNode;
-                            materialAssetNode["path"] = materialPath;
-
                             if (MetaFileAsset* meta = AssetManager::GetMetaFile(materialPath))
+                            {
+                                YAML::Node materialAssetNode;
                                 materialAssetNode["uuid"] = (uint64_t)meta->uuid;
-
-                            comp["MaterialAsset"] = materialAssetNode;
+                                comp["MaterialAsset"] = materialAssetNode;
+                            }
                         }
                     }
 
@@ -1117,10 +1116,15 @@ namespace Canis
                         }
 
                         YAML::Node slotAssetNode;
-                        slotAssetNode["path"] = slotPath;
                         if (MetaFileAsset* meta = AssetManager::GetMetaFile(slotPath))
+                        {
                             slotAssetNode["uuid"] = (uint64_t)meta->uuid;
-                        slotAssets.push_back(slotAssetNode);
+                            slotAssets.push_back(slotAssetNode);
+                        }
+                        else
+                        {
+                            slotAssets.push_back(YAML::Node());
+                        }
                     }
 
                     if (!slotAssets.IsNull() && slotAssets.size() > 0)

@@ -5,6 +5,7 @@
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
 #include <Canis/ConfigData.hpp>
+#include <Canis/ConfigHelper.hpp>
 
 #include <imgui.h>
 #include <imgui_stdlib.h>
@@ -177,6 +178,8 @@ void Rigidbody::EditorInspectorDraw()
     ImGui::InputFloat("angularDamping", &angularDamping);
     ImGui::Checkbox("useGravity", &useGravity);
     ImGui::Checkbox("isSensor", &isSensor);
+    DrawInspectorField("layer", layer);
+    DrawInspectorField("mask", mask);
     ImGui::Checkbox("allowSleeping", &allowSleeping);
     ImGui::Checkbox("lockRotationX", &lockRotationX);
     ImGui::Checkbox("lockRotationY", &lockRotationY);

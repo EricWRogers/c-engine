@@ -13,6 +13,9 @@ namespace RollABall
     void RegisterPlayerControllerScript(App& _app)
     {
         REGISTER_PROPERTY(conf, RollABall::PlayerController, moveForce);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, jumpImpulse);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, groundCheckDistance);
+        REGISTER_PROPERTY(conf, RollABall::PlayerController, groundCollisionMask);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, pickupRadius);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, logProgress);
         REGISTER_PROPERTY(conf, RollABall::PlayerController, sprint);
@@ -21,6 +24,7 @@ namespace RollABall
 
         conf.DEFAULT_DRAW_INSPECTOR(RollABall::PlayerController,
             ImGui::Text("Collected: %d / %d", component->collectedPickups, component->totalPickups);
+            ImGui::Text("Grounded: %s", component->grounded ? "Yes" : "No");
             ImGui::Text("State: %s", component->hasWon ? "You Win" : "Collecting");
         );
 
@@ -62,9 +66,13 @@ namespace RollABall
         if (!entity.HasComponents<Transform, Rigidbody>())
             return;
 
+        Transform& transform = entity.GetComponent<Transform>();
         Rigidbody& rigidbody = entity.GetComponent<Rigidbody>();
 
         InputManager& input = entity.scene.GetInputManager();
+        RaycastHit groundHit = {};
+        const Vector3 groundRayOrigin = transform.GetGlobalPosition() + Vector3(0.0f, 0.1f, 0.0f);
+        grounded = entity.scene.Raycast(groundRayOrigin, Vector3(0.0f, -1.0f, 0.0f), groundHit, groundCheckDistance, groundCollisionMask);
 
         Vector3 inputDirection = Vector3(0.0f);
 
@@ -81,16 +89,14 @@ namespace RollABall
 
         Vector3 movement = inputDirection;
 
-        if (input.JustPressedKey(Key::SPACE))
-            inputDirection.y = 500.0f;
+        if (grounded && input.JustPressedKey(Key::SPACE))
+            rigidbody.AddForce(Vector3(0.0f, jumpImpulse, 0.0f), Rigidbody3DForceMode::IMPULSE);
 
         if (movement != Vector3(0.0f))
             movement = glm::normalize(movement);
 
         if (sprint)
             movement *= 2.0f;
-
-        movement.y = inputDirection.y;
 
         rigidbody.AddForce(movement * moveForce * _dt, Rigidbody3DForceMode::FORCE);
     }

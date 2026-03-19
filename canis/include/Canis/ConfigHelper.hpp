@@ -6,6 +6,7 @@
 #include <Canis/Yaml.hpp>
 
 #include <algorithm>
+#include <cstdio>
 #include <type_traits>
 #include <utility>
 
@@ -63,6 +64,79 @@ inline void DrawInspectorField(const char *_label, T &_value)
     else if constexpr (std::is_same_v<T, std::string>)
     {
         ImGui::InputText(_label, &_value);
+    }
+    else if constexpr (std::is_same_v<T, Mask>)
+    {
+        ImGui::PushID(_label);
+
+        const char *visibleLabelEnd = _label;
+        while (*visibleLabelEnd != '\0')
+        {
+            if (visibleLabelEnd[0] == '#' && visibleLabelEnd[1] == '#')
+                break;
+
+            ++visibleLabelEnd;
+        }
+
+        if (visibleLabelEnd != _label)
+        {
+            ImGui::TextUnformatted(_label, visibleLabelEnd);
+            ImGui::SameLine();
+            ImGui::TextDisabled("0x%08X", static_cast<u32>(_value));
+        }
+
+        const ImVec4 activeColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+        const ImVec4 hoveredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+        const float buttonWidth = ImGui::CalcTextSize("32").x + (ImGui::GetStyle().FramePadding.x * 2.0f);
+        const float groupSpacing = ImGui::GetStyle().ItemSpacing.x * 2.0f;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 2.0f));
+
+        for (int group = 0; group < 4; ++group)
+        {
+            if (group > 0)
+                ImGui::SameLine(0.0f, groupSpacing);
+
+            ImGui::BeginGroup();
+            for (int row = 0; row < 2; ++row)
+            {
+                for (int col = 0; col < 4; ++col)
+                {
+                    if (col > 0)
+                        ImGui::SameLine();
+
+                    const int bitIndex = (group * 8) + (row * 4) + col;
+                    const bool enabled = _value.HasBit(bitIndex);
+
+                    if (enabled)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Button, activeColor);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, activeColor);
+                    }
+
+                    char bitLabel[8];
+                    std::snprintf(bitLabel, sizeof(bitLabel), "%d", bitIndex + 1);
+
+                    if (ImGui::Button(bitLabel, ImVec2(buttonWidth, 0.0f)))
+                        _value.ToggleBit(bitIndex);
+
+                    if (enabled)
+                        ImGui::PopStyleColor(3);
+
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Text("Bit %d, value %u", bitIndex + 1, u32(1u) << bitIndex);
+                        ImGui::EndTooltip();
+                    }
+                }
+            }
+            ImGui::EndGroup();
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopID();
     }
     else if constexpr (std::is_integral_v<T>)
     {

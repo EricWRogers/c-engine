@@ -132,4 +132,21 @@ namespace YAML
             return true;
         }
     };
+
+    template <>
+    struct convert<Canis::Mask>
+    {
+        static Node encode(const Canis::Mask &_mask)
+        {
+            Node node;
+            node = static_cast<u32>(_mask);
+            return node;
+        }
+
+        static bool decode(const Node &_node, Canis::Mask &_mask)
+        {
+            _mask = _node.as<u32>(0u);
+            return true;
+        }
+    };
 }

@@ -51,6 +51,21 @@ namespace Canis
         m_editorCamera2DOverrideEnabled = false;
     }
 
+    bool Scene::Raycast(const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance, u32 _mask)
+    {
+        if (JoltPhysics3DSystem *physicsSystem = GetSystem<JoltPhysics3DSystem>())
+            return physicsSystem->Raycast(_origin, _direction, _hit, _maxDistance, _mask);
+
+        _hit = RaycastHit{};
+        return false;
+    }
+
+    bool Scene::Raycast(const Vector3 &_origin, const Vector3 &_direction, float _maxDistance, u32 _mask)
+    {
+        RaycastHit hit = {};
+        return Raycast(_origin, _direction, hit, _maxDistance, _mask);
+    }
+
     void Scene::Update(float _deltaTime)
     {
         m_isUpdating = true;

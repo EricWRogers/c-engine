@@ -881,6 +881,8 @@ namespace Canis
     {
     public:
         static constexpr const char* ScriptName = "Canis::Rigidbody";
+        static constexpr Mask DefaultLayer = Mask(1u);
+        static constexpr Mask DefaultMask = Mask(u32_max);
 
         Rigidbody() = default;
         explicit Rigidbody(Canis::Entity& _entity) : entity(&_entity) {}
@@ -921,6 +923,8 @@ namespace Canis
         float angularDamping = 0.05f;
         bool useGravity = true;
         bool isSensor = false;
+        Mask layer = DefaultLayer;
+        Mask mask = DefaultMask;
         bool allowSleeping = true;
         bool lockRotationX = false;
         bool lockRotationY = false;

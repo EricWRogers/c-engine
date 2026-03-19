@@ -10,12 +10,18 @@
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/AllowedDOFs.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionGroup.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/ContactListener.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
@@ -33,6 +39,7 @@ namespace Canis
     namespace
     {
         constexpr float kFixedTimeStep = 1.0f / 60.0f;
+        constexpr float kDefaultRaycastDistance = 100000.0f;
         constexpr int kMaxSubSteps = 4;
         constexpr int kCollisionSteps = 1;
 
@@ -261,6 +268,8 @@ namespace Canis
             hash = HashCombine(hash, std::hash<float>{}(_rigidbody.angularDamping));
             hash = HashCombine(hash, std::hash<bool>{}(_rigidbody.useGravity));
             hash = HashCombine(hash, std::hash<bool>{}(_rigidbody.isSensor));
+            hash = HashCombine(hash, std::hash<u32>{}(_rigidbody.layer));
+            hash = HashCombine(hash, std::hash<u32>{}(_rigidbody.mask));
             hash = HashCombine(hash, std::hash<bool>{}(_rigidbody.allowSleeping));
             hash = HashCombine(hash, std::hash<bool>{}(_rigidbody.lockRotationX));
             hash = HashCombine(hash, std::hash<bool>{}(_rigidbody.lockRotationY));
@@ -463,6 +472,29 @@ namespace Canis
         class ContactListenerImpl final : public JPH::ContactListener
         {
         public:
+            JPH::ValidateResult OnContactValidate(
+                const JPH::Body &inBody1,
+                const JPH::Body &inBody2,
+                JPH::RVec3Arg inBaseOffset,
+                const JPH::CollideShapeResult &inCollisionResult) override
+            {
+                (void)inBaseOffset;
+                (void)inCollisionResult;
+
+                const JPH::CollisionGroup &group1 = inBody1.GetCollisionGroup();
+                const JPH::CollisionGroup &group2 = inBody2.GetCollisionGroup();
+
+                const u32 layer1 = static_cast<u32>(group1.GetGroupID());
+                const u32 mask1 = static_cast<u32>(group1.GetSubGroupID());
+                const u32 layer2 = static_cast<u32>(group2.GetGroupID());
+                const u32 mask2 = static_cast<u32>(group2.GetSubGroupID());
+
+                if ((mask1 & layer2) == 0u || (mask2 & layer1) == 0u)
+                    return JPH::ValidateResult::RejectAllContactsForThisBodyPair;
+
+                return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
+            }
+
             void OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2, const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings) override
             {
                 (void)ioSettings;
@@ -806,6 +838,10 @@ namespace Canis
             bodySettings.mUserData = ToBodyUserData(_entityHandle);
             bodySettings.mAllowSleeping = rigidbody->allowSleeping;
             bodySettings.mIsSensor = rigidbody->isSensor;
+            bodySettings.mCollisionGroup = JPH::CollisionGroup(
+                nullptr,
+                rigidbody->layer,
+                rigidbody->mask);
             bodySettings.mFriction = glm::max(0.0f, rigidbody->friction);
             bodySettings.mRestitution = glm::max(0.0f, rigidbody->restitution);
             bodySettings.mLinearDamping = glm::max(0.0f, rigidbody->linearDamping);
@@ -1000,6 +1036,63 @@ namespace Canis
             SyncBodiesAfterStep(_registry, activeBodies);
             ApplyContactFrameData(_registry);
         }
+
+        bool Raycast(entt::registry &_registry, const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance, u32 _mask) const
+        {
+            _hit = RaycastHit{};
+
+            if (physicsSystem == nullptr)
+                return false;
+
+            const float directionLength = glm::length(_direction);
+            if (directionLength <= 0.000001f)
+                return false;
+
+            float rayLength = _maxDistance;
+            if (!std::isfinite(rayLength) || rayLength <= 0.0f)
+                rayLength = kDefaultRaycastDistance;
+
+            const Vector3 normalizedDirection = _direction / directionLength;
+            const JPH::RRayCast ray(ToJoltPosition(_origin), ToJoltVec3(normalizedDirection * rayLength));
+
+            JPH::AllHitCollisionCollector<JPH::CastRayCollector> collector;
+            physicsSystem->GetNarrowPhaseQuery().CastRay(ray, JPH::RayCastSettings{}, collector);
+            if (!collector.HadHit())
+                return false;
+
+            collector.Sort();
+
+            const JPH::BodyLockInterfaceLocking &bodyLockInterface = physicsSystem->GetBodyLockInterface();
+
+            for (const JPH::RayCastResult &hitResult : collector.mHits)
+            {
+                JPH::BodyLockRead bodyLock(bodyLockInterface, hitResult.mBodyID);
+                if (!bodyLock.Succeeded())
+                    continue;
+
+                const JPH::Body &body = bodyLock.GetBody();
+                const entt::entity entityHandle = ToEntityHandle(body.GetUserData());
+                Entity *entity = ResolveEntity(_registry, entityHandle);
+                if (entity == nullptr)
+                    continue;
+
+                const Rigidbody *rigidbody = _registry.try_get<Rigidbody>(entityHandle);
+                if (rigidbody == nullptr || (rigidbody->layer & _mask) == 0u)
+                    continue;
+
+                const JPH::RVec3 hitPoint = ray.GetPointOnRay(hitResult.mFraction);
+                const JPH::Vec3 hitNormal = body.GetWorldSpaceSurfaceNormal(hitResult.mSubShapeID2, hitPoint);
+
+                _hit.entity = entity;
+                _hit.point = ToCanisPosition(hitPoint);
+                _hit.normal = Vector3(hitNormal.GetX(), hitNormal.GetY(), hitNormal.GetZ());
+                _hit.distance = rayLength * hitResult.mFraction;
+                _hit.fraction = hitResult.mFraction;
+                return true;
+            }
+
+            return false;
+        }
     };
 
     JoltPhysics3DSystem::JoltPhysics3DSystem() : System()
@@ -1041,5 +1134,22 @@ namespace Canis
         m_impl->Destroy();
         delete m_impl;
         m_impl = nullptr;
+    }
+
+    bool JoltPhysics3DSystem::Raycast(const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance, u32 _mask) const
+    {
+        if (m_impl == nullptr || scene == nullptr)
+        {
+            _hit = RaycastHit{};
+            return false;
+        }
+
+        return m_impl->Raycast(scene->GetRegistry(), _origin, _direction, _hit, _maxDistance, _mask);
+    }
+
+    bool JoltPhysics3DSystem::Raycast(const Vector3 &_origin, const Vector3 &_direction, float _maxDistance, u32 _mask) const
+    {
+        RaycastHit hit = {};
+        return Raycast(_origin, _direction, hit, _maxDistance, _mask);
     }
 } // namespace Canis

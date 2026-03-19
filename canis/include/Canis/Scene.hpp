@@ -4,6 +4,7 @@
 #include <Canis/External/entt.hpp>
 
 #include <string>
+#include <limits>
 #include <vector>
 
 namespace YAML
@@ -20,6 +21,15 @@ namespace Canis
     class Entity;
     class System;
     struct ScriptConf;
+
+    struct RaycastHit
+    {
+        Entity* entity = nullptr;
+        Vector3 point = Vector3(0.0f);
+        Vector3 normal = Vector3(0.0f);
+        float distance = 0.0f;
+        float fraction = 0.0f;
+    };
 
     class Scene
     {
@@ -53,6 +63,8 @@ namespace Canis
         InputManager& GetInputManager() { return *m_inputManager; }
         entt::registry& GetRegistry() { return m_registry; }
         const entt::registry& GetRegistry() const { return m_registry; }
+        bool Raycast(const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance = std::numeric_limits<float>::infinity(), u32 _mask = std::numeric_limits<u32>::max());
+        bool Raycast(const Vector3 &_origin, const Vector3 &_direction, float _maxDistance = std::numeric_limits<float>::infinity(), u32 _mask = std::numeric_limits<u32>::max());
 
         void SetEditorCamera3DOverride(const Matrix4 &_view, const Matrix4 &_projection);
         void SetEditorCamera2DOverride(const Matrix4 &_cameraMatrix, const Vector2 &_position);

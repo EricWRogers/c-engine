@@ -46,6 +46,8 @@ Entities:
       angularDamping: 0.05
       useGravity: true
       isSensor: false
+      layer: 1
+      mask: 4294967295
       allowSleeping: true
       lockRotationX: false
       lockRotationY: false
@@ -85,6 +87,8 @@ Entities:
       angularDamping: 0.05
       useGravity: true
       isSensor: false
+      layer: 1
+      mask: 4294967295
       allowSleeping: true
       lockRotationX: false
       lockRotationY: false
@@ -124,6 +128,8 @@ Entities:
       angularDamping: 0.05
       useGravity: true
       isSensor: false
+      layer: 1
+      mask: 4294967295
       allowSleeping: true
       lockRotationX: false
       lockRotationY: false
@@ -163,6 +169,8 @@ Entities:
       angularDamping: 0.05
       useGravity: true
       isSensor: false
+      layer: 1
+      mask: 4294967295
       allowSleeping: true
       lockRotationX: false
       lockRotationY: false
@@ -202,6 +210,8 @@ Entities:
       angularDamping: 0.05
       useGravity: true
       isSensor: false
+      layer: 1
+      mask: 4294967295
       allowSleeping: true
       lockRotationX: false
       lockRotationY: false
@@ -241,6 +251,8 @@ Entities:
       angularDamping: 0.9
       useGravity: true
       isSensor: false
+      layer: 2
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -261,6 +273,9 @@ Entities:
         uuid: 17154083321347000102
     RollABall::PlayerController:
       moveForce: 3000
+      jumpImpulse: 7.5
+      groundCheckDistance: 0.75
+      groundCollisionMask: 1
       pickupRadius: 1.15
       logProgress: true
       sprint: false
@@ -285,6 +300,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -326,6 +343,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -367,6 +386,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -408,6 +429,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -449,6 +472,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -490,6 +515,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -531,6 +558,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false
@@ -572,6 +601,8 @@ Entities:
       angularDamping: 0.05
       useGravity: false
       isSensor: true
+      layer: 4
+      mask: 4294967295
       allowSleeping: false
       lockRotationX: false
       lockRotationY: false

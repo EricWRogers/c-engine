@@ -141,6 +141,12 @@ namespace Canis
 
         std::vector<std::string> files;
 
+        if (!fs::exists(_folder) || !fs::is_directory(_folder))
+        {
+            Debug::Log("FindFilesInFolder: folder not found: %s", _folder.c_str());
+            return files;
+        }
+
         for (const auto &entry : fs::recursive_directory_iterator(_folder))
         {
             if (entry.is_regular_file() && entry.path().extension() != ".meta" && entry.path().filename().string()[0] != '.') // && entry.path().extension() == _extension)

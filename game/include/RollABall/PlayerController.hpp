@@ -12,12 +12,16 @@ namespace RollABall
         static constexpr const char* ScriptName = "RollABall::PlayerController";
 
         float moveForce = 35.0f;
+        float jumpImpulse = 7.5f;
+        float groundCheckDistance = 0.75f;
+        Canis::Mask groundCollisionMask = Canis::Rigidbody::DefaultLayer;
         float pickupRadius = 1.15f;
         bool logProgress = true;
 
         int totalPickups = 0;
         int collectedPickups = 0;
         bool hasWon = false;
+        bool grounded = false;
         bool sprint = false;
 
         explicit PlayerController(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}

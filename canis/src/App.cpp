@@ -19,11 +19,14 @@
 #include <Canis/ConfigHelper.hpp>
 
 #include <algorithm>
+#include <filesystem>
 
 namespace Canis
 {
     void App::Run()
     {
+        namespace fs = std::filesystem;
+
         Debug::Log("App Run");
 #ifdef _WIN32
         const char *sharedObjectPath = "./libGameCode.dll";
@@ -32,6 +35,34 @@ namespace Canis
 #elif __linux__
         const char *sharedObjectPath = "./libGameCode.so";
 #endif
+
+        auto hasAssetsFolder = [](const fs::path &_path) -> bool
+        {
+            const fs::path assetsPath = _path / "assets";
+            return fs::exists(assetsPath) && fs::is_directory(assetsPath);
+        };
+
+        if (!hasAssetsFolder(fs::current_path()))
+        {
+            std::vector<fs::path> candidatePaths = {};
+
+            if (const char *basePath = SDL_GetBasePath())
+            {
+                candidatePaths.emplace_back(basePath);
+                SDL_free(const_cast<char *>(basePath));
+            }
+
+            candidatePaths.push_back(fs::current_path() / "project");
+
+            for (const fs::path &candidatePath : candidatePaths)
+            {
+                if (!hasAssetsFolder(candidatePath))
+                    continue;
+
+                fs::current_path(candidatePath);
+                break;
+            }
+        }
 
         // find all the meta files and load to asset manager
         std::vector<std::string> paths = FindFilesInFolder("assets", "");
@@ -687,6 +718,8 @@ namespace Canis
                     comp["angularDamping"] = rigidbody->angularDamping;
                     comp["useGravity"] = rigidbody->useGravity;
                     comp["isSensor"] = rigidbody->isSensor;
+                    comp["layer"] = rigidbody->layer;
+                    comp["mask"] = rigidbody->mask;
                     comp["allowSleeping"] = rigidbody->allowSleeping;
                     comp["lockRotationX"] = rigidbody->lockRotationX;
                     comp["lockRotationY"] = rigidbody->lockRotationY;
@@ -713,6 +746,11 @@ namespace Canis
                     rigidbody.angularDamping = comp["angularDamping"].as<float>(0.05f);
                     rigidbody.useGravity = comp["useGravity"].as<bool>(true);
                     rigidbody.isSensor = comp["isSensor"].as<bool>(false);
+                    rigidbody.layer = comp["layer"].as<Mask>(
+                        comp["collisionLayer"].as<Mask>(
+                            comp["raycastMask"].as<Mask>(Rigidbody::DefaultLayer)));
+                    rigidbody.mask = comp["mask"].as<Mask>(
+                        comp["collisionMask"].as<Mask>(Rigidbody::DefaultMask));
                     rigidbody.allowSleeping = comp["allowSleeping"].as<bool>(true);
                     rigidbody.lockRotationX = comp["lockRotationX"].as<bool>(false);
                     rigidbody.lockRotationY = comp["lockRotationY"].as<bool>(false);
@@ -745,6 +783,8 @@ namespace Canis
                 ImGui::InputFloat(("angularDamping##" + _conf.name).c_str(), &rigidbody->angularDamping);
                 ImGui::Checkbox(("useGravity##" + _conf.name).c_str(), &rigidbody->useGravity);
                 ImGui::Checkbox(("isSensor##" + _conf.name).c_str(), &rigidbody->isSensor);
+                DrawInspectorField(("layer##" + _conf.name).c_str(), rigidbody->layer);
+                DrawInspectorField(("mask##" + _conf.name).c_str(), rigidbody->mask);
                 ImGui::Checkbox(("allowSleeping##" + _conf.name).c_str(), &rigidbody->allowSleeping);
                 ImGui::Checkbox(("lockRotationX##" + _conf.name).c_str(), &rigidbody->lockRotationX);
                 ImGui::Checkbox(("lockRotationY##" + _conf.name).c_str(), &rigidbody->lockRotationY);

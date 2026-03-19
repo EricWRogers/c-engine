@@ -58,14 +58,14 @@ namespace RollABall
 
     void PickupSpinner::CheckSensorEnter()
     {
-        if (!entity.HasComponent<BoxCollider>())
+        if (!entity.HasComponents<BoxCollider,Rigidbody>())
             return;
 
         Entity* collectingPlayer = nullptr;
 
         for (Entity* other : entity.GetComponent<BoxCollider>().entered)
         {
-            if (other == nullptr || !other->active)
+            if (!other->active)
                 continue;
 
             if (other->HasScript<RollABall::PlayerController>()) {

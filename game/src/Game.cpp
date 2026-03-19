@@ -12,6 +12,7 @@
 #include <TankGame/Bounce.hpp>
 #include <RollABall/PlayerController.hpp>
 #include <RollABall/PickupSpinner.hpp>
+#include <RollABall/BoostPad.hpp>
 
 #include "../include/GameData.hpp"
 
@@ -39,6 +40,7 @@ extern "C"
         TankGame::RegisterBounceScript(app);
         RollABall::RegisterPlayerControllerScript(app);
         RollABall::RegisterPickupSpinnerScript(app);
+        RollABall::RegisterBoostPadScript(app);
         
 
         Canis::Debug::Log("Game initialized!");
@@ -65,6 +67,7 @@ extern "C"
         TankGame::UnRegisterBounceScript(app);
         RollABall::UnRegisterPickupSpinnerScript(app);
         RollABall::UnRegisterPlayerControllerScript(app);
+        RollABall::UnRegisterBoostPadScript(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;

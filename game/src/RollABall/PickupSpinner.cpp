@@ -8,11 +8,11 @@ namespace RollABall
 {
     ScriptConf pickUpConf = {};
 
-    void RegisterPickupSpinnerScript(Canis::App& _app)
+    void RegisterPickupSpinnerScript(App& _app)
     {
         REGISTER_PROPERTY(pickUpConf, RollABall::PickupSpinner, spinSpeedDegrees);
 
-        DEFAULT_CONFIG_AND_REQUIRED(pickUpConf, RollABall::PickupSpinner, Canis::Transform);
+        DEFAULT_CONFIG_AND_REQUIRED(pickUpConf, RollABall::PickupSpinner, Transform);
 
         pickUpConf.DEFAULT_DRAW_INSPECTOR(RollABall::PickupSpinner);
 
@@ -23,21 +23,21 @@ namespace RollABall
 
     void PickupSpinner::Create()
     {
-        entity.GetComponent<Canis::Transform>();
+        entity.GetComponent<Transform>();
 
-        Canis::Rigidbody& rigidbody = entity.GetComponent<Canis::Rigidbody>();
-        rigidbody.motionType = Canis::RigidbodyMotionType::STATIC;
+        Rigidbody& rigidbody = entity.GetComponent<Rigidbody>();
+        rigidbody.motionType = RigidbodyMotionType::STATIC;
         rigidbody.useGravity = false;
         rigidbody.isSensor = true;
         rigidbody.allowSleeping = false;
         rigidbody.linearVelocity = Vector3(0.0f);
         rigidbody.angularVelocity = Vector3(0.0f);
 
-        if (!entity.HasComponent<Canis::BoxCollider>()
-            && !entity.HasComponent<Canis::SphereCollider>()
-            && !entity.HasComponent<Canis::CapsuleCollider>())
+        if (!entity.HasComponent<BoxCollider>()
+            && !entity.HasComponent<SphereCollider>()
+            && !entity.HasComponent<CapsuleCollider>())
         {
-            entity.GetComponent<Canis::BoxCollider>();
+            entity.GetComponent<BoxCollider>();
         }
     }
 
@@ -47,10 +47,10 @@ namespace RollABall
 
     void PickupSpinner::Update(float _dt)
     {
-        if (!entity.HasComponent<Canis::Transform>())
+        if (!entity.HasComponent<Transform>())
             return;
 
-        Canis::Transform& transform = entity.GetComponent<Canis::Transform>();
+        Transform& transform = entity.GetComponent<Transform>();
         transform.rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
 
         CheckSensorEnter();
@@ -58,12 +58,12 @@ namespace RollABall
 
     void PickupSpinner::CheckSensorEnter()
     {
-        if (!entity.HasComponent<Canis::BoxCollider>())
+        if (!entity.HasComponent<BoxCollider>())
             return;
 
-        Canis::Entity* collectingPlayer = nullptr;
+        Entity* collectingPlayer = nullptr;
 
-        for (Canis::Entity* other : entity.GetComponent<Canis::BoxCollider>().entered)
+        for (Entity* other : entity.GetComponent<BoxCollider>().entered)
         {
             if (other == nullptr || !other->active)
                 continue;

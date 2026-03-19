@@ -6,23 +6,6 @@
 
 namespace RollABall
 {
-    namespace
-    {
-        Canis::Entity* FindEnteringPlayer(const std::vector<Canis::Entity*>& _entities)
-        {
-            for (Canis::Entity* other : _entities)
-            {
-                if (other == nullptr || !other->active)
-                    continue;
-
-                if (other->HasScript<RollABall::PlayerController>())
-                    return other;
-            }
-
-            return nullptr;
-        }
-    } // namespace
-
     ScriptConf pickUpConf = {};
 
     void RegisterPickupSpinnerScript(Canis::App& _app)
@@ -70,9 +53,26 @@ namespace RollABall
         Canis::Transform& transform = entity.GetComponent<Canis::Transform>();
         transform.rotation.y += spinSpeedDegrees * DEG2RAD * _dt;
 
+        CheckSensorEnter();
+    }
+
+    void PickupSpinner::CheckSensorEnter()
+    {
+        if (!entity.HasComponent<Canis::BoxCollider>())
+            return;
+
         Canis::Entity* collectingPlayer = nullptr;
-        if (entity.HasComponent<Canis::BoxCollider>())
-            collectingPlayer = FindEnteringPlayer(entity.GetComponent<Canis::BoxCollider>().entered);
+
+        for (Canis::Entity* other : entity.GetComponent<Canis::BoxCollider>().entered)
+        {
+            if (other == nullptr || !other->active)
+                continue;
+
+            if (other->HasScript<RollABall::PlayerController>()) {
+                collectingPlayer = other;
+                break;
+            }
+        }
 
         if (collectingPlayer == nullptr)
             return;

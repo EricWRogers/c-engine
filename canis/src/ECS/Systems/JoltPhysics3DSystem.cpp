@@ -1037,16 +1037,16 @@ namespace Canis
             ApplyContactFrameData(_registry);
         }
 
-        bool Raycast(entt::registry &_registry, const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance, u32 _mask) const
+        std::vector<RaycastHit> RaycastAll(entt::registry &_registry, const Vector3 &_origin, const Vector3 &_direction, float _maxDistance, u32 _mask) const
         {
-            _hit = RaycastHit{};
+            std::vector<RaycastHit> hits = {};
 
             if (physicsSystem == nullptr)
-                return false;
+                return hits;
 
             const float directionLength = glm::length(_direction);
             if (directionLength <= 0.000001f)
-                return false;
+                return hits;
 
             float rayLength = _maxDistance;
             if (!std::isfinite(rayLength) || rayLength <= 0.0f)
@@ -1058,7 +1058,7 @@ namespace Canis
             JPH::AllHitCollisionCollector<JPH::CastRayCollector> collector;
             physicsSystem->GetNarrowPhaseQuery().CastRay(ray, JPH::RayCastSettings{}, collector);
             if (!collector.HadHit())
-                return false;
+                return hits;
 
             collector.Sort();
 
@@ -1082,16 +1082,29 @@ namespace Canis
 
                 const JPH::RVec3 hitPoint = ray.GetPointOnRay(hitResult.mFraction);
                 const JPH::Vec3 hitNormal = body.GetWorldSpaceSurfaceNormal(hitResult.mSubShapeID2, hitPoint);
-
-                _hit.entity = entity;
-                _hit.point = ToCanisPosition(hitPoint);
-                _hit.normal = Vector3(hitNormal.GetX(), hitNormal.GetY(), hitNormal.GetZ());
-                _hit.distance = rayLength * hitResult.mFraction;
-                _hit.fraction = hitResult.mFraction;
-                return true;
+                hits.push_back(RaycastHit{
+                    .entity = entity,
+                    .point = ToCanisPosition(hitPoint),
+                    .normal = Vector3(hitNormal.GetX(), hitNormal.GetY(), hitNormal.GetZ()),
+                    .distance = rayLength * hitResult.mFraction,
+                    .fraction = hitResult.mFraction
+                });
             }
 
-            return false;
+            return hits;
+        }
+
+        bool Raycast(entt::registry &_registry, const Vector3 &_origin, const Vector3 &_direction, RaycastHit &_hit, float _maxDistance, u32 _mask) const
+        {
+            const std::vector<RaycastHit> hits = RaycastAll(_registry, _origin, _direction, _maxDistance, _mask);
+            if (hits.empty())
+            {
+                _hit = RaycastHit{};
+                return false;
+            }
+
+            _hit = hits.front();
+            return true;
         }
     };
 
@@ -1151,5 +1164,13 @@ namespace Canis
     {
         RaycastHit hit = {};
         return Raycast(_origin, _direction, hit, _maxDistance, _mask);
+    }
+
+    std::vector<RaycastHit> JoltPhysics3DSystem::RaycastAll(const Vector3 &_origin, const Vector3 &_direction, float _maxDistance, u32 _mask) const
+    {
+        if (m_impl == nullptr || scene == nullptr)
+            return {};
+
+        return m_impl->RaycastAll(scene->GetRegistry(), _origin, _direction, _maxDistance, _mask);
     }
 } // namespace Canis

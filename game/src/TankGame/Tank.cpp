@@ -153,6 +153,4 @@ namespace TankGame
             bullet->lifeTime = 5.0f;
         }
     }
-
-    void Tank::EditorInspectorDraw() {}
 }

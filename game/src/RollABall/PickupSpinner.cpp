@@ -83,6 +83,4 @@ namespace RollABall
             entity.Destroy();
         }
     }
-
-    void PickupSpinner::EditorInspectorDraw() {}
 }

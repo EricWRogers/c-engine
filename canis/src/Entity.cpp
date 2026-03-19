@@ -4,11 +4,7 @@
 #include <Canis/Window.hpp>
 #include <Canis/AssetManager.hpp>
 #include <Canis/Debug.hpp>
-#include <Canis/ConfigData.hpp>
-#include <Canis/ConfigHelper.hpp>
 
-#include <imgui.h>
-#include <imgui_stdlib.h>
 
 namespace Canis {
 
@@ -116,160 +112,6 @@ void Entity::Destroy() {
     scene.Destroy(id);
 }
 
-void RectTransform::EditorInspectorDraw()
-{
-    std::string nameOfType = "RectTransform";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::InputFloat2("position", &position.x, "%.3f");
-    ImGui::InputFloat2("size", &size.x, "%.3f");
-    ImGui::InputFloat2("scale", &scale.x);
-    ImGui::InputFloat2("originOffset", &originOffset.x, "%.3f");
-    ImGui::InputFloat("depth", &depth);
-    // let user work with degrees
-    float degrees = RAD2DEG * rotation;
-    ImGui::InputFloat("rotation", &degrees);
-    rotation = DEG2RAD * degrees;
-}
-
-void Sprite2D::EditorInspectorDraw()
-{
-    std::string nameOfType = "Sprite2D";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::ColorEdit4("color", &color.r);
-    ImGui::InputFloat4("uv", &uv.x, "%.3f");
-}
-
-void Text::EditorInspectorDraw()
-{
-    std::string nameOfType = "Text";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::InputText("text", &text);
-    ImGui::InputInt("font asset id", &assetId);
-}
-
-void Transform::EditorInspectorDraw()
-{
-    std::string nameOfType = "Transform";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::InputFloat3("position", &position.x, "%.3f");
-
-    Vector3 degrees = rotation * RAD2DEG;
-    ImGui::InputFloat3("rotation", &degrees.x, "%.3f");
-    rotation = degrees * DEG2RAD;
-
-    ImGui::InputFloat3("scale", &scale.x, "%.3f");
-}
-
-void Rigidbody::EditorInspectorDraw()
-{
-    std::string nameOfType = "Rigidbody";
-    ImGui::Text("%s", nameOfType.c_str());
-
-    const char *motionTypeLabels[] = {"Static", "Kinematic", "Dynamic"};
-    if (motionType < RigidbodyMotionType::STATIC || motionType > RigidbodyMotionType::DYNAMIC)
-        motionType = RigidbodyMotionType::DYNAMIC;
-
-    ImGui::Checkbox("active", &active);
-    ImGui::Combo("motionType", &motionType, motionTypeLabels, IM_ARRAYSIZE(motionTypeLabels));
-    ImGui::InputFloat("mass", &mass);
-    ImGui::InputFloat("friction", &friction);
-    ImGui::InputFloat("restitution", &restitution);
-    ImGui::InputFloat("linearDamping", &linearDamping);
-    ImGui::InputFloat("angularDamping", &angularDamping);
-    ImGui::Checkbox("useGravity", &useGravity);
-    ImGui::Checkbox("isSensor", &isSensor);
-    DrawInspectorField("layer", layer);
-    DrawInspectorField("mask", mask);
-    ImGui::Checkbox("allowSleeping", &allowSleeping);
-    ImGui::Checkbox("lockRotationX", &lockRotationX);
-    ImGui::Checkbox("lockRotationY", &lockRotationY);
-    ImGui::Checkbox("lockRotationZ", &lockRotationZ);
-    ImGui::InputFloat3("linearVelocity", &linearVelocity.x, "%.3f");
-    ImGui::InputFloat3("angularVelocity", &angularVelocity.x, "%.3f");
-}
-
-void BoxCollider::EditorInspectorDraw()
-{
-    std::string nameOfType = "BoxCollider";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("active", &active);
-    ImGui::InputFloat3("size", &size.x, "%.3f");
-}
-
-void SphereCollider::EditorInspectorDraw()
-{
-    std::string nameOfType = "SphereCollider";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("active", &active);
-    ImGui::InputFloat("radius", &radius);
-}
-
-void CapsuleCollider::EditorInspectorDraw()
-{
-    std::string nameOfType = "CapsuleCollider";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("active", &active);
-    ImGui::InputFloat("halfHeight", &halfHeight);
-    ImGui::InputFloat("radius", &radius);
-}
-
-void Camera::EditorInspectorDraw()
-{
-    std::string nameOfType = "Camera";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("primary", &primary);
-    ImGui::InputFloat("fovDegrees", &fovDegrees);
-    ImGui::InputFloat("nearClip", &nearClip);
-    ImGui::InputFloat("farClip", &farClip);
-}
-
-void DirectionalLight::EditorInspectorDraw()
-{
-    std::string nameOfType = "DirectionalLight";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("enabled", &enabled);
-    ImGui::ColorEdit3("color", &color.r);
-    ImGui::InputFloat("intensity", &intensity);
-    ImGui::InputFloat3("direction", &direction.x, "%.3f");
-}
-
-void PointLight::EditorInspectorDraw()
-{
-    std::string nameOfType = "PointLight";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("enabled", &enabled);
-    ImGui::ColorEdit3("color", &color.r);
-    ImGui::InputFloat("intensity", &intensity);
-    ImGui::InputFloat("range", &range);
-}
-
-void Model::EditorInspectorDraw()
-{
-    std::string nameOfType = "Model";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::InputInt("modelId", &modelId);
-    ImGui::ColorEdit4("color", &color.r);
-}
-
-void Material::EditorInspectorDraw()
-{
-    std::string nameOfType = "Material";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::InputInt("materialId", &materialId);
-    ImGui::ColorEdit4("color", &color.r);
-}
-
-void ModelAnimation::EditorInspectorDraw()
-{
-    std::string nameOfType = "ModelAnimation";
-    ImGui::Text("%s", nameOfType.c_str());
-    ImGui::Checkbox("playAnimation", &playAnimation);
-    ImGui::Checkbox("loop", &loop);
-    ImGui::InputFloat("animationSpeed", &animationSpeed);
-    ImGui::InputFloat("animationTime", &animationTime);
-    ImGui::InputInt("animationIndex", &animationIndex);
-}
-
 void Camera2D::Create() {
     if (entity == nullptr)
         return;
@@ -288,24 +130,6 @@ void Camera2D::Destroy() {
 }
 
 void Camera2D::Update(float _dt) {}
-
-void Camera2D::EditorInspectorDraw()
-{
-    std::string nameOfType = "Camera2D";
-    ImGui::Text("%s", nameOfType.c_str());
-
-    Vector2 lastPosition = GetPosition();
-    float lastScale = GetScale();
-
-    ImGui::InputFloat2("position", &lastPosition.x, "%.3f");
-    ImGui::InputFloat("scale", &lastScale);
-
-    if (lastPosition != GetPosition())
-        SetPosition(lastPosition);
-
-    if (lastScale != GetScale())
-        SetScale(lastScale);
-}
 
 void Camera2D::UpdateMatrix()
 {

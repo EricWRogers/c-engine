@@ -17,7 +17,6 @@ namespace RollABall
         void Ready() override;
         void Destroy() override;
         void Update(float _dt) override;
-        void EditorInspectorDraw() override;
     };
 
     void RegisterPickupSpinnerScript(Canis::App& _app);

@@ -27,7 +27,6 @@ namespace TankGame
         void Ready();
         void Destroy();
         void Update(float _dt);
-        void EditorInspectorDraw();
     };
 
     extern void RegisterTankScript(Canis::App& _app);

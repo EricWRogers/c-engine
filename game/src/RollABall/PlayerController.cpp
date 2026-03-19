@@ -101,8 +101,6 @@ namespace RollABall
         rigidbody.AddForce(movement * moveForce * _dt, Rigidbody3DForceMode::FORCE);
     }
 
-    void PlayerController::EditorInspectorDraw() {}
-
     int PlayerController::CountActivePickups() const
     {
         return entity.scene.GetEntitiesWithTag("Pickup").size();

@@ -217,7 +217,6 @@ namespace Canis
         virtual void Ready() {}
         virtual void Destroy() {}
         virtual void Update(float _dt) {}
-        virtual void EditorInspectorDraw() {}
     };
 
     enum RectAnchor
@@ -248,7 +247,6 @@ namespace Canis
 
         explicit RectTransform(Canis::Entity& _entity) : entity(&_entity) {}
 
-        void EditorInspectorDraw();
         void Create() {}
         Entity* entity = nullptr;
 
@@ -605,7 +603,6 @@ namespace Canis
         explicit Transform(Canis::Entity& _entity) : entity(&_entity) {}
         Entity* entity = nullptr;
 
-        void EditorInspectorDraw();
         void Create() {}
         void Destroy()
         {
@@ -889,7 +886,6 @@ namespace Canis
         Entity* entity = nullptr;
 
         void Create() {}
-        void EditorInspectorDraw();
 
         void AddForce(const Vector3& _force, int _forceMode = Rigidbody3DForceMode::FORCE)
         {
@@ -947,7 +943,6 @@ namespace Canis
         Entity* entity = nullptr;
 
         void Create() {}
-        void EditorInspectorDraw();
 
         bool active = true;
         Vector3 size = Vector3(1.0f);
@@ -966,7 +961,6 @@ namespace Canis
         Entity* entity = nullptr;
 
         void Create() {}
-        void EditorInspectorDraw();
 
         bool active = true;
         float radius = 0.5f;
@@ -985,7 +979,6 @@ namespace Canis
         Entity* entity = nullptr;
 
         void Create() {}
-        void EditorInspectorDraw();
 
         bool active = true;
         float halfHeight = 0.5f;
@@ -1007,7 +1000,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         bool primary = true;
         float fovDegrees = 60.0f;
@@ -1027,7 +1019,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         bool enabled = true;
         Color color = Color(1.0f);
@@ -1047,7 +1038,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         bool enabled = true;
         Color color = Color(1.0f);
@@ -1067,7 +1057,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         i32 modelId = -1;
         Color color = Color(1.0f);
@@ -1085,7 +1074,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         i32 materialId = -1;
         std::vector<i32> materialIds = {};
@@ -1104,7 +1092,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         bool playAnimation = true;
         bool loop = true;
@@ -1134,7 +1121,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         void GetSpriteFromTextureAtlas(u8 _offsetX, u8 _offsetY, u16 _indexX, u16 _indexY, u16 _spriteWidth, u16 _spriteHeight)
         {
@@ -1174,7 +1160,6 @@ namespace Canis
         Entity* entity = nullptr;
         void Create() {}
 
-        void EditorInspectorDraw();
 
         void SetText(const std::string &_text)
         {
@@ -1215,7 +1200,6 @@ namespace Canis
             UpdateMatrix();
         }
 
-        void EditorInspectorDraw();
 
         Vector2 GetPosition() { return m_position; }
         Matrix4 GetCameraMatrix() { return m_cameraMatrix; }
@@ -1251,7 +1235,6 @@ namespace Canis
         void Create() {}
         void Destroy() {}
         void Update(float _dt) {}
-        void EditorInspectorDraw() {}
 
         void Play(std::string _path);
 

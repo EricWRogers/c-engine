@@ -82,6 +82,4 @@ namespace TankGame
 
         m_transform->SetPosition(target + offset);
     }
-
-    void FollowMouse::EditorInspectorDraw() {}
 }

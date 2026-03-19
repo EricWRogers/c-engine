@@ -82,6 +82,4 @@ namespace TankGame
 
         m_transform->scale = m_restScale * pulse;
     }
-
-    void Bounce::EditorInspectorDraw() {}
 }

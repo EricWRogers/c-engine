@@ -66,6 +66,14 @@ namespace Canis
         return Raycast(_origin, _direction, hit, _maxDistance, _mask);
     }
 
+    std::vector<RaycastHit> Scene::RaycastAll(const Vector3 &_origin, const Vector3 &_direction, float _maxDistance, u32 _mask)
+    {
+        if (JoltPhysics3DSystem *physicsSystem = GetSystem<JoltPhysics3DSystem>())
+            return physicsSystem->RaycastAll(_origin, _direction, _maxDistance, _mask);
+
+        return {};
+    }
+
     void Scene::Update(float _deltaTime)
     {
         m_isUpdating = true;

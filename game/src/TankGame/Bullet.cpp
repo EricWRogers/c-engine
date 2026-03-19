@@ -57,6 +57,4 @@ namespace TankGame
         }
         
     }
-
-    void Bullet::EditorInspectorDraw() {}
 }

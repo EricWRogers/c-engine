@@ -56,18 +56,10 @@ namespace RollABall
                 continue;
 
             if (other->HasScript<RollABall::PlayerController>()) {
-                collectingPlayer = other;
+                Rigidbody& playerRigidbody = other->GetComponent<Rigidbody>();
+                playerRigidbody.AddForce(Vector3(0.0f, yeetForce, 0.0f), Rigidbody3DForceMode::IMPULSE);
                 break;
             }
-        }
-
-        if (collectingPlayer == nullptr)
-            return;
-
-        if (PlayerController* playerController = collectingPlayer->GetScript<PlayerController>())
-        {
-            playerController->CollectPickup();
-            entity.Destroy();
         }
     }
 }

@@ -630,15 +630,15 @@ Entities:
     Tag: ""
     Canis::Transform:
       active: true
-      position: [0, 0, 0]
-      rotation: [0, 0, 0]
+      position: [-2.954834, 0, 0]
+      rotation: [0, -0, 0]
       scale: [1, 1, 1]
       parent: 0
       children:
         []
     Canis::Rigidbody:
       active: true
-      motionType: 1
+      motionType: 0
       mass: 1
       friction: 0.2
       restitution: 0
@@ -648,7 +648,7 @@ Entities:
       isSensor: true
       layer: 8
       mask: 4294967295
-      allowSleeping: true
+      allowSleeping: false
       lockRotationX: false
       lockRotationY: false
       lockRotationZ: false
@@ -658,7 +658,7 @@ Entities:
       active: true
       size: [1, 1, 1]
     Canis::Material:
-      color: [1, 1, 1, 1]
+      color: [0.3316457, 0.64705884, 0.18079588, 1]
       MaterialAsset:
         uuid: 17490362529814420531
     Canis::Model:
@@ -666,3 +666,5 @@ Entities:
       ModelAsset:
         path: assets/models/physics_cube.glb
         uuid: 17154083321347000101
+    RollABall::BoostPad:
+      yeetForce: 100

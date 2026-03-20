@@ -1,5 +1,8 @@
 .cache
 build
+/build-debug
+/build-release
+/game/src/RegisterScripts.cpp
 project/*
 !project/assets/
 !project/assets/**

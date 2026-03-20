@@ -14,7 +14,9 @@ namespace RollABall
 
         DEFAULT_CONFIG_AND_REQUIRED(boostPadConf, RollABall::BoostPad, Transform, BoxCollider);
 
-        boostPadConf.DEFAULT_DRAW_INSPECTOR(RollABall::BoostPad);
+        boostPadConf.DEFAULT_DRAW_INSPECTOR(RollABall::BoostPad,
+            _editor.InputEntity("ball", component->player);
+        );
 
         _app.RegisterScript(boostPadConf);
     }
@@ -34,7 +36,9 @@ namespace RollABall
         rigidbody.angularVelocity = Vector3(0.0f);
     }
 
-    void BoostPad::Ready() {}
+    void BoostPad::Ready() {
+        player = entity.scene.FindEntityWithName("Player");
+    }
 
     void BoostPad::Destroy() {}
 

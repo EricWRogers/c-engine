@@ -10,6 +10,7 @@ namespace RollABall
         static constexpr const char* ScriptName = "RollABall::BoostPad";
 
         float yeetForce = 10000.0f;
+        Canis::Entity* player = nullptr;
 
         explicit BoostPad(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 

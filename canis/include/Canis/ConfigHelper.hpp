@@ -179,7 +179,7 @@ inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_c
     Has = [](Entity &_entity) -> bool { return _entity.HasScript<type>(); } \
 
 #define DEFAULT_REMOVE(type) \
-    Remove = [](Entity &_entity) -> void { _entity.RemoveScript(type::ScriptName); } \
+    Remove = [](Entity &_entity) -> void { _entity.RemoveScript<type>(); } \
 
 #define DEFAULT_GET(type) \
     Get = [](Entity& _entity) -> void* { return (void*)_entity.GetScript<type>(); } \

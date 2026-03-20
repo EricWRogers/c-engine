@@ -667,4 +667,4 @@ Entities:
         path: assets/models/physics_cube.glb
         uuid: 17154083321347000101
     RollABall::BoostPad:
-      yeetForce: 100
+      yeetForce: 10

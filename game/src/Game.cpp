@@ -2,11 +2,12 @@
 
 
 #include <Canis/AssetManager.hpp>
+#include <Canis/App.hpp>
 #include <Canis/Time.hpp>
 #include <Canis/Window.hpp>
 #include <Canis/InputManager.hpp>
 
-#include <RegisterScripts.hpp>
+#include <RegisterScripts.generated.hpp>
 #include <GameData.hpp>
 
 using namespace Canis;
@@ -27,7 +28,7 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
         
         app.RegisterInspectorItem(inspectorCreateBall);
-        RegisterScripts(app);
+        RegisterGeneratedScripts(app);
         
 
         Canis::Debug::Log("Game initialized!");
@@ -48,7 +49,7 @@ extern "C"
         Canis::App &app = *(Canis::App *)_app;
 
         app.UnregisterInspectorItem(inspectorCreateBall);
-        UnRegisterScripts(app);
+        UnRegisterGeneratedScripts(app);
 
         Canis::Debug::Log("Game shutdown!");
         delete (GameData *)_data;

@@ -1,6 +1,11 @@
 #pragma once
 
+#include <functional>
 #include <string>
+#include <type_traits>
+#include <typeindex>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <Canis/UUID.hpp>
@@ -56,9 +61,42 @@ namespace Canis
 
         // inspector variables
         void InputEntity(const std::string& _name, Canis::Entity* &_variable);
+        void InputEntity(const std::string& _name, const char* _idSuffix, Canis::Entity* &_variable);
         void InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable);
+        void InputAnimationClip(const std::string& _name, const char* _idSuffix, Canis::AnimationClip2DID &_variable);
         //void InputScriptableEntity(const std::string& _name, const std::string& _script, );
+
+        template <typename T, typename Drawer>
+        void RegisterInspectorFieldDrawer(Drawer&& _drawer)
+        {
+            using FieldType = std::remove_cvref_t<T>;
+
+            m_inspectorFieldDrawers[std::type_index(typeid(FieldType))] =
+                [drawer = std::forward<Drawer>(_drawer)](Editor& _editor, const char* _label, const char* _idSuffix, void* _value) mutable
+                {
+                    drawer(_editor, _label, _idSuffix, *static_cast<FieldType*>(_value));
+                };
+        }
+
+        template <typename T>
+        void UnregisterInspectorFieldDrawer()
+        {
+            m_inspectorFieldDrawers.erase(std::type_index(typeid(std::remove_cvref_t<T>)));
+        }
+
+        template <typename T>
+        bool DrawRegisteredInspectorField(const char* _label, const char* _idSuffix, T& _value)
+        {
+            auto drawerIt = m_inspectorFieldDrawers.find(std::type_index(typeid(std::remove_cvref_t<T>)));
+            if (drawerIt == m_inspectorFieldDrawers.end())
+                return false;
+
+            drawerIt->second(*this, _label, _idSuffix, static_cast<void*>(&_value));
+            return true;
+        }
     private:
+        using InspectorFieldDrawer = std::function<void(Editor&, const char*, const char*, void*)>;
+
         void DrawMainDockspace();
         void ApplyInternalSceneCamera(float _deltaTime);
         void DrawSceneView();
@@ -162,5 +200,6 @@ namespace Canis
         int m_playTextureHeight = 0;
 
         unsigned int m_gameInputWindowID = 0;
+        std::unordered_map<std::type_index, InspectorFieldDrawer> m_inspectorFieldDrawers = {};
     };
 }

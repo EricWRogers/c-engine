@@ -30,60 +30,96 @@ inline void AddRequiredScripts(Entity& _entity)
     (_entity.scene.app->AddRequiredScript(_entity, Ts::ScriptName), ...);
 }
 
-template <typename T>
-inline void DrawInspectorField(const char *_label, T &_value)
+template <typename Component>
+inline Entity& GetRegisteredPropertyOwnerEntity(Component& _component)
 {
+    if constexpr (std::is_pointer_v<std::remove_reference_t<decltype(_component.entity)>>)
+        return *_component.entity;
+    else
+        return _component.entity;
+}
+
+template <typename Component, typename PropertyType>
+inline void SetRegisteredProperty(YAML::Node& _node, Component& _component, PropertyType& _value)
+{
+    (void)_component;
+    _value = _node.as<PropertyType>(_value);
+}
+
+template <typename Component>
+inline void SetRegisteredProperty(YAML::Node& _node, Component& _component, Canis::Entity*& _value)
+{
+    const Canis::UUID targetUUID = _node.as<Canis::UUID>(Canis::UUID(0));
+    GetRegisteredPropertyOwnerEntity(_component).scene.GetEntityAfterLoad(targetUUID, _value);
+}
+
+template <typename PropertyType>
+inline YAML::Node GetRegisteredProperty(const PropertyType& _value)
+{
+    return YAML::Node(_value);
+}
+
+inline YAML::Node GetRegisteredProperty(Canis::Entity* const& _value)
+{
+    return YAML::Node((_value == nullptr) ? Canis::UUID(0) : _value->uuid);
+}
+
+inline std::string BuildInspectorFieldLabel(const char *_label, const char *_idSuffix)
+{
+    if (_idSuffix == nullptr || _idSuffix[0] == '\0')
+        return std::string(_label);
+
+    return std::string(_label) + "##" + _idSuffix;
+}
+
+template <typename T>
+inline void DrawInspectorField(Editor *_editor, const char *_label, const char *_idSuffix, T &_value)
+{
+    if (_editor != nullptr && _editor->DrawRegisteredInspectorField(_label, _idSuffix, _value))
+        return;
+
+    const std::string imguiLabel = BuildInspectorFieldLabel(_label, _idSuffix);
+    const char *fullLabel = imguiLabel.c_str();
+
     if constexpr (std::is_same_v<T, bool>)
     {
-        ImGui::Checkbox(_label, &_value);
+        ImGui::Checkbox(fullLabel, &_value);
     }
     else if constexpr (std::is_same_v<T, int>)
     {
-        ImGui::InputInt(_label, &_value);
+        ImGui::InputInt(fullLabel, &_value);
     }
     else if constexpr (std::is_same_v<T, float>)
     {
-        ImGui::InputFloat(_label, &_value);
+        ImGui::InputFloat(fullLabel, &_value);
     }
     else if constexpr (std::is_same_v<T, double>)
     {
-        ImGui::InputScalar(_label, ImGuiDataType_Double, &_value);
+        ImGui::InputScalar(fullLabel, ImGuiDataType_Double, &_value);
     }
     else if constexpr (std::is_same_v<T, Vector2>)
     {
-        ImGui::InputFloat2(_label, &_value.x);
+        ImGui::InputFloat2(fullLabel, &_value.x);
     }
     else if constexpr (std::is_same_v<T, Vector3>)
     {
-        ImGui::InputFloat3(_label, &_value.x);
+        ImGui::InputFloat3(fullLabel, &_value.x);
     }
     else if constexpr (std::is_same_v<T, Vector4>)
     {
-        ImGui::InputFloat4(_label, &_value.x);
+        ImGui::InputFloat4(fullLabel, &_value.x);
     }
     else if constexpr (std::is_same_v<T, std::string>)
     {
-        ImGui::InputText(_label, &_value);
+        ImGui::InputText(fullLabel, &_value);
     }
     else if constexpr (std::is_same_v<T, Mask>)
     {
-        ImGui::PushID(_label);
+        ImGui::PushID((_idSuffix != nullptr && _idSuffix[0] != '\0') ? _idSuffix : _label);
 
-        const char *visibleLabelEnd = _label;
-        while (*visibleLabelEnd != '\0')
-        {
-            if (visibleLabelEnd[0] == '#' && visibleLabelEnd[1] == '#')
-                break;
-
-            ++visibleLabelEnd;
-        }
-
-        if (visibleLabelEnd != _label)
-        {
-            ImGui::TextUnformatted(_label, visibleLabelEnd);
-            ImGui::SameLine();
-            ImGui::TextDisabled("0x%08X", static_cast<u32>(_value));
-        }
+        ImGui::TextUnformatted(_label);
+        ImGui::SameLine();
+        ImGui::TextDisabled("0x%08X", static_cast<u32>(_value));
 
         const ImVec4 activeColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
         const ImVec4 hoveredColor = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
@@ -141,13 +177,13 @@ inline void DrawInspectorField(const char *_label, T &_value)
     else if constexpr (std::is_integral_v<T>)
     {
         long long value = static_cast<long long>(_value);
-        if (ImGui::InputScalar(_label, ImGuiDataType_S64, &value))
+        if (ImGui::InputScalar(fullLabel, ImGuiDataType_S64, &value))
             _value = static_cast<T>(value);
     }
     else if constexpr (std::is_floating_point_v<T>)
     {
         double value = static_cast<double>(_value);
-        if (ImGui::InputScalar(_label, ImGuiDataType_Double, &value))
+        if (ImGui::InputScalar(fullLabel, ImGuiDataType_Double, &value))
             _value = static_cast<T>(value);
     }
     else
@@ -156,7 +192,31 @@ inline void DrawInspectorField(const char *_label, T &_value)
     }
 }
 
-inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_component, const std::string &_idSuffix)
+template <typename T>
+inline void DrawInspectorField(Editor &_editor, const char *_label, T &_value)
+{
+    DrawInspectorField<T>(&_editor, _label, nullptr, _value);
+}
+
+template <typename T>
+inline void DrawInspectorField(Editor &_editor, const char *_label, const char *_idSuffix, T &_value)
+{
+    DrawInspectorField<T>(&_editor, _label, _idSuffix, _value);
+}
+
+template <typename T>
+inline void DrawInspectorField(const char *_label, T &_value)
+{
+    DrawInspectorField<T>(nullptr, _label, nullptr, _value);
+}
+
+template <typename T>
+inline void DrawInspectorField(const char *_label, const char *_idSuffix, T &_value)
+{
+    DrawInspectorField<T>(nullptr, _label, _idSuffix, _value);
+}
+
+inline void DrawRegisteredProperties(Editor &_editor, const PropertyRegistry &_registry, void *_component, const std::string &_idSuffix)
 {
     for (const std::string &propertyName : _registry.propertyOrder)
     {
@@ -164,7 +224,7 @@ inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_c
         if (drawerIt == _registry.drawers.end())
             continue;
 
-        drawerIt->second(propertyName, _component, _idSuffix);
+        drawerIt->second(_editor, propertyName, _component, _idSuffix);
     }
 }
 
@@ -190,7 +250,7 @@ inline void DrawRegisteredProperties(const PropertyRegistry &_registry, void *_c
         (void)_editor;                                                                \
         if (type *component = _entity.GetScript<type>())                              \
         {                                                                             \
-            DrawRegisteredProperties(_conf.registry, component, _conf.name);          \
+            DrawRegisteredProperties(_editor, _conf.registry, component, _conf.name); \
             __VA_ARGS__                                                               \
         }                                                                             \
     }                                                                                 \
@@ -213,17 +273,21 @@ void UnRegister##type##Script(Canis::App& _app)  \
 #define REGISTER_PROPERTY(config, component, property)                                            \
 {                                                                                                   \
     using PropertyType = std::remove_cvref_t<decltype(std::declval<component>().property)>;       \
+    static_assert(!std::is_same_v<PropertyType, Canis::Entity>,                                    \
+        "REGISTER_PROPERTY does not support Canis::Entity by value. Use Canis::Entity* for entity references."); \
     config.registry.setters[#property] = [](YAML::Node &node, void *componentPtr) {             	        \
-        static_cast<component *>(componentPtr)->property = node.as<PropertyType>();                 \
+        auto *typedComponent = static_cast<component *>(componentPtr);                              \
+        SetRegisteredProperty(node, *typedComponent, typedComponent->property);                     \
     };                                                                                              \
                                                                                                     \
     config.registry.getters[#property] = [](void *componentPtr) -> YAML::Node {                     		\
-        return YAML::Node(static_cast<component *>(componentPtr)->property);                        \
+        auto *typedComponent = static_cast<component *>(componentPtr);                              \
+        return GetRegisteredProperty(typedComponent->property);                                     \
     };                                                                                         		\
                                                                                                     \
-    config.registry.drawers[#property] = [](const std::string &propertyName, void *componentPtr, const std::string &idSuffix) { \
+    config.registry.drawers[#property] = [](Editor &_editor, const std::string &propertyName, void *componentPtr, const std::string &idSuffix) { \
         auto *typedComponent = static_cast<component *>(componentPtr);                              \
-        DrawInspectorField<PropertyType>((propertyName + "##" + idSuffix).c_str(), typedComponent->property); \
+        DrawInspectorField<PropertyType>(_editor, propertyName.c_str(), idSuffix.c_str(), typedComponent->property); \
     };                                                                                               \
                                                                                                		\
     config.registry.propertyOrder.push_back(#property);                                             		\

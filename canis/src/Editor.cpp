@@ -36,6 +36,14 @@
 
 namespace Canis
 {
+    static const char *GetInspectorFieldID(const char *_label, const char *_idSuffix)
+    {
+        if (_idSuffix != nullptr && _idSuffix[0] != '\0')
+            return _idSuffix;
+
+        return _label;
+    }
+
     static std::string ResolveAssetRefPath(const YAML::Node &_node)
     {
         if (!_node)
@@ -1116,7 +1124,14 @@ namespace Canis
 
     void Editor::InputEntity(const std::string &_name, Canis::Entity *&_variable)
     {
+        InputEntity(_name, nullptr, _variable);
+    }
+
+    void Editor::InputEntity(const std::string &_name, const char *_idSuffix, Canis::Entity *&_variable)
+    {
+        ImGui::PushID(GetInspectorFieldID(_name.c_str(), _idSuffix));
         ImGui::Text("%s", _name.c_str());
+        
         ImGui::SameLine();
 
         std::string label;
@@ -1147,8 +1162,7 @@ namespace Canis
                 FocusEntity(entity);
         }
 
-        std::string popUpLabel = _name + "_ctx;";
-        if (entity && ImGui::BeginPopupContextItem(popUpLabel.c_str()))
+        if (entity && ImGui::BeginPopupContextItem("ctx"))
         {
             if (ImGui::MenuItem("Clear"))
                 *&_variable = nullptr;
@@ -1158,10 +1172,18 @@ namespace Canis
 
             ImGui::EndPopup();
         }
+
+        ImGui::PopID();
     }
 
     void Editor::InputAnimationClip(const std::string& _name, Canis::AnimationClip2DID &_variable)
     {
+        InputAnimationClip(_name, nullptr, _variable);
+    }
+
+    void Editor::InputAnimationClip(const std::string& _name, const char *_idSuffix, Canis::AnimationClip2DID &_variable)
+    {
+        ImGui::PushID(GetInspectorFieldID(_name.c_str(), _idSuffix));
         ImGui::Text("%s", _name.c_str());
 
         ImGui::SameLine();
@@ -1188,6 +1210,8 @@ namespace Canis
             }
             ImGui::EndDragDropTarget();
         }
+
+        ImGui::PopID();
     }
 
     bool Editor::IsDescendantOf(Canis::Entity *_parent, Canis::Entity *_potentialChild)
@@ -1363,7 +1387,7 @@ namespace Canis
         bool nodeOpen = ImGui::TreeNodeEx(label.c_str(), flags);
 
         // select on click
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
         {
             for (int i = 0; i < (int)_entities.size(); ++i)
             {

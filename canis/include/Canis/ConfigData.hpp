@@ -14,7 +14,7 @@ class ScriptableEntity;
 
 using PropertySetter = std::function<void(YAML::Node&, void*)>;
 using PropertyGetter = std::function<YAML::Node(void*)>;
-using PropertyDrawer = std::function<void(const std::string&, void*, const std::string&)>;
+using PropertyDrawer = std::function<void(Editor&, const std::string&, void*, const std::string&)>;
 
 struct PropertyRegistry {
     std::map<std::string, PropertySetter> setters;

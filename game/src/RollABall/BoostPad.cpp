@@ -11,12 +11,12 @@ namespace RollABall
     void RegisterBoostPadScript(App& _app)
     {
         REGISTER_PROPERTY(boostPadConf, RollABall::BoostPad, yeetForce);
+        REGISTER_PROPERTY(boostPadConf, RollABall::BoostPad, player);
+        REGISTER_PROPERTY(boostPadConf, RollABall::BoostPad, ground);
 
         DEFAULT_CONFIG_AND_REQUIRED(boostPadConf, RollABall::BoostPad, Transform, BoxCollider);
 
-        boostPadConf.DEFAULT_DRAW_INSPECTOR(RollABall::BoostPad,
-            _editor.InputEntity("ball", component->player);
-        );
+        boostPadConf.DEFAULT_DRAW_INSPECTOR(RollABall::BoostPad);
 
         _app.RegisterScript(boostPadConf);
     }

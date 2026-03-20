@@ -212,6 +212,11 @@ namespace Canis
 
     void App::RegisterDefaults(Editor& _editor)
     {
+        _editor.RegisterInspectorFieldDrawer<Canis::Entity*>([](Editor& _editor, const char* _label, const char* _idSuffix, Canis::Entity*& _value)
+        {
+            _editor.InputEntity(_label, _idSuffix, _value);
+        });
+
         ScriptConf rectTransformConf = {
             .name = "Canis::RectTransform",
             .Construct = nullptr,
@@ -783,8 +788,8 @@ namespace Canis
                 ImGui::InputFloat(("angularDamping##" + _conf.name).c_str(), &rigidbody->angularDamping);
                 ImGui::Checkbox(("useGravity##" + _conf.name).c_str(), &rigidbody->useGravity);
                 ImGui::Checkbox(("isSensor##" + _conf.name).c_str(), &rigidbody->isSensor);
-                DrawInspectorField(("layer##" + _conf.name).c_str(), rigidbody->layer);
-                DrawInspectorField(("mask##" + _conf.name).c_str(), rigidbody->mask);
+                DrawInspectorField("layer", _conf.name.c_str(), rigidbody->layer);
+                DrawInspectorField("mask", _conf.name.c_str(), rigidbody->mask);
                 ImGui::Checkbox(("allowSleeping##" + _conf.name).c_str(), &rigidbody->allowSleeping);
                 ImGui::Checkbox(("lockRotationX##" + _conf.name).c_str(), &rigidbody->lockRotationX);
                 ImGui::Checkbox(("lockRotationY##" + _conf.name).c_str(), &rigidbody->lockRotationY);

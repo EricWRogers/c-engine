@@ -11,6 +11,7 @@ namespace RollABall
 
         float yeetForce = 10000.0f;
         Canis::Entity* player = nullptr;
+        Canis::Entity* ground = nullptr;
 
         explicit BoostPad(Canis::Entity& _entity) : Canis::ScriptableEntity(_entity) {}
 

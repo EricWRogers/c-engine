@@ -668,3 +668,5 @@ Entities:
         uuid: 17154083321347000101
     RollABall::BoostPad:
       yeetForce: 10
+      player: 910020
+      ground: 910010

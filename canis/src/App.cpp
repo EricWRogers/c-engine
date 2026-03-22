@@ -1663,6 +1663,24 @@ namespace Canis
         };
 
         RegisterInspectorItem(inspectorCreatePointLight);
+
+        InspectorItemRightClick inspectorCreateCube = {
+            .name = "Create Cube",
+            .Func = [](App& _app, Editor& _editor, Entity& _entity, std::vector<ScriptConf>& _scriptConfs) -> void {
+                Canis::Entity *cube = _app.scene.CreateEntity("Cube");
+                
+                Transform *transform = cube->AddComponent<Transform>();
+                transform->position = Vector3(0.0f);
+                
+                Model* model = cube->AddComponent<Model>();
+                model->modelId = AssetManager::LoadModel("assets/defaults/models/cube.glb");
+
+                Material* material = cube->AddComponent<Material>();
+                material->materialId = AssetManager::LoadMaterial("assets/defaults/materials/default.material");
+            }
+        };
+
+        RegisterInspectorItem(inspectorCreateCube);
     }
 
     float App::FPS()

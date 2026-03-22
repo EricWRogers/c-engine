@@ -1322,7 +1322,7 @@ namespace Canis
                     _entity.AddComponent<Transform>();
 
                 Model* model = _entity.AddComponent<Model>();
-                model->modelId = AssetManager::LoadModel("assets/models/dq.gltf");
+                model->modelId = AssetManager::LoadModel("assets/defaults/models/cube.glb");
 
                 if (!_entity.HasComponent<Material>())
                 {

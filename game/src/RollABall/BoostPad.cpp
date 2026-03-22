@@ -61,7 +61,7 @@ namespace RollABall
 
             if (other->HasScript<RollABall::PlayerController>()) {
                 Rigidbody& playerRigidbody = other->GetComponent<Rigidbody>();
-                playerRigidbody.AddForce(Vector3(0.0f, yeetForce*yeetForce, 0.0f), Rigidbody3DForceMode::IMPULSE);
+                playerRigidbody.AddForce(Vector3(0.0f, yeetForce, 0.0f), Rigidbody3DForceMode::IMPULSE);
                 break;
             }
         }

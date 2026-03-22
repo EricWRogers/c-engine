@@ -180,8 +180,10 @@ namespace Canis
 		// Linux: assumes "code" is in PATH
 		std::string cmd = "code --reuse-window \"" + _filePath + "\"";
 	#endif
-		Debug::Log("%s", cmd.c_str());
-		std::system(cmd.c_str());
+		int exitCode = std::system(cmd.c_str());
+		
+		if (exitCode != 0)
+			Debug::Warning("Warning OpenInVSCode exit code: %i command: %s", exitCode, cmd.c_str());
 	}
 
     /*

@@ -10,6 +10,7 @@ class App
 {
 public:
     Scene scene;
+    ~App();
     void Run();
 
     // Time
@@ -34,11 +35,20 @@ public:
     void UnregisterInspectorItem(InspectorItemRightClick& _item);
     std::vector<InspectorItemRightClick>& GetInspectorItemRegistry() { return m_inspectorItemRegistry; }
 private:
+    struct RuntimeContext;
+
     std::vector<ScriptConf> m_scriptRegistry = {};
     std::vector<InspectorItemRightClick> m_inspectorItemRegistry = {};
 
+    void InitializeRuntime();
+    bool RunFrame();
+    void ShutdownRuntime();
+#if defined(__EMSCRIPTEN__)
+    static void WebMainLoop(void *_appPtr);
+#endif
     void RegisterDefaults(Editor& _editor);
     Editor* m_editor;
+    RuntimeContext* m_runtime = nullptr;
     float m_updateTimeMs = 0.0f;
     float m_sceneUpdateTimeMs = 0.0f;
     float m_gameCodeUpdateTimeMs = 0.0f;

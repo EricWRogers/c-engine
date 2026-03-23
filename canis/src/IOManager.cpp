@@ -171,6 +171,10 @@ namespace Canis
 
 	void OpenInVSCode(const std::string& _filePath)
 	{
+	#if defined(__EMSCRIPTEN__)
+		(void)_filePath;
+		Debug::Warning("OpenInVSCode is unavailable in web builds.");
+	#else
 	#if defined(_WIN32)
 		std::string cmd = "code --reuse-window \"" + _filePath + "\"";
 	#elif defined(__APPLE__)
@@ -184,6 +188,7 @@ namespace Canis
 		
 		if (exitCode != 0)
 			Debug::Warning("Warning OpenInVSCode exit code: %i command: %s", exitCode, cmd.c_str());
+	#endif
 	}
 
     /*

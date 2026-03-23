@@ -75,6 +75,7 @@ inline std::string BuildInspectorFieldLabel(const char *_label, const char *_idS
 template <typename T>
 inline void DrawInspectorField(Editor *_editor, const char *_label, const char *_idSuffix, T &_value)
 {
+#if CANIS_EDITOR
     if (_editor != nullptr && _editor->DrawRegisteredInspectorField(_label, _idSuffix, _value))
         return;
 
@@ -190,6 +191,14 @@ inline void DrawInspectorField(Editor *_editor, const char *_label, const char *
     {
         ImGui::TextDisabled("%s (unsupported type)", _label);
     }
+#else
+    if (_editor != nullptr)
+        (void)_editor->DrawRegisteredInspectorField(_label, _idSuffix, _value);
+
+    (void)_label;
+    (void)_idSuffix;
+    (void)_value;
+#endif
 }
 
 template <typename T>
@@ -218,6 +227,7 @@ inline void DrawInspectorField(const char *_label, const char *_idSuffix, T &_va
 
 inline void DrawRegisteredProperties(Editor &_editor, const PropertyRegistry &_registry, void *_component, const std::string &_idSuffix)
 {
+#if CANIS_EDITOR
     for (const std::string &propertyName : _registry.propertyOrder)
     {
         auto drawerIt = _registry.drawers.find(propertyName);
@@ -226,6 +236,12 @@ inline void DrawRegisteredProperties(Editor &_editor, const PropertyRegistry &_r
 
         drawerIt->second(_editor, propertyName, _component, _idSuffix);
     }
+#else
+    (void)_editor;
+    (void)_registry;
+    (void)_component;
+    (void)_idSuffix;
+#endif
 }
 
 #define DEFAULT_ADD_AND_REQUIRED(type, ...)                               \

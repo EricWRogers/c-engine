@@ -10,9 +10,34 @@
 
 #include <vector>
 #include <fstream>
+#include <sstream>
 
 namespace Canis
 {
+    namespace
+    {
+        bool HasActivePrecisionQualifier(const std::string &_source)
+        {
+            std::istringstream stream(_source);
+            std::string line;
+
+            while (std::getline(stream, line))
+            {
+                const size_t firstNonWhitespace = line.find_first_not_of(" \t\r");
+                if (firstNonWhitespace == std::string::npos)
+                    continue;
+
+                if (line.compare(firstNonWhitespace, 2, "//") == 0)
+                    continue;
+
+                if (line.compare(firstNonWhitespace, 10, "precision ") == 0)
+                    return true;
+            }
+
+            return false;
+        }
+    }
+
     Shader::Shader()
     {
     }
@@ -245,6 +270,19 @@ namespace Canis
             Debug::Error("Add [OPENGL VERSION] to the top of your shader file: %s", _filePath.c_str());
             shaderFileCode = versionDirective + shaderFileCode;
         }
+
+#if defined(__EMSCRIPTEN__)
+        if (!HasActivePrecisionQualifier(shaderFileCode))
+        {
+            const size_t firstNewline = shaderFileCode.find('\n');
+            const std::string precisionBlock = "\nprecision mediump float;\nprecision mediump int;\n";
+
+            if (firstNewline == std::string::npos)
+                shaderFileCode += precisionBlock;
+            else
+                shaderFileCode.insert(firstNewline + 1, precisionBlock);
+        }
+#endif
 
         //Canis::Log(shaderFileCode);
 

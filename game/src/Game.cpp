@@ -32,8 +32,7 @@ extern "C"
         
 
         Canis::Debug::Log("Game initialized!");
-        GameData *gameData = (GameData *)malloc(sizeof(GameData));
-        *gameData = GameData{};
+        GameData *gameData = new GameData{};
         gameData->id = 5;
         return (void *)gameData;
     }

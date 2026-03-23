@@ -2,12 +2,41 @@ cmake_minimum_required(VERSION 3.20)
 project(c-engine)
 set(ASSETS_DIR_NAME assets)
 set(PROJECT_SETTINGS_DIR_NAME project_settings)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}/project/>)
+
+set(CANIS_PLATFORM_WEB OFF)
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  set(CANIS_PLATFORM_WEB ON)
+endif()
+
+set(CANIS_DEFAULT_EDITOR ON)
+if(CANIS_PLATFORM_WEB)
+  set(CANIS_DEFAULT_EDITOR OFF)
+endif()
+option(CANIS_ENABLE_EDITOR "Build editor support" ${CANIS_DEFAULT_EDITOR})
+
+if(CANIS_PLATFORM_WEB AND CANIS_ENABLE_EDITOR)
+  message(WARNING "Web builds do not support the editor runtime. Disabling CANIS_ENABLE_EDITOR.")
+  set(CANIS_ENABLE_EDITOR OFF CACHE BOOL "Build editor support" FORCE)
+endif()
+
+set(CANIS_EDITOR_DEFINE 0)
+if(CANIS_ENABLE_EDITOR)
+  set(CANIS_EDITOR_DEFINE 1)
+endif()
+
+set(CANIS_DESKTOP_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/project")
+set(CANIS_WEB_EXPORT_DIRECTORY "${CMAKE_BINARY_DIR}/web")
+
+if(CANIS_PLATFORM_WEB)
+  set(CANIS_RUNTIME_OUTPUT_DIRECTORY "${CANIS_WEB_EXPORT_DIRECTORY}")
+else()
+  set(CANIS_RUNTIME_OUTPUT_DIRECTORY "${CANIS_DESKTOP_RUNTIME_OUTPUT_DIRECTORY}")
+endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CANIS_RUNTIME_OUTPUT_DIRECTORY}")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-add_definitions(-DCANIS_EDITOR)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-fno-gnu-unique)
@@ -54,6 +83,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 #set(SDL_GPU_ENABLE_SHADERCROSS  ON CACHE BOOL "")
 set(SDL_OPENGLES ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+if(CANIS_PLATFORM_WEB)
+  set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+  set(SDL_STATIC ON CACHE BOOL "" FORCE)
+endif()
 
 set(glew-cmake_BUILD_SHARED         FALSE)
 set(glew-cmake_BUILD_STATIC         TRUE)
@@ -67,19 +100,21 @@ add_subdirectory(external/stb)
 
 # imgui
 set(IMGUI_PATH  "external/imgui")
-file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp) 
-file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl3.h ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h) 
+file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdl3.cpp ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.cpp ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp)
+file(GLOB IMGUI_HEADERS ${IMGUI_PATH}/*.h ${IMGUI_PATH}/backends/imgui_impl_opengl3.h ${IMGUI_PATH}/backends/imgui_impl_sdl3.h ${IMGUI_PATH}/backends/imgui_impl_sdlgpu3.h ${IMGUI_PATH}/misc/cpp/imgui_stdlib.h)
 add_library("imgui" STATIC ${IMGUI_SOURCES})
 target_include_directories("imgui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends/ ${IMGUI_PATH}/misc/cpp/)
 target_link_libraries("imgui" PRIVATE SDL3::SDL3)
 
-# imguizmo
-set(IMGUIZMO_PATH "external/imguizmo")
-file(GLOB IMGUIZMO_SOURCES ${IMGUIZMO_PATH}/*.cpp)
-file(GLOB IMGUIZMO_HEADERS ${IMGUIZMO_PATH}/*.h)
-add_library("imguizmo" STATIC ${IMGUIZMO_SOURCES})
-target_include_directories("imguizmo" PUBLIC ${IMGUIZMO_PATH})
-target_link_libraries("imguizmo" PRIVATE "imgui" SDL3::SDL3)
+if(CANIS_ENABLE_EDITOR)
+  # imguizmo
+  set(IMGUIZMO_PATH "external/imguizmo")
+  file(GLOB IMGUIZMO_SOURCES ${IMGUIZMO_PATH}/*.cpp)
+  file(GLOB IMGUIZMO_HEADERS ${IMGUIZMO_PATH}/*.h)
+  add_library("imguizmo" STATIC ${IMGUIZMO_SOURCES})
+  target_include_directories("imguizmo" PUBLIC ${IMGUIZMO_PATH})
+  target_link_libraries("imguizmo" PRIVATE "imgui" SDL3::SDL3)
+endif()
 
 # yaml-cpp
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable yaml-cpp tools" FORCE)
@@ -117,3 +152,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(canis)
 add_subdirectory(game)
+
+if(CANIS_PLATFORM_WEB)
+  target_link_libraries(${PROJECT_NAME} PRIVATE GameCode)
+endif()

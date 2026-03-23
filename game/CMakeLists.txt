@@ -41,7 +41,12 @@ list(REMOVE_ITEM GAME_HEADERS "${GENERATED_REGISTER_SCRIPTS_HEADER}")
 
 message(STATUS "GAME_INCLUDE_DIRS ${GAME_HEADERS}")
 
-add_library(GameCode SHARED
+set(GAME_CODE_LIBRARY_TYPE SHARED)
+if(CANIS_PLATFORM_WEB)
+    set(GAME_CODE_LIBRARY_TYPE STATIC)
+endif()
+
+add_library(GameCode ${GAME_CODE_LIBRARY_TYPE}
     ${GAME_HEADERS}
     ${GAME_SOURCES}
 )
@@ -62,21 +67,28 @@ target_link_libraries(GameCode
     CanisEngine
 )
 
+target_compile_definitions(GameCode
+    PRIVATE
+    CANIS_EDITOR=${CANIS_EDITOR_DEFINE}
+)
+
 # Set output directory to match the engine executable
 set_target_properties(GameCode PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )
 
-# Copy assets directory
-if (WIN32)
-    add_custom_command(TARGET GameCode POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/${PROJECT_SETTINGS_DIR_NAME}/
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_SETTINGS_DIR_NAME})
-else()
-    add_custom_command(TARGET GameCode PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/${PROJECT_SETTINGS_DIR_NAME}/
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_SETTINGS_DIR_NAME})
+if(NOT CANIS_PLATFORM_WEB)
+    if (WIN32)
+        add_custom_command(TARGET GameCode POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/${PROJECT_SETTINGS_DIR_NAME}/
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_SETTINGS_DIR_NAME})
+    else()
+        add_custom_command(TARGET GameCode PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink
+                ${CMAKE_SOURCE_DIR}/${PROJECT_SETTINGS_DIR_NAME}/
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_SETTINGS_DIR_NAME})
+    endif()
 endif()

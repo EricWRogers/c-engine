@@ -4,8 +4,10 @@
 #include <SDL3/SDL_events.h>
 #include <Canis/Debug.hpp>
 #include <Canis/Canis.hpp>
+#if CANIS_EDITOR
+#include <imgui.h>
 #include <imgui_impl_sdl3.h>
-#include <ImGuizmo.h>
+#endif
 #include <Canis/Window.hpp>
 
 namespace Canis

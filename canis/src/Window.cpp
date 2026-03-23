@@ -61,7 +61,11 @@ namespace Canis
 
         InitGL();
 
+#ifdef __EMSCRIPTEN__
+        SDL_GL_SetSwapInterval(static_cast<int>(VSYNC));
+#else
         SDL_GL_SetSwapInterval(0);
+#endif
     }
 
     Window::~Window()
@@ -197,6 +201,15 @@ namespace Canis
             Debug::Warning("SDL_GL_MakeCurrent failed while setting sync: %s", SDL_GetError());
             return;
         }
+
+#ifdef __EMSCRIPTEN__
+        (void)_type;
+
+        // Browser builds should stay on requestAnimationFrame / VSync timing.
+        if (!SDL_GL_SetSwapInterval(static_cast<int>(VSYNC)))
+            Debug::Warning("SDL_GL_SetSwapInterval(VSYNC) failed: %s", SDL_GetError());
+        return;
+#endif
 
         if (!SDL_GL_SetSwapInterval(static_cast<int>(_type)))
         {

@@ -5,7 +5,6 @@
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_init.h>
-#include <SDL3/SDL_loadso.h>
 
 #include <Canis/Canis.hpp>
 #include <Canis/GameCodeObject.hpp>
@@ -18,34 +17,59 @@
 #include <Canis/AssetManager.hpp>
 #include <Canis/ConfigHelper.hpp>
 
+#include <imgui.h>
+#include <imgui_stdlib.h>
+
 #include <algorithm>
 #include <filesystem>
+#include <memory>
+
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/emscripten.h>
+#endif
 
 namespace Canis
 {
-    void App::Run()
+    struct App::RuntimeContext
+    {
+        std::unique_ptr<Window> window;
+        std::unique_ptr<Editor> editor;
+        std::unique_ptr<InputManager> inputManager;
+        GameCodeObject gameCodeObject = {};
+        bool editorRuntimeEnabled = false;
+    };
+
+    namespace
     {
         namespace fs = std::filesystem;
 
-        Debug::Log("App Run");
-#ifdef _WIN32
-        const char *sharedObjectPath = "./libGameCode.dll";
-#elif __APPLE__
-        const char *sharedObjectPath = "./libGameCode.dylib";
-#elif __linux__
-        const char *sharedObjectPath = "./libGameCode.so";
+        const char *GetGameCodeSharedObjectPath()
+        {
+#if defined(__EMSCRIPTEN__)
+            return "";
+#elif defined(_WIN32)
+            return "./libGameCode.dll";
+#elif defined(__APPLE__)
+            return "./libGameCode.dylib";
+#elif defined(__linux__)
+            return "./libGameCode.so";
+#else
+            return "";
 #endif
+        }
 
-        auto hasAssetsFolder = [](const fs::path &_path) -> bool
+        bool HasAssetsFolder(const fs::path &_path)
         {
             const fs::path assetsPath = _path / "assets";
             return fs::exists(assetsPath) && fs::is_directory(assetsPath);
-        };
+        }
 
-        if (!hasAssetsFolder(fs::current_path()))
+        void ResolveProjectWorkingDirectory()
         {
-            std::vector<fs::path> candidatePaths = {};
+            if (HasAssetsFolder(fs::current_path()))
+                return;
 
+            std::vector<fs::path> candidatePaths = {};
             if (const char *basePath = SDL_GetBasePath())
             {
                 candidatePaths.emplace_back(basePath);
@@ -56,7 +80,7 @@ namespace Canis
 
             for (const fs::path &candidatePath : candidatePaths)
             {
-                if (!hasAssetsFolder(candidatePath))
+                if (!HasAssetsFolder(candidatePath))
                     continue;
 
                 fs::current_path(candidatePath);
@@ -64,150 +88,223 @@ namespace Canis
             }
         }
 
-        // find all the meta files and load to asset manager
-        std::vector<std::string> paths = FindFilesInFolder("assets", "");
+        void LoadProjectAssetMetadata()
+        {
+            std::vector<std::string> paths = FindFilesInFolder("assets", "");
+            for (const std::string &path : paths)
+                (void)AssetManager::GetMetaFile(path);
+        }
+    }
 
-        for (std::string path : paths)
-            MetaFileAsset *meta = AssetManager::GetMetaFile(path);
-        
+    App::~App()
+    {
+        ShutdownRuntime();
+    }
+
+    void App::InitializeRuntime()
+    {
+        if (m_runtime != nullptr)
+            return;
+
+        Debug::Log("App Run");
+        ResolveProjectWorkingDirectory();
+        LoadProjectAssetMetadata();
         Canis::Init();
 
-        bool editorRuntimeEnabled = false;
+        m_runtime = new RuntimeContext();
+        RuntimeContext &runtime = *m_runtime;
+
 #if CANIS_EDITOR
-        editorRuntimeEnabled = Canis::GetProjectConfig().editor;
+        runtime.editorRuntimeEnabled = Canis::GetProjectConfig().editor;
 #endif
 
-        // init window
-        const int startupWidth = std::max(320, editorRuntimeEnabled ? GetProjectConfig().editorWindowWidth
-                                                                     : GetProjectConfig().targetGameWidth);
-        const int startupHeight = std::max(240, editorRuntimeEnabled ? GetProjectConfig().editorWindowHeight
-                                                                      : GetProjectConfig().targetGameHeight);
-        Window window("Canis Beta", startupWidth, startupHeight);
-        window.SetClearColor(Color(1.0f));
-        window.SetSync(static_cast<Window::Sync>(GetProjectConfig().syncMode));
-        
-        // get icon
+        const int startupWidth = std::max(320, runtime.editorRuntimeEnabled ? GetProjectConfig().editorWindowWidth
+                                                                             : GetProjectConfig().targetGameWidth);
+        const int startupHeight = std::max(240, runtime.editorRuntimeEnabled ? GetProjectConfig().editorWindowHeight
+                                                                              : GetProjectConfig().targetGameHeight);
+        runtime.window = std::make_unique<Window>("Canis Beta", startupWidth, startupHeight);
+        runtime.window->SetClearColor(Color(1.0f));
+        runtime.window->SetSync(static_cast<Window::Sync>(GetProjectConfig().syncMode));
+
         if (GetProjectConfig().iconUUID == UUID(0))
         {
-            GetProjectConfig().iconUUID = AssetManager::GetMetaFile("assets/defaults/textures/engine_icon.png")->uuid;
-            SaveProjectConfig();
+            if (MetaFileAsset *iconMeta = AssetManager::GetMetaFile("assets/defaults/textures/engine_icon.png"))
+            {
+                GetProjectConfig().iconUUID = iconMeta->uuid;
+                SaveProjectConfig();
+            }
         }
 
-        window.SetWindowIcon(AssetManager::GetPath(GetProjectConfig().iconUUID));
+        const std::string iconPath = AssetManager::GetPath(GetProjectConfig().iconUUID);
+        if (iconPath != "Path was not found in AssetLibrary")
+            runtime.window->SetWindowIcon(iconPath);
 
-        Editor editor;
-        m_editor = &editor;
+        runtime.editor = std::make_unique<Editor>();
+        m_editor = runtime.editor.get();
 #if CANIS_EDITOR
-        if (editorRuntimeEnabled)
-            editor.Init(&window);
+        if (runtime.editorRuntimeEnabled)
+            runtime.editor->Init(runtime.window.get());
 #endif
 
-        RegisterDefaults(editor);
+        RegisterDefaults(*runtime.editor);
 
-        InputManager inputManager;
-        inputManager.SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)window.GetSDLWindow()));
+        runtime.inputManager = std::make_unique<InputManager>();
+        runtime.inputManager->SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)runtime.window->GetSDLWindow()));
 
         if (Canis::GetProjectConfig().useFrameLimit)
             Time::Init(Canis::GetProjectConfig().frameLimit + 0.0f);
         else
             Time::Init(100000.0f);
-        
+
 #if CANIS_EDITOR
-        if (editorRuntimeEnabled)
+        if (runtime.editorRuntimeEnabled)
             Time::SetTargetFPS(Canis::GetProjectConfig().frameLimitEditor + 0.0f);
 #endif
 
-        scene.Init(this, &window, &inputManager, "assets/scenes/roll_a_ball.scene");
+        scene.Init(this, runtime.window.get(), runtime.inputManager.get(), "assets/scenes/roll_a_ball.scene");
 
-        GameCodeObject gameCodeObject = GameCodeObjectInit(sharedObjectPath);
-        GameCodeObjectInitFunction(&gameCodeObject, this);
+        runtime.gameCodeObject = GameCodeObjectInit(GetGameCodeSharedObjectPath());
+        GameCodeObjectInitFunction(&runtime.gameCodeObject, this);
 
-        // call after all the systems are added
-        // and after script from the game lib have been registered
         scene.Load(m_scriptRegistry);
+    }
 
-        while (inputManager.Update((void *)&window))
+    bool App::RunFrame()
+    {
+        if (m_runtime == nullptr)
+            return false;
+
+        RuntimeContext &runtime = *m_runtime;
+        Window &window = *runtime.window;
+        Editor &editor = *runtime.editor;
+        InputManager &inputManager = *runtime.inputManager;
+        GameCodeObject &gameCodeObject = runtime.gameCodeObject;
+
+        if (!inputManager.Update((void *)&window))
+            return false;
+
+        if (window.IsResized())
         {
-            if (window.IsResized())
+            if (runtime.editorRuntimeEnabled)
             {
-                if (editorRuntimeEnabled)
-                {
-                    GetProjectConfig().editorWindowWidth = window.GetWindowWidth();
-                    GetProjectConfig().editorWindowHeight = window.GetWindowHeight();
-                }
-                else
-                {
-                    GetProjectConfig().targetGameWidth = window.GetWindowWidth();
-                    GetProjectConfig().targetGameHeight = window.GetWindowHeight();
-                }
-            }
-
-            f32 deltaTime = Time::StartFrame();
-
-            bool runGameTick = true;
-#if CANIS_EDITOR
-            if (editorRuntimeEnabled)
-                runGameTick = (editor.m_mode == EditorMode::PLAY);
-#endif
-
-            if (runGameTick)
-            {
-                Uint64 sceneUpdateStart = SDL_GetTicksNS();
-                scene.Update(deltaTime);
-                m_sceneUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - sceneUpdateStart) / 1000000.0f;
-
-                Uint64 gameCodeUpdateStart = SDL_GetTicksNS();
-                // call the dynamically loaded function
-                GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
-                m_gameCodeUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - gameCodeUpdateStart) / 1000000.0f;
-
-                m_updateTimeMs = m_sceneUpdateTimeMs + m_gameCodeUpdateTimeMs;
+                GetProjectConfig().editorWindowWidth = window.GetWindowWidth();
+                GetProjectConfig().editorWindowHeight = window.GetWindowHeight();
             }
             else
             {
-                m_updateTimeMs = 0.0f;
-                m_sceneUpdateTimeMs = 0.0f;
-                m_gameCodeUpdateTimeMs = 0.0f;
+                GetProjectConfig().targetGameWidth = window.GetWindowWidth();
+                GetProjectConfig().targetGameHeight = window.GetWindowHeight();
             }
-            
-            // GameCodeObjectWatchFile(&gameCodeObject, this);
-
-            Uint64 renderStart = SDL_GetTicksNS();
-            window.Clear();
-#if CANIS_EDITOR
-            if (editorRuntimeEnabled)
-            {
-                editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
-                inputManager.SetGameInputWindowID(editor.GetGameInputWindowID());
-            }
-            else
-#endif
-            {
-                scene.Render(deltaTime);
-                inputManager.SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)window.GetSDLWindow()));
-            }
-            window.SwapBuffer();
-            m_renderTimeMs = static_cast<float>(SDL_GetTicksNS() - renderStart) / 1000000.0f;
-
-            Time::EndFrame();
         }
 
-        if (editorRuntimeEnabled)
+        f32 deltaTime = Time::StartFrame();
+
+        bool runGameTick = true;
+#if CANIS_EDITOR
+        if (runtime.editorRuntimeEnabled)
+            runGameTick = (editor.m_mode == EditorMode::PLAY);
+#endif
+
+        if (runGameTick)
         {
-            GetProjectConfig().editorWindowWidth = window.GetWindowWidth();
-            GetProjectConfig().editorWindowHeight = window.GetWindowHeight();
+            Uint64 sceneUpdateStart = SDL_GetTicksNS();
+            scene.Update(deltaTime);
+            m_sceneUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - sceneUpdateStart) / 1000000.0f;
+
+            Uint64 gameCodeUpdateStart = SDL_GetTicksNS();
+            GameCodeObjectUpdateFunction(&gameCodeObject, this, deltaTime);
+            m_gameCodeUpdateTimeMs = static_cast<float>(SDL_GetTicksNS() - gameCodeUpdateStart) / 1000000.0f;
+
+            m_updateTimeMs = m_sceneUpdateTimeMs + m_gameCodeUpdateTimeMs;
         }
         else
         {
-            GetProjectConfig().targetGameWidth = window.GetWindowWidth();
-            GetProjectConfig().targetGameHeight = window.GetWindowHeight();
+            m_updateTimeMs = 0.0f;
+            m_sceneUpdateTimeMs = 0.0f;
+            m_gameCodeUpdateTimeMs = 0.0f;
         }
-        SaveProjectConfig();
+
+        Uint64 renderStart = SDL_GetTicksNS();
+        window.Clear();
+#if CANIS_EDITOR
+        if (runtime.editorRuntimeEnabled)
+        {
+            editor.Draw(&scene, &window, this, &gameCodeObject, deltaTime);
+            inputManager.SetGameInputWindowID(editor.GetGameInputWindowID());
+        }
+        else
+#endif
+        {
+            scene.Render(deltaTime);
+            inputManager.SetGameInputWindowID(SDL_GetWindowID((SDL_Window*)window.GetSDLWindow()));
+        }
+        window.SwapBuffer();
+        m_renderTimeMs = static_cast<float>(SDL_GetTicksNS() - renderStart) / 1000000.0f;
+
+        Time::EndFrame();
+
+        return true;
+    }
+
+    void App::ShutdownRuntime()
+    {
+        if (m_runtime == nullptr)
+            return;
+
+        RuntimeContext *runtime = m_runtime;
+        m_runtime = nullptr;
+
+        if (runtime->window != nullptr)
+        {
+            if (runtime->editorRuntimeEnabled)
+            {
+                GetProjectConfig().editorWindowWidth = runtime->window->GetWindowWidth();
+                GetProjectConfig().editorWindowHeight = runtime->window->GetWindowHeight();
+            }
+            else
+            {
+                GetProjectConfig().targetGameWidth = runtime->window->GetWindowWidth();
+                GetProjectConfig().targetGameHeight = runtime->window->GetWindowHeight();
+            }
+
+            SaveProjectConfig();
+        }
 
         scene.Unload();
         Time::Quit();
-        gameCodeObject.GameShutdownFunction((void *)this, gameCodeObject.gameData);
-        SDL_UnloadObject(gameCodeObject.sharedObjectHandle);
+        GameCodeObjectShutdownFunction(&runtime->gameCodeObject, this);
+        GameCodeObjectDestroy(&runtime->gameCodeObject);
+        m_editor = nullptr;
+        delete runtime;
+    }
+
+#if defined(__EMSCRIPTEN__)
+    void App::WebMainLoop(void *_appPtr)
+    {
+        App *app = static_cast<App *>(_appPtr);
+        if (app == nullptr)
+            return;
+
+        if (!app->RunFrame())
+        {
+            app->ShutdownRuntime();
+            emscripten_cancel_main_loop();
+        }
+    }
+#endif
+
+    void App::Run()
+    {
+        InitializeRuntime();
+
+#if defined(__EMSCRIPTEN__)
+        emscripten_set_main_loop_arg(&App::WebMainLoop, this, 0, true);
+#else
+        while (RunFrame())
+        {
+        }
+        ShutdownRuntime();
+#endif
     }
 
     void App::RegisterDefaults(Editor& _editor)
